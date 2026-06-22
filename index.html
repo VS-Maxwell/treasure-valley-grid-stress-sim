@@ -1644,16 +1644,6 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
   }
 
   function mountUI(){
-    var panel=document.getElementById('panel'); if(!panel) return false;
-    if(document.getElementById('explode-sect')) return true;
-    var d=document.createElement('div'); d.className='sect'; d.id='explode-sect';
-    d.innerHTML='<h2>Exploded systems <span class="badge">3D</span></h2>'+
-      '<label class="row"><input type="checkbox" id="ex-toggle"> Explode the layers apart</label>'+
-      '<div style="font-size:11px;color:#9fb2c6;margin:2px 0 4px">Gap <input type="range" id="ex-gap" min="0" max="11000" value="4200" step="250" style="width:100%"></div>'+
-      '<div id="ex-focus" style="font-size:10.5px;color:#8aa0b8;line-height:1.4">Click any floating plane or grid cell to isolate or inspect it.</div>';
-    panel.appendChild(d);
-    d.querySelector('#ex-toggle').addEventListener('change',function(){ enable(this.checked); });
-    d.querySelector('#ex-gap').addEventListener('input',function(){ ST.gap=+this.value; if(ST.on) refresh(); });
     return true;
   }
 
