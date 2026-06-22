@@ -1678,6 +1678,12 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
     function setBase(mode){
       try{ if(map.getLayer('esri-imagery')) map.setLayoutProperty('esri-imagery','visibility', mode==='sat'?'visible':'none'); }catch(e){}
       try{ if(map.getLayer('naip')) map.setLayoutProperty('naip','visibility', mode==='naip'?'visible':'none'); }catch(e){}
+      var ab = document.getElementById('attrib-basemap');
+      if(ab) {
+        if(mode==='sat') ab.innerHTML = typeof ATTRIB_SAT !== 'undefined' ? ATTRIB_SAT : 'Imagery &copy; Esri, Maxar, Earthstar';
+        else if(mode==='naip') ab.innerHTML = 'Imagery &copy; USDA NAIP';
+        else ab.innerHTML = typeof ATTRIB_VECTOR !== 'undefined' ? ATTRIB_VECTOR : 'Basemap &copy; OpenFreeMap';
+      }
     }
     var bs='flex:1;padding:5px 4px;font-size:11px;cursor:pointer;border-radius:5px;border:1px solid #2f4256;background:#16202c;color:#cde;';
     var d=document.createElement('div'); d.className='sect'; d.id='basemap-sect';
