@@ -1466,46 +1466,88 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
     if (info && info.object) {
       var layerId = info.layer.id;
       var obj = info.object;
-      var html = "";
+      var title = "";
+      var subtitle = "";
+      var color = "#5fd0ff";
+      var rows = [];
+      var equation = "";
+      var methodology = "";
+
       if (layerId === 'ex-aq-grid') {
         var avgDepth = obj.elevationValue;
-        html = "<h3 style='margin:0 0 5px;color:#5fd0ff;font-size:12px;'>USGS Aquifer Water-Table Model</h3>" +
-               "<b>Cell Centroid:</b> [" + info.coordinate[0].toFixed(4) + ", " + info.coordinate[1].toFixed(4) + "]<br>" +
-               "<b>USGS Wells in Cell:</b> " + obj.points.length + "<br>" +
-               "<b>Average Depth to Water:</b> " + avgDepth.toFixed(1) + " ft<br>" +
-               "<b>Scientific Model:</b> USGS groundwater monitoring database spatial interpolation.<br>" +
-               "<b>Methodology:</b> Triangulated spatial aggregation of static head measurements relative to land surface datum.<br>" +
-               "<div style='font-family:Consolas, monospace;background:rgba(0,0,0,0.3);padding:4px;border-radius:4px;margin-top:5px;font-size:9.5px;color:#a8c4ff;'>Equation: D_{avg} = \frac{1}{N}\sum_{i=1}^N Depth_i</div>";
+        title = "USGS Aquifer Water-Table";
+        subtitle = "Groundwater Interpolation Model";
+        color = "#2bb6ff";
+        rows = [
+          { label: "Cell Centroid", value: "[" + info.coordinate[0].toFixed(4) + ", " + info.coordinate[1].toFixed(4) + "]" },
+          { label: "Active USGS Wells", value: obj.points.length },
+          { label: "Average Depth to Water", value: "<span style='color:#2bb6ff;font-weight:bold;'>" + avgDepth.toFixed(1) + " ft</span>" }
+        ];
+        methodology = "Triangulated spatial aggregation of static head measurements relative to land surface datum.";
+        equation = "D_avg = 1/N * \u2211(Depth_i)";
       } else if (layerId === 'ex-load') {
         var mw = obj[2];
-        html = "<h3 style='margin:0 0 5px;color:#ff8a3d;font-size:12px;'>NREL ResStock Demand Model</h3>" +
-               "<b>Cell Location:</b> [" + obj[0].toFixed(4) + ", " + obj[1].toFixed(4) + "]<br>" +
-               "<b>Local Demand:</b> " + mw.toFixed(1) + " MW<br>" +
-               "<b>Scientific Model:</b> EIA-930 disaggregated population-weighted demand.<br>" +
-               "<b>Methodology:</b> Top-down disaggregation of IPCO balancing authority hourly load shape using local census tract demographic density.<br>" +
-               "<div style='font-family:Consolas, monospace;background:rgba(0,0,0,0.3);padding:4px;border-radius:4px;margin-top:5px;font-size:9.5px;color:#ffe27a;'>Equation: P_{cell} = P_{total} \times \frac{Pop_{cell}}{Pop_{total}} \times Shape_{hourly}</div>";
+        title = "NREL ResStock Demand Model";
+        subtitle = "Population-Weighted Disaggregation";
+        color = "#ff8a3d";
+        rows = [
+          { label: "Cell Location", value: "[" + obj[0].toFixed(4) + ", " + obj[1].toFixed(4) + "]" },
+          { label: "Local Load Stress", value: "<span style='color:#ff8a3d;font-weight:bold;'>" + mw.toFixed(1) + " MW</span>" }
+        ];
+        methodology = "Top-down disaggregation of IPCO balancing authority hourly load shape using local census tract demographic density.";
+        equation = "P_cell = P_total * (Pop_cell / Pop_total) * Shape_hourly";
       } else if (layerId === 'ex-et') {
         var mw = obj.v;
-        html = "<h3 style='margin:0 0 5px;color:#a0d250;font-size:12px;'>Crop ETc Pumping Model</h3>" +
-               "<b>Month:</b> " + obj.m + "<br>" +
-               "<b>Pumping Load:</b> " + mw.toFixed(1) + " MW<br>" +
-               "<b>Scientific Model:</b> Crop coefficient groundwater extraction model.<br>" +
-               "<b>Methodology:</b> Pumping requirement calculated from daily reference evapotranspiration ($ET_0$) adjusted for agricultural crop type and local precipitation deficit.<br>" +
-               "<div style='font-family:Consolas, monospace;background:rgba(0,0,0,0.3);padding:4px;border-radius:4px;margin-top:5px;font-size:9.5px;color:#cfe8a6;'>Equation: Q_{pumping} = Area \times (ET_0 \times K_c - P_{eff})</div>";
+        title = "Crop ETc Pumping Model";
+        subtitle = "Groundwater Extraction Estimate";
+        color = "#a0d250";
+        rows = [
+          { label: "Selected Month", value: obj.m },
+          { label: "Ag Pumping Demand", value: "<span style='color:#a0d250;font-weight:bold;'>" + mw.toFixed(1) + " MW</span>" }
+        ];
+        methodology = "Pumping requirement calculated from daily reference evapotranspiration (ET_0) adjusted for agricultural crop type and local precipitation deficit.";
+        equation = "Q_pumping = Area * (ET_0 * K_c - P_eff)";
       } else if (layerId === 'ex-weather') {
         var anom = obj[2];
-        html = "<h3 style='margin:0 0 5px;color:#ff5fbc;font-size:12px;'>IPCC LOCA2 Warming Model</h3>" +
-               "<b>Cell Centroid:</b> [" + obj[0].toFixed(4) + ", " + obj[1].toFixed(4) + "]<br>" +
-               "<b>Temperature Anomaly:</b> +" + anom.toFixed(2) + " &deg;C<br>" +
-               "<b>Scientific Model:</b> Downscaled LOCA2 mid-century projections (SSP5-8.5).<br>" +
-               "<b>Methodology:</b> Statistically downscaled regional climate projection coupled with local urban heat island (UHI) canopy offset.<br>" +
-               "<div style='font-family:Consolas, monospace;background:rgba(0,0,0,0.3);padding:4px;border-radius:4px;margin-top:5px;font-size:9.5px;color:#ff9bd8;'>Equation: \Delta T_{cell} = \Delta T_{global} + \Delta T_{UHI}</div>";
+        title = "IPCC LOCA2 Warming Model";
+        subtitle = "Downscaled Climate Projection (SSP5-8.5)";
+        color = "#ff5fbc";
+        rows = [
+          { label: "Cell Centroid", value: "[" + obj[0].toFixed(4) + ", " + obj[1].toFixed(4) + "]" },
+          { label: "Temperature Anomaly", value: "<span style='color:#ff5fbc;font-weight:bold;'>+" + anom.toFixed(2) + " &deg;C</span>" }
+        ];
+        methodology = "Statistically downscaled mid-century regional warming projections coupled with local urban heat island (UHI) canopy offset.";
+        equation = "\u0394T_cell = \u0394T_global + \u0394T_UHI";
       }
 
-      if (html) {
-        new maplibregl.Popup({maxWidth: '320px'})
+      if (title) {
+        var rowsHtml = rows.map(function(r) {
+          return "<div style='display:flex;justify-content:space-between;margin:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:3px;'>" +
+                 "<span style='color:#8aa0b8;font-size:9.5px;text-transform:uppercase;letter-spacing:0.5px;'>" + r.label + "</span>" +
+                 "<span style='color:#e8edf4;font-weight:500;text-align:right;font-size:11px;'>" + r.value + "</span>" +
+                 "</div>";
+        }).join('');
+
+        var html = 
+          "<div style='border-left:3px solid " + color + ";padding-left:10px;margin-bottom:8px;'>" +
+            "<h3 style='margin:0;font-size:12.5px;font-weight:700;color:#ffffff;letter-spacing:0.3px;'>" + title + "</h3>" +
+            "<div style='font-size:9px;color:" + color + ";opacity:0.95;margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;'>" + subtitle + "</div>" +
+          "</div>" +
+          "<div style='background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:6px;padding:6px 8px;margin-bottom:8px;'>" +
+            rowsHtml +
+          "</div>" +
+          "<div style='font-size:10px;line-height:1.45;color:#b0c2d6;margin-bottom:8px;padding:0 2px;'>" +
+            "<div style='font-weight:600;color:#e8edf4;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;'>Scientific Methodology</div>" +
+            methodology +
+          "</div>" +
+          "<div style='background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px;text-align:center;box-shadow:inset 0 1px 3px rgba(0,0,0,0.5);'>" +
+            "<div style='font-size:8px;color:#8aa0b8;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:4px;'>Mathematical Model</div>" +
+            "<code style='font-family:Consolas, Monaco, monospace;font-size:10px;color:#ffe27a;text-shadow:0 0 4px rgba(255,226,122,0.35);font-weight:bold;word-break:break-all;'>" + equation + "</code>" +
+          "</div>";
+
+        new maplibregl.Popup({maxWidth: '310px'})
           .setLngLat(info.coordinate)
-          .setHTML("<div style=\"font-family:'Segoe UI',system-ui,sans-serif;font-size:11px;color:#dce6f0;line-height:1.45;\">" + html + "</div>")
+          .setHTML("<div style=\"font-family:'Inter','Segoe UI',system-ui,sans-serif;font-size:11px;color:#dce6f0;line-height:1.45;padding:2px;\">" + html + "</div>")
           .addTo(map);
       }
     }
