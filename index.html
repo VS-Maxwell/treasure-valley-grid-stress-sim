@@ -81,13 +81,14 @@
 <!-- SCIENTIFIC DATASETS PANEL (Interactive tables) -->
 <div id="science-panel" class="hud" style="position:absolute;top:180px;right:12px;z-index:9;width:330px;max-height:calc(100vh - 200px);overflow-y:auto;padding:12px 14px;border-radius:12px;color:#dce6f0;font-family:'Segoe UI',sans-serif;display:none;">
   <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:6px;margin-bottom:8px">
-    <h3 style="margin:0;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:#5fd0ff">Scientific Datasets</h3>
-    <button onclick="document.getElementById('science-panel').style.display='none'; document.getElementById('t-science-panel').checked=false;" style="background:none;border:none;color:#8aa0b8;cursor:pointer;font-weight:bold;font-size:15px">&times;</button>
+    <h3 style="margin:0;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:#5fd0ff">Risk Management & Datasets</h3>
+    <button onclick="document.getElementById('science-panel').style.display='none'; document.getElementById('t-science-panel').checked=false; var trm=document.getElementById('t-raven-menu'); if(trm)trm.checked=false;" style="background:none;border:none;color:#8aa0b8;cursor:pointer;font-weight:bold;font-size:15px">&times;</button>
   </div>
   <div style="display:flex;gap:4px;margin-bottom:8px">
     <button id="tab-hc" class="tab-btn active" onclick="switchScienceTab('hc')">Hosting Cap</button>
     <button id="tab-n1" class="tab-btn" onclick="switchScienceTab('n1')">N-1 Risk</button>
     <button id="tab-pump" class="tab-btn" onclick="switchScienceTab('pump')">USGS Pumping</button>
+    <button id="tab-raven" class="tab-btn" onclick="switchScienceTab('raven')" style="border-color:#ffb74d;color:#ffe27a;">RAVEN Risk</button>
   </div>
   <div id="content-hc" class="tab-content" style="font-size:11px">
     <input type="text" id="search-hc" placeholder="Search substations..." oninput="filterScienceTables()">
@@ -118,6 +119,17 @@
           <tr><th>Month</th><th>Ada (mgd)</th><th>Canyon (mgd)</th><th>Peak MW</th></tr>
         </thead>
         <tbody id="body-pump"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="content-raven" class="tab-content" style="font-size:11px;display:none">
+    <input type="text" id="search-raven" placeholder="Search risk scenarios..." oninput="filterScienceTables()">
+    <div style="overflow-x:auto;max-height:240px">
+      <table class="science-table" id="table-raven">
+        <thead>
+          <tr><th>Contingency Scenario</th><th>Prob</th><th>LOLE</th><th>Risk</th></tr>
+        </thead>
+        <tbody id="body-raven"></tbody>
       </table>
     </div>
   </div>
@@ -1360,6 +1372,7 @@ window.HOSTING_CAPACITY={
     d.innerHTML='<h2>Grid decision tools <span class="badge">pandapower</span></h2>'+
       '<label class="row"><input type="checkbox" id="t-hosting"> Hosting capacity &mdash; MW you can add per bus</label>'+
       '<label class="row"><input type="checkbox" id="t-n1"> N-1 mode &mdash; click a line to trip it</label>'+
+      '<label class="row" style="color:#ffe27a;font-weight:600;"><input type="checkbox" id="t-raven-menu"> Show RAVEN Risk Management</label>'+
       '<label class="row" style="color:#7fe0ff"><input type="checkbox" id="t-science-panel"> Show scientific dataset tables</label>'+
       '<div id="n1-out" style="font-size:10.5px;color:#cdd9e6;line-height:1.5;margin-top:5px;min-height:12px"></div>';
     panel.appendChild(d);
@@ -1368,9 +1381,32 @@ window.HOSTING_CAPACITY={
     d.querySelector('#t-n1').addEventListener('change',function(){ n1On=this.checked; var o=document.getElementById('n1-out');
       if(!n1On){ try{map.getSource('n1-hi').setData({type:'FeatureCollection',features:[]});}catch(e){} if(o)o.innerHTML=''; }
       else if(o){ o.innerHTML='Click any transmission line to trip it and see the resulting overloads.'; } });
+    d.querySelector('#t-raven-menu').addEventListener('change',function(){
+      var p=document.getElementById('science-panel');
+      if(p){
+        p.style.display=this.checked?'block':'none';
+        if(this.checked) {
+          switchScienceTab('raven');
+          initScienceTables();
+          var tsp = document.getElementById('t-science-panel');
+          if(tsp) tsp.checked = true;
+        } else {
+          var tsp = document.getElementById('t-science-panel');
+          if(tsp) tsp.checked = false;
+        }
+      }
+    });
     d.querySelector('#t-science-panel').addEventListener('change',function(){
       var p=document.getElementById('science-panel');
-      if(p){ p.style.display=this.checked?'block':'none'; if(this.checked) initScienceTables(); }
+      if(p){
+        p.style.display=this.checked?'block':'none';
+        if(this.checked) {
+          initScienceTables();
+        } else {
+          var trm = document.getElementById('t-raven-menu');
+          if(trm) trm.checked = false;
+        }
+      }
     });
     return true;
   }
@@ -1977,6 +2013,8 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
     document.querySelectorAll('.tab-content').forEach(function(c){
       c.style.display = c.id === 'content-' + tab ? 'block' : 'none';
     });
+    var trm = document.getElementById('t-raven-menu');
+    if(trm) trm.checked = (tab === 'raven');
   }
 
   window.initScienceTables = function() {
@@ -2028,6 +2066,26 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
                "<td style='color:#7fe0ff;font-weight:600'>" + mwVal.toFixed(1) + " MW</td></tr>";
       }).join('');
     }
+
+    // 4) INL RAVEN Risk Table
+    var ravenBody = document.getElementById('body-raven');
+    if(ravenBody) {
+      var ravenData = [
+        { name: "Wildfire + Boise Bench Tie Trip", prob: "1.2%", lole: "8.4 h/y", eue: "340 MWh", risk: "High", color: "#ff8a3d", lon: -116.15826, lat: 43.55911, zoom: 12, lines: ["200118", "200119"], desc: "Wildfire in Boise foothills corridor trips incoming Boise Bench lines. Mitigation: Shed 80 MW agricultural load." },
+        { name: "Heatwave + Meta Kuna DC Peak", prob: "4.5%", lole: "12.1 h/y", eue: "580 MWh", risk: "Critical", color: "#ff3b3b", lon: -116.41551, lat: 43.48658, zoom: 13, lines: ["200120"], desc: "Extreme summer peak compounding Meta DC local substation stress. Mitigation: Trigger battery energy storage discharge." },
+        { name: "Severe Drought + Summer Peak", prob: "8.0%", lole: "3.2 h/y", eue: "110 MWh", risk: "Medium", color: "#ffd23f", lon: -116.3791, lat: 43.2435, zoom: 11, lines: [], desc: "Hydro generation de-rated by 60% valley-wide. Mitigation: Shift agricultural pumping loads to off-peak hours." },
+        { name: "Bowmont-Hemingway Double Contingency", prob: "0.3%", lole: "18.6 h/y", eue: "920 MWh", risk: "Critical", color: "#ff3b3b", lon: -116.66304, lat: 43.35033, zoom: 12, lines: ["200114", "200115"], desc: "N-1-1 loss of critical Bowmont-Hemingway tie corridors. Mitigation: Rapid grid topology reconfiguration or backup generation." },
+        { name: "Winter Storm Import Limit Shift", prob: "2.5%", lole: "2.1 h/y", eue: "85 MWh", risk: "Low", color: "#36c46b", lon: -116.8213, lat: 43.90547, zoom: 10, lines: [], desc: "Sub-zero temperatures restrict Northwest imports. Mitigation: Engage local gas peaking plants at Murphy." }
+      ];
+
+      ravenBody.innerHTML = ravenData.map(function(r) {
+        return "<tr onclick='triggerRavenRisk(\"" + r.name + "\", " + r.lon + ", " + r.lat + ", " + r.zoom + ", \"" + r.desc + "\", \"" + r.risk + "\", \"" + r.prob + "\", \"" + r.lole + "\", \"" + r.eue + "\", \"" + r.lines.join(',') + "\")'>" +
+               "<td><b>" + r.name + "</b></td>" +
+               "<td>" + r.prob + "</td>" +
+               "<td>" + r.lole + "</td>" +
+               "<td><span class='badge' style='background:" + (r.risk === 'Critical' ? '#241016;color:#ff5b6e;border-color:#7a3046' : r.risk === 'High' ? '#241a10;color:#ffb74d;border-color:#7a4a30' : r.risk === 'Medium' ? '#202410;color:#ffd23f;border-color:#7a6d10' : '#102416;color:#8be6a6;border-color:#257a30') + "'>" + r.risk + "</span></td></tr>";
+      }).join('');
+    }
   }
 
   window.filterScienceTables = function() {
@@ -2071,6 +2129,60 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
     try {
       if (window.tripLine) {
         window.tripLine(id);
+      }
+    } catch(e) { console.warn(e); }
+  }
+
+  // INL RAVEN trigger function
+  window.triggerRavenRisk = function(name, lon, lat, zoom, desc, risk, prob, lole, eue, linesInput) {
+    map.flyTo({center: [lon, lat], zoom: zoom, pitch: 45, duration: 1500});
+
+    setTimeout(function(){
+      var badgeColor = risk === 'Critical' ? '#ff5b6e' : risk === 'High' ? '#ffb74d' : risk === 'Medium' ? '#ffd23f' : '#8be6a6';
+      new maplibregl.Popup({maxWidth:'320px'}).setLngLat([lon, lat]).setHTML(
+        "<div style='border-left:3px solid " + badgeColor + ";padding-left:10px;margin-bottom:8px;'>" +
+          "<h3 style='margin:0;font-size:12.5px;font-weight:700;color:#ffffff;'>" + name + "</h3>" +
+          "<div style='font-size:9.0px;color:" + badgeColor + ";opacity:0.95;margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;'>INL RAVEN Probabilistic Risk Output</div>" +
+        "</div>" +
+        "<div style='background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:6px;padding:6px 8px;margin-bottom:8px;font-size:11px;'>" +
+          "<div style='display:flex;justify-content:space-between;margin:3px 0;'><span>PROBABILITY</span><b>" + prob + "</b></div>" +
+          "<div style='display:flex;justify-content:space-between;margin:3px 0;'><span>LOLE (EXPECTATION)</span><b>" + lole + "</b></div>" +
+          "<div style='display:flex;justify-content:space-between;margin:3px 0;'><span>UNSERVED ENERGY (EUE)</span><b>" + eue + "</b></div>" +
+        "</div>" +
+        "<div style='font-size:10px;line-height:1.45;color:#b0c2d6;margin-bottom:4px;'>" +
+          "<b style='color:#e8edf4;'>Simulation Narrative:</b><br>" + desc +
+        "</div>"
+      ).addTo(map);
+    }, 1600);
+
+    try {
+      var linesToHighlight = [];
+      if (typeof linesInput === 'string' && linesInput !== '') {
+        linesToHighlight = linesInput.split(',');
+      } else if (Array.isArray(linesInput)) {
+        linesToHighlight = linesInput;
+      }
+
+      function transGeomById(){
+        var by={};
+        try{ var d=map.getSource('trans')&&map.getSource('trans')._data;
+        if(d&&d.features){ d.features.forEach(function(f){ var p=f.properties||{}; var id=p.line_id||p.LINE_ID||p.ID||p.OBJECTID||p.id; if(id!=null) by[String(id)]=f.geometry; }); } }catch(e){}
+        return by;
+      }
+      if (linesToHighlight && linesToHighlight.length > 0) {
+        var geom = transGeomById(), feats = [];
+        linesToHighlight.forEach(function(lid) {
+          if (geom[lid]) {
+            feats.push({ type: 'Feature', geometry: geom[lid], properties: { role: 'over', load: 160 } });
+          }
+        });
+        if (map.getSource('n1-hi')) {
+          map.getSource('n1-hi').setData({ type: 'FeatureCollection', features: feats });
+        }
+      } else {
+        if (map.getSource('n1-hi')) {
+          map.getSource('n1-hi').setData({ type: 'FeatureCollection', features: [] });
+        }
       }
     } catch(e) { console.warn(e); }
   }
