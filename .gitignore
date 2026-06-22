@@ -1,0 +1,15 @@
+# Backups and temporary files
+*.bak
+*.tmp
+.temp*
+
+# Local environment variables
+.env
+.env.*
+jkeys/
+*key*
+
+# System files
+Thumbs.db
+Desktop.ini
+.DS_Store

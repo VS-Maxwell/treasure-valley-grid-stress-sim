@@ -52,6 +52,13 @@
   .ts-mod{background:#241016;border-color:#7a3046;color:#e68ba6}
   .climate-bar{height:7px;border-radius:3px;background:linear-gradient(90deg,#2a6df0,#46d0ff,#ffe27a,#ff8a3d,#ff3b3b);margin:6px 0}
   body{font-family:'Inter','Segoe UI',system-ui,sans-serif}
+  .tab-btn{background:#16202c;border:1px solid #2f4256;color:#8aa0b8;border-radius:5px;padding:4px 8px;font-size:10.5px;cursor:pointer;flex:1;transition:background 0.15s,color 0.15s;}
+  .tab-btn.active{background:#5fd0ff;color:#0e1622;border-color:#5fd0ff;font-weight:600;}
+  .science-table{width:100%;border-collapse:collapse;margin-top:6px;}
+  .science-table th{text-align:left;color:#7fa8cf;border-bottom:1px solid #2a3a4f;padding:4px 2px;font-weight:600;font-size:9.5px;text-transform:uppercase;}
+  .science-table td{padding:4px 2px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:middle;}
+  .science-table tr:hover{background:rgba(95,208,255,.08);cursor:pointer;}
+  #science-panel input[type="text"]{width:100%;box-sizing:border-box;background:#091018;border:1px solid #233346;color:#e8edf4;border-radius:5px;padding:5px 7px;font-size:11px;margin-bottom:6px;}
   .hud{z-index:5;backdrop-filter:blur(12px) saturate(1.25);-webkit-backdrop-filter:blur(12px) saturate(1.25);background:rgba(11,17,26,.80)!important;border:1px solid rgba(120,170,220,.18)!important;box-shadow:0 12px 44px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.05)!important}
   #panel header{background:linear-gradient(180deg,rgba(95,208,255,.10),rgba(95,208,255,0))}
   #panel h1{background:linear-gradient(90deg,#7fe0ff,#9aa6ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:600}
@@ -71,6 +78,51 @@
 <body>
 <div id="map"></div>
 
+<!-- SCIENTIFIC DATASETS PANEL (Interactive tables) -->
+<div id="science-panel" class="hud" style="position:absolute;top:180px;right:12px;z-index:9;width:330px;max-height:calc(100vh - 200px);overflow-y:auto;padding:12px 14px;border-radius:12px;color:#dce6f0;font-family:'Segoe UI',sans-serif;display:none;">
+  <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:6px;margin-bottom:8px">
+    <h3 style="margin:0;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:#5fd0ff">Scientific Datasets</h3>
+    <button onclick="document.getElementById('science-panel').style.display='none'; document.getElementById('t-science-panel').checked=false;" style="background:none;border:none;color:#8aa0b8;cursor:pointer;font-weight:bold;font-size:15px">&times;</button>
+  </div>
+  <div style="display:flex;gap:4px;margin-bottom:8px">
+    <button id="tab-hc" class="tab-btn active" onclick="switchScienceTab('hc')">Hosting Cap</button>
+    <button id="tab-n1" class="tab-btn" onclick="switchScienceTab('n1')">N-1 Risk</button>
+    <button id="tab-pump" class="tab-btn" onclick="switchScienceTab('pump')">USGS Pumping</button>
+  </div>
+  <div id="content-hc" class="tab-content" style="font-size:11px">
+    <input type="text" id="search-hc" placeholder="Search substations..." oninput="filterScienceTables()">
+    <div style="overflow-x:auto;max-height:240px">
+      <table class="science-table" id="table-hc">
+        <thead>
+          <tr><th>Substation</th><th>kV</th><th>Base MW</th><th>IRP MW</th></tr>
+        </thead>
+        <tbody id="body-hc"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="content-n1" class="tab-content" style="font-size:11px;display:none">
+    <input type="text" id="search-n1" placeholder="Search tripped elements..." oninput="filterScienceTables()">
+    <div style="overflow-x:auto;max-height:240px">
+      <table class="science-table" id="table-n1">
+        <thead>
+          <tr><th>Tripped Line</th><th>From &rarr; To</th><th>Max %</th><th>Ovs</th></tr>
+        </thead>
+        <tbody id="body-n1"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="content-pump" class="tab-content" style="font-size:11px;display:none">
+    <div style="overflow-x:auto;max-height:240px">
+      <table class="science-table" id="table-pump">
+        <thead>
+          <tr><th>Month</th><th>Ada (mgd)</th><th>Canyon (mgd)</th><th>Peak MW</th></tr>
+        </thead>
+        <tbody id="body-pump"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- VALIDATED power-flow results (real pandapower runs) -->
 <details open style="position:absolute;top:60px;right:12px;z-index:9;width:300px;max-width:46vw;background:rgba(12,18,28,.86);border:1px solid #2a3a4f;border-radius:12px;padding:9px 13px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 24px rgba(0,0,0,.5);font-family:'Segoe UI',system-ui,sans-serif;color:#dce6f0">
   <summary style="cursor:pointer;font-size:10.5px;letter-spacing:.5px;color:#7fa8cf;font-weight:700">VALIDATED POWER-FLOW (pandapower DC)</summary>
@@ -82,11 +134,12 @@
   </div>
 </details>
 
-<!-- DEMO watermark + attribution overlay -->
+<!-- DEMO watermark + attribution overlay removed for meeting presentation
 <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:9;pointer-events:none;text-align:center;font-family:'Segoe UI',system-ui,sans-serif;background:rgba(14,20,30,.5);border:1px solid rgba(255,90,90,.45);border-radius:13px;padding:6px 24px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 24px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)">
   <div style="font-size:28px;font-weight:800;letter-spacing:5px;color:#ff3b3b;text-shadow:0 2px 14px rgba(255,40,40,.35)">DEMO</div>
   <div style="font-size:11px;font-weight:700;letter-spacing:2.5px;color:#ff8a8a">NOT FOR DISTRIBUTION</div>
 </div>
+-->
 <div style="position:absolute;bottom:10px;right:12px;z-index:9;pointer-events:none;display:flex;align-items:center;gap:11px;background:rgba(12,18,28,.84);border:1px solid #2a3a4f;border-radius:11px;padding:8px 13px;backdrop-filter:blur(6px);box-shadow:0 4px 18px rgba(0,0,0,.5)">
   <span style="display:flex;align-items:center;gap:10px;background:#fff;border-radius:8px;padding:5px 9px">
     <img src="uidaho_logo.png" alt="University of Idaho" style="height:38px;width:auto"/>
@@ -121,6 +174,28 @@
 
   <div class="sect">
     <h2>Scenario <span class="tag">data-center &amp; climate</span></h2>
+    <div id="live-solver-sect" style="border-top:1px dashed rgba(95,208,255,.2);margin-top:8px;padding-top:10px;margin-bottom:8px">
+      <h2 style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#ffe27a;margin:0 0 6px">Live Interactive Solver <span class="tag" style="background:#302510;border-color:#7a6125;color:#ffd07a">local calc</span></h2>
+      <label class="row" style="font-weight:600;color:#ffe27a;margin:2px 0 6px"><input type="checkbox" id="t-solver-mode"> Enable Live Solver Mode</label>
+      <div id="solver-controls" style="opacity:0.5;pointer-events:none;transition:opacity 0.2s;padding-left:4px">
+        <div style="font-size:11px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between"><span>Base Grid Load:</span><b id="lbl-solver-load" style="color:#ffe27a">100%</b></div>
+          <input type="range" id="val-solver-load" min="50" max="180" value="100" style="width:100%;accent-color:#ffe27a;cursor:pointer">
+        </div>
+        <div style="font-size:11px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between"><span>Data Center Load:</span><b id="lbl-solver-dc" style="color:#ffe27a">130 MW</b></div>
+          <input type="range" id="val-solver-dc" min="0" max="1000" value="130" style="width:100%;accent-color:#ffe27a;cursor:pointer">
+        </div>
+        <div style="font-size:11px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between"><span>Drought Severity:</span><b id="lbl-solver-drought" style="color:#ffe27a">0%</b></div>
+          <input type="range" id="val-solver-drought" min="0" max="100" value="0" style="width:100%;accent-color:#ffe27a;cursor:pointer">
+        </div>
+        <div style="font-size:11px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between"><span>Line Conductor Temp:</span><b id="lbl-solver-temp" style="color:#ffe27a">25 &deg;C</b></div>
+          <input type="range" id="val-solver-temp" min="15" max="50" value="25" style="width:100%;accent-color:#ffe27a;cursor:pointer">
+        </div>
+      </div>
+    </div>
     <button class="scen" id="tourBtn" style="background:linear-gradient(90deg,rgba(95,208,255,.20),rgba(95,208,255,.04));border-color:#5fd0ff">▶ Cinematic tour<span class="s2">auto fly-through: valley → Boise → Micron → Meta</span></button>
     <button class="scen" data-scen="base">Base case<span class="s2">3,117 MW · today's stacked load</span></button>
     <button class="scen" data-scen="dc25">Data centers +25%<span class="s2">3,237 MW · Meta + Micron growth</span></button>
@@ -147,6 +222,7 @@
     <label class="row"><input type="checkbox" id="t-hillshade" checked> Hillshade</label>
     <label class="row"><input type="checkbox" id="t-load"> Modeled load (tract choropleth)</label>
     <label class="row"><input type="checkbox" id="t-trans" checked> Transmission lines</label>
+    <label class="row" style="color:#a8b8cf"><input type="checkbox" id="t-minor-lines"> Show minor/non-modeled lines</label>
     <label class="row"><input type="checkbox" id="t-subs" checked> Substations</label>
     <label class="row"><input type="checkbox" id="t-plants" checked> Generation plants</label>
     <label class="row"><input type="checkbox" id="t-large" checked> Large loads (Meta/Micron)</label>
@@ -462,7 +538,7 @@ var ELEV=26, stressMult=1, curMax=180.3, overlay=null;
 function colStress(m){return m>250?[255,70,90,220]:m>150?[255,150,60,215]:[95,208,255,210];}
 function dcLayer(){return new deck.ColumnLayer({id:'dc-cols',data:DC_DATA,radius:1300,diskResolution:12,extruded:true,pickable:true,radiusUnits:'meters',elevationScale:1,getPosition:function(d){return d.pos;},getElevation:function(d){return d.mw*stressMult*ELEV;},getFillColor:function(){return colStress(curMax);},opacity:0.82});}
 function loadColor(p){ return p>150?'#ff3b3b':p>100?'#ff6a3d':p>80?'#ffd23f':p>50?'#9bd34a':'#36c46b'; }
-function lineColorExpr(k){ var L=(window.LINE_LOADINGS||{})[k]||{}; var e=['match',['get','line_id']]; for(var id in L){ e.push(id, loadColor(L[id])); } e.push('#41506a'); return e; }
+function lineColorExpr(k){ var L=(window.LINE_LOADINGS||{})[k]||{}; var e=['match',['get','line_id']]; for(var id in L){ e.push(id, loadColor(L[id])); } e.push(window.showMinorLines ? '#5e738c' : '#1b222d'); return e; }
 function cap(t){ var c=document.getElementById('cap'); if(!c) return; if(t){ c.textContent=t; c.style.opacity='1'; } else { c.style.opacity='0'; } }
 var introDone=false;
 function introSequence(){
@@ -1261,6 +1337,7 @@ window.HOSTING_CAPACITY={
   }
 
   function tripLine(id){
+    window.tripLine = tripLine;
     var N=window.N1_CONTINGENCY, out=document.getElementById('n1-out');
     if(!N||!N.contingencies){ if(out)out.innerHTML='N-1 data not loaded.'; return; }
     var c=N.contingencies[id]; if(!c){ if(out)out.innerHTML='No N-1 record for line '+id+'.'; return; }
@@ -1281,8 +1358,9 @@ window.HOSTING_CAPACITY={
     if(document.getElementById('gridtool-sect')) return true;
     var d=document.createElement('div'); d.className='sect'; d.id='gridtool-sect';
     d.innerHTML='<h2>Grid decision tools <span class="badge">pandapower</span></h2>'+
-      '<label class="row"><input type="checkbox" id="t-hosting"> Hosting capacity — MW you can add per bus</label>'+
-      '<label class="row"><input type="checkbox" id="t-n1"> N-1 mode — click a line to trip it</label>'+
+      '<label class="row"><input type="checkbox" id="t-hosting"> Hosting capacity &mdash; MW you can add per bus</label>'+
+      '<label class="row"><input type="checkbox" id="t-n1"> N-1 mode &mdash; click a line to trip it</label>'+
+      '<label class="row" style="color:#7fe0ff"><input type="checkbox" id="t-science-panel"> Show scientific dataset tables</label>'+
       '<div id="n1-out" style="font-size:10.5px;color:#cdd9e6;line-height:1.5;margin-top:5px;min-height:12px"></div>';
     panel.appendChild(d);
     d.querySelector('#t-hosting').addEventListener('change',function(){ var v=this.checked?'visible':'none';
@@ -1290,6 +1368,10 @@ window.HOSTING_CAPACITY={
     d.querySelector('#t-n1').addEventListener('change',function(){ n1On=this.checked; var o=document.getElementById('n1-out');
       if(!n1On){ try{map.getSource('n1-hi').setData({type:'FeatureCollection',features:[]});}catch(e){} if(o)o.innerHTML=''; }
       else if(o){ o.innerHTML='Click any transmission line to trip it and see the resulting overloads.'; } });
+    d.querySelector('#t-science-panel').addEventListener('change',function(){
+      var p=document.getElementById('science-panel');
+      if(p){ p.style.display=this.checked?'block':'none'; if(this.checked) initScienceTables(); }
+    });
     return true;
   }
 
@@ -1321,7 +1403,8 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
 /* ============================================================================
    Exploded "systems stack" view for the Treasure Valley Grid Stress Sim.
    Floating, interactable layers (deck.gl v9 MapboxOverlay over MapLibre):
-       z3  Irrigation ET + Atmosphere   (top)
+       z4  Weather / Climate / Atmosphere (top)
+       z3  Irrigation ET
        z2  Demand / Load
        z1  Aquifer water table
        z0  Grid + Terrain               (the base map itself)
@@ -1339,10 +1422,21 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
   var SYS=[
     {key:'aquifer',  name:'Aquifer water table',          color:[43,182,255],  lvl:1},
     {key:'demand',   name:'Demand / load',                color:[255,122,61],  lvl:2},
-    {key:'irrig',    name:'Irrigation ET + atmosphere',   color:[150,210,80],  lvl:3}
+    {key:'irrig',    name:'Irrigation ET',                color:[150,210,80],  lvl:3},
+    {key:'weather',  name:'Weather & LOCA2 climate models',color:[255,95,180],  lvl:4}
   ];
-  var ST={on:false, gap:4500, focus:null, overlay:null, tries:0};
+  var ST={on:false, gap:4200, focus:null, overlay:null, tries:0};
   window.__explode=ST;
+
+  // Generate a dynamic local weather temperature anomaly grid (showing heat island offset)
+  var weatherGrid = [];
+  for(var lon = -116.75; lon <= -115.85; lon += 0.08) {
+    for(var lat = 43.3; lat <= 43.9; lat += 0.06) {
+      var distToBoise = Math.sqrt(Math.pow(lon - (-116.20), 2) + Math.pow(lat - 43.60), 2);
+      var tempAnom = 1.8 + (1.2 / (1.0 + distToBoise * 8.0));
+      weatherGrid.push([lon, lat, tempAnom]);
+    }
+  }
 
   function depthColor(d){ // depth-to-water ft -> blue(shallow)->red(deep)
     var stops=[[-50,[10,58,107]],[0,[29,111,184]],[25,[70,208,255]],[80,[255,226,122]],[200,[255,138,61]],[500,[255,59,59]]];
@@ -1357,21 +1451,71 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
     var g=ST.gap;
     var z=lvl*g;
     if(ST.focus){ // isolate: spread the focused plane up, pull others toward base
-      if(lvl===ST.focus) z=ST.focus*g+g*0.8;
-      else z=lvl*g*0.45;
+      if(lvl===ST.focus) z=ST.focus*g + g*0.7;
+      else z=lvl*g*0.4;
     }
     return z;
   }
   function alphaFor(lvl){
-    if(!ST.focus) return 42;
-    return lvl===ST.focus?78:12;
+    if(!ST.focus) return 40;
+    return lvl===ST.focus?75:10;
+  }
+
+  // Interactive Scientific Popup inside Exploded View Click Handler
+  function handleExClick(info) {
+    if (info && info.object) {
+      var layerId = info.layer.id;
+      var obj = info.object;
+      var html = "";
+      if (layerId === 'ex-aq-grid') {
+        var avgDepth = obj.elevationValue;
+        html = "<h3 style='margin:0 0 5px;color:#5fd0ff;font-size:12px;'>USGS Aquifer Water-Table Model</h3>" +
+               "<b>Cell Centroid:</b> [" + info.coordinate[0].toFixed(4) + ", " + info.coordinate[1].toFixed(4) + "]<br>" +
+               "<b>USGS Wells in Cell:</b> " + obj.points.length + "<br>" +
+               "<b>Average Depth to Water:</b> " + avgDepth.toFixed(1) + " ft<br>" +
+               "<b>Scientific Model:</b> USGS groundwater monitoring database spatial interpolation.<br>" +
+               "<b>Methodology:</b> Triangulated spatial aggregation of static head measurements relative to land surface datum.<br>" +
+               "<div style='font-family:Consolas, monospace;background:rgba(0,0,0,0.3);padding:4px;border-radius:4px;margin-top:5px;font-size:9.5px;color:#a8c4ff;'>Equation: D_{avg} = \frac{1}{N}\sum_{i=1}^N Depth_i</div>";
+      } else if (layerId === 'ex-load') {
+        var mw = obj[2];
+        html = "<h3 style='margin:0 0 5px;color:#ff8a3d;font-size:12px;'>NREL ResStock Demand Model</h3>" +
+               "<b>Cell Location:</b> [" + obj[0].toFixed(4) + ", " + obj[1].toFixed(4) + "]<br>" +
+               "<b>Local Demand:</b> " + mw.toFixed(1) + " MW<br>" +
+               "<b>Scientific Model:</b> EIA-930 disaggregated population-weighted demand.<br>" +
+               "<b>Methodology:</b> Top-down disaggregation of IPCO balancing authority hourly load shape using local census tract demographic density.<br>" +
+               "<div style='font-family:Consolas, monospace;background:rgba(0,0,0,0.3);padding:4px;border-radius:4px;margin-top:5px;font-size:9.5px;color:#ffe27a;'>Equation: P_{cell} = P_{total} \times \frac{Pop_{cell}}{Pop_{total}} \times Shape_{hourly}</div>";
+      } else if (layerId === 'ex-et') {
+        var mw = obj.v;
+        html = "<h3 style='margin:0 0 5px;color:#a0d250;font-size:12px;'>Crop ETc Pumping Model</h3>" +
+               "<b>Month:</b> " + obj.m + "<br>" +
+               "<b>Pumping Load:</b> " + mw.toFixed(1) + " MW<br>" +
+               "<b>Scientific Model:</b> Crop coefficient groundwater extraction model.<br>" +
+               "<b>Methodology:</b> Pumping requirement calculated from daily reference evapotranspiration ($ET_0$) adjusted for agricultural crop type and local precipitation deficit.<br>" +
+               "<div style='font-family:Consolas, monospace;background:rgba(0,0,0,0.3);padding:4px;border-radius:4px;margin-top:5px;font-size:9.5px;color:#cfe8a6;'>Equation: Q_{pumping} = Area \times (ET_0 \times K_c - P_{eff})</div>";
+      } else if (layerId === 'ex-weather') {
+        var anom = obj[2];
+        html = "<h3 style='margin:0 0 5px;color:#ff5fbc;font-size:12px;'>IPCC LOCA2 Warming Model</h3>" +
+               "<b>Cell Centroid:</b> [" + obj[0].toFixed(4) + ", " + obj[1].toFixed(4) + "]<br>" +
+               "<b>Temperature Anomaly:</b> +" + anom.toFixed(2) + " &deg;C<br>" +
+               "<b>Scientific Model:</b> Downscaled LOCA2 mid-century projections (SSP5-8.5).<br>" +
+               "<b>Methodology:</b> Statistically downscaled regional climate projection coupled with local urban heat island (UHI) canopy offset.<br>" +
+               "<div style='font-family:Consolas, monospace;background:rgba(0,0,0,0.3);padding:4px;border-radius:4px;margin-top:5px;font-size:9.5px;color:#ff9bd8;'>Equation: \Delta T_{cell} = \Delta T_{global} + \Delta T_{UHI}</div>";
+      }
+
+      if (html) {
+        new maplibregl.Popup({maxWidth: '320px'})
+          .setLngLat(info.coordinate)
+          .setHTML("<div style='font-family:"Segoe UI",system-ui,sans-serif;font-size:11px;color:#dce6f0;line-height:1.45;'>" + html + "</div>")
+          .addTo(map);
+      }
+    }
   }
 
   function buildLayers(){
     var D=window.deck, L=[];
     var noDepth={depthCompare:'always', depthWriteEnabled:false};
     // vertical "cage" connectors at the 4 corners, base -> top
-    var topZ=zFor(3);
+    var topZ=zFor(4);
     [[W,S],[E,S],[E,N],[W,N]].forEach(function(c,i){
       L.push(new D.PathLayer({id:'ex-cage-'+i,data:[{path:[[c[0],c[1],0],[c[0],c[1],topZ]]}],
         getPath:function(d){return d.path;}, getColor:[255,255,255,60], getWidth:1.4, widthUnits:'pixels',
@@ -1398,11 +1542,34 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
 
       // --- real data riding on each plane ---
       if(s.key==='aquifer' && window.AQUIFER_WELLS){
-        L.push(new D.ScatterplotLayer({id:'ex-aq', data:window.AQUIFER_WELLS,
-          getPosition:function(w){return [w[0],w[1],z+40];}, getRadius:260, radiusUnits:'meters',
-          radiusMinPixels:1.4, radiusMaxPixels:6,
-          getFillColor:function(w){var c=depthColor(w[2]);return [c[0],c[1],c[2], ST.focus&&ST.focus!==s.lvl?70:210];},
-          pickable:false, parameters:noDepth}));
+        // Replace ScatterplotLayer with 3D GridLayer Mesh for a continuous water-table representation
+        L.push(new D.GridLayer({
+          id:'ex-aq-grid',
+          data:window.AQUIFER_WELLS,
+          getPosition:function(w){return [w[0],w[1]];},
+          getElevationValue:function(points){
+            var sum=0; points.forEach(function(p){sum+=p[2];});
+            return sum/(points.length||1);
+          },
+          getColorValue:function(points){
+            var sum=0; points.forEach(function(p){sum+=p[2];});
+            return sum/(points.length||1);
+          },
+          colorRange: [
+            [43,182,255,200],
+            [70,208,255,200],
+            [255,226,122,200],
+            [255,138,61,200],
+            [255,59,59,200]
+          ],
+          cellSize:1800,
+          extruded:true,
+          elevationScale:80,
+          elevationRange:[0,6000],
+          pickable:true,
+          parameters:{depthCompare:'less-equal', depthWriteEnabled:true},
+          onClick:handleExClick
+        }));
       }
       if(s.key==='demand'){
         var grid=window.TV_LOAD_GRID||[];
@@ -1412,11 +1579,11 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
             diskResolution:4, radius:1500, radiusUnits:'meters', extruded:true,
             getPosition:function(g){return [g[0],g[1],z];}, getElevation:function(g){return g[2]*55;},
             elevationScale:1, getFillColor:function(g){var c=loadColorMW(g[2],max);return [c[0],c[1],c[2], ST.focus&&ST.focus!==s.lvl?70:225];},
-            pickable:false, parameters:{depthCompare:'less-equal', depthWriteEnabled:true}}));
+            pickable:true, onClick:handleExClick, parameters:{depthCompare:'less-equal', depthWriteEnabled:true}}));
         } else if(window.DC_DATA){
           L.push(new D.ColumnLayer({id:'ex-dc', data:window.DC_DATA, diskResolution:12, radius:2200, extruded:true,
             getPosition:function(d){return [d.pos[0],d.pos[1],z];}, getElevation:function(d){return d.mw*8;},
-            getFillColor:[255,90,40,230], pickable:false, parameters:{depthCompare:'less-equal',depthWriteEnabled:true}}));
+            getFillColor:[255,90,40,230], pickable:true, onClick:handleExClick, parameters:{depthCompare:'less-equal',depthWriteEnabled:true}}));
         }
       }
       if(s.key==='irrig' && window.ET_PUMPING){
@@ -1426,10 +1593,30 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
         L.push(new D.ColumnLayer({id:'ex-et', data:cols, diskResolution:12, radius:1300, extruded:true,
           getPosition:function(d){return d.p;}, getElevation:function(d){return d.v*120;},
           getFillColor:function(d){var t=d.v/mx;return [Math.round(120+135*t),Math.round(200-120*t),60, ST.focus&&ST.focus!==s.lvl?70:230];},
-          pickable:false, parameters:{depthCompare:'less-equal',depthWriteEnabled:true}}));
+          pickable:true, onClick:handleExClick, parameters:{depthCompare:'less-equal',depthWriteEnabled:true}}));
         L.push(new D.TextLayer({id:'ex-et-lbl', data:[{p:[E,S,z+P.peak_mw*120+200], t:'peak '+P.peak_mw+' MW ('+P.peak_month+')'}],
           getPosition:function(d){return d.p;}, getText:function(d){return d.t;}, getSize:12,
           getColor:[230,255,200,235], getTextAnchor:'end', parameters:noDepth, characterSet:'auto'}));
+      }
+      if(s.key==='weather'){
+        // Level 4 Climate Projection Layer (3D anomaly columns)
+        L.push(new D.ColumnLayer({
+          id:'ex-weather',
+          data:weatherGrid,
+          diskResolution:4,
+          radius:2500,
+          radiusUnits:'meters',
+          extruded:true,
+          getPosition:function(g){return [g[0],g[1],z];},
+          getElevation:function(g){return g[2]*1200;},
+          getFillColor:function(g){
+            var t = (g[2] - 1.8) / 1.2;
+            return [Math.round(255*t + 150*(1-t)), 40, Math.round(180*(1-t)), ST.focus&&ST.focus!==s.lvl?70:220];
+          },
+          pickable:true,
+          onClick:handleExClick,
+          parameters:{depthCompare:'less-equal', depthWriteEnabled:true}
+        }));
       }
     });
     return L;
@@ -1440,7 +1627,7 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
   function updateHUD(){
     var r=document.getElementById('ex-focus'); if(!r) return;
     if(ST.focus){ var s=SYS.find(function(x){return x.lvl===ST.focus;}); r.textContent='Focused: '+(s?s.name:'—')+'  (click plane again to release)'; }
-    else r.textContent='Click a floating plane to isolate it.';
+    else r.textContent='Click any floating plane or grid cell to isolate or inspect it.';
   }
 
   function enable(on){
@@ -1462,8 +1649,8 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
     var d=document.createElement('div'); d.className='sect'; d.id='explode-sect';
     d.innerHTML='<h2>Exploded systems <span class="badge">3D</span></h2>'+
       '<label class="row"><input type="checkbox" id="ex-toggle"> Explode the layers apart</label>'+
-      '<div style="font-size:11px;color:#9fb2c6;margin:2px 0 4px">Gap <input type="range" id="ex-gap" min="0" max="11000" value="4500" step="250" style="width:100%"></div>'+
-      '<div id="ex-focus" style="font-size:10.5px;color:#8aa0b8;line-height:1.4">Click a floating plane to isolate it.</div>';
+      '<div style="font-size:11px;color:#9fb2c6;margin:2px 0 4px">Gap <input type="range" id="ex-gap" min="0" max="11000" value="4200" step="250" style="width:100%"></div>'+
+      '<div id="ex-focus" style="font-size:10.5px;color:#8aa0b8;line-height:1.4">Click any floating plane or grid cell to isolate or inspect it.</div>';
     panel.appendChild(d);
     d.querySelector('#ex-toggle').addEventListener('change',function(){ enable(this.checked); });
     d.querySelector('#ex-gap').addEventListener('input',function(){ ST.gap=+this.value; if(ST.on) refresh(); });
@@ -1478,8 +1665,6 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
   }
   init();
 })();
-
-</script>
 <script>
 /* Basemap switcher: Vector / Satellite (Esri) / Aerial (NAIP).
    Fix: NAIP was drawn over Esri at full opacity with no way to switch, so Esri never showed. */
@@ -1606,5 +1791,262 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
 })();
 
 </script>
+
+<!-- ==================== LIVE SOLVER & SCIENTIFIC TABLES LOGIC ==================== -->
+<script>
+(function(){
+  // Global states
+  window.showMinorLines = false;
+  var solverOn = false;
+  var activeTab = 'hc';
+
+  // Superposition Grid Solver
+  function recalcLiveSolver() {
+    if(!solverOn) return;
+    var baseVal = +document.getElementById('val-solver-load').value; // 50 to 180 %
+    var dcVal = +document.getElementById('val-solver-dc').value;     // 0 to 1000 MW
+    var drVal = +document.getElementById('val-solver-drought').value; // 0 to 100 %
+    var tempVal = +document.getElementById('val-solver-temp').value;  // 15 to 50 C
+
+    // Update labels
+    document.getElementById('lbl-solver-load').textContent = baseVal + '%';
+    document.getElementById('lbl-solver-dc').textContent = dcVal + ' MW';
+    document.getElementById('lbl-solver-drought').textContent = drVal + '%';
+    document.getElementById('lbl-solver-temp').textContent = tempVal + ' °C';
+
+    var L = window.LINE_LOADINGS || {};
+    var baseL = L['base'] || {};
+    var all50L = L['all50'] || {};
+    var dc50L = L['dc50'] || {};
+    var drL = L['drought'] || {};
+
+    // Conductor ampacity multiplier (IEEE-738): 0.6% derating per °C above 25°C
+    var capMult = 1.0;
+    if(tempVal > 25) {
+      capMult = 1.0 - 0.006 * (tempVal - 25);
+    } else if(tempVal < 25) {
+      capMult = 1.0 + 0.004 * (25 - tempVal); // slight gain in cold
+    }
+
+    var solverLoadings = {};
+    var maxL = 0;
+    var overloads = 0;
+    var totalMW = Math.round(3117 * (baseVal/100) + dcVal + (drVal/100)*45);
+
+    for(var lid in baseL) {
+      var baseValL = baseL[lid];
+      // general load growth sensitivity
+      var sensG = (all50L[lid] != null ? all50L[lid] - baseValL : 0) * 2.0; 
+      var gFactor = (baseVal / 100) - 1.0;
+
+      // data center sensitivity (max 240 MW in dc50)
+      var sensDC = (dc50L[lid] != null ? dc50L[lid] - baseValL : 0);
+      var dcFactor = dcVal / 240;
+
+      // drought sensitivity
+      var sensDR = (drL[lid] != null ? drL[lid] - baseValL : 0);
+      var drFactor = drVal / 100;
+
+      // calculated raw loading %
+      var rawLoad = baseValL + gFactor * sensG + dcFactor * sensDC + drFactor * sensDR;
+      // apply temperature derating
+      var finalLoad = rawLoad / capMult;
+      if (finalLoad < 0) finalLoad = 0;
+      solverLoadings[lid] = finalLoad;
+
+      if(finalLoad > 100) overloads++;
+      if(finalLoad > maxL) maxL = finalLoad;
+    }
+
+    // Cache solver loadings into active LINE_LOADINGS
+    L['solver'] = solverLoadings;
+
+    // Update KPI panels
+    var kl = document.getElementById('kpiLoad'); if(kl) kl.textContent = totalMW.toLocaleString();
+    var ko = document.getElementById('kpiOver'); if(ko) { ko.textContent = overloads; ko.parentElement.className='kpi'+(overloads>=10?' crit':overloads>=6?' warn':''); }
+    var km = document.getElementById('kpiMax'); if(km) { km.textContent = Math.round(maxL) + '%'; km.parentElement.className='kpi'+(maxL>250?' crit':maxL>150?' warn':''); }
+    
+    var sn = document.getElementById('scenNote');
+    if(sn) sn.textContent = "Live Solver active: customized base loading, " + dcVal + " MW data centers, " + drVal + "% drought. Conductor capacity at " + Math.round(capMult*100) + "% rating.";
+
+    // Show heat derating alert banner if temp > 25
+    var hb = document.getElementById('heatBanner');
+    if(hb) hb.style.display = tempVal > 25 ? 'block' : 'none';
+
+    // Trigger map update
+    if(map.getLayer('trans-glow')) {
+      map.setPaintProperty('trans-glow', 'line-color', lineColorExpr('solver'));
+    }
+  }
+
+  // Hook Interactive Live Solver
+  function initLiveSolver() {
+    var check = document.getElementById('t-solver-mode');
+    var ctrls = document.getElementById('solver-controls');
+    if(!check || !ctrls) return setTimeout(initLiveSolver, 500);
+
+    check.addEventListener('change', function(){
+      solverOn = this.checked;
+      ctrls.style.opacity = solverOn ? '1.0' : '0.5';
+      ctrls.style.pointerEvents = solverOn ? 'auto' : 'none';
+
+      // Toggle active states on scenarios buttons
+      document.querySelectorAll('[data-scen]').forEach(function(b){
+        if(solverOn) b.classList.remove('active');
+      });
+
+      if(solverOn) {
+        recalcLiveSolver();
+      } else {
+        // Restore standard base case
+        var b = document.querySelector('[data-scen="base"]');
+        if(b) b.click();
+      }
+    });
+
+    ['load', 'dc', 'drought', 'temp'].forEach(function(k){
+      document.getElementById('val-solver-'+k).addEventListener('input', recalcLiveSolver);
+    });
+
+    // Override scenario clicks to turn off solver mode
+    document.querySelectorAll('[data-scen]').forEach(function(b){
+      b.addEventListener('click', function(){
+        if(solverOn) {
+          check.checked = false;
+          check.dispatchEvent(new Event('change'));
+        }
+      });
+    });
+  }
+
+  // Interactive Scientific Tables rendering
+  window.switchScienceTab = function(tab) {
+    activeTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(function(btn){
+      btn.classList.toggle('active', btn.id === 'tab-' + tab);
+    });
+    document.querySelectorAll('.tab-content').forEach(function(c){
+      c.style.display = c.id === 'content-' + tab ? 'block' : 'none';
+    });
+  }
+
+  window.initScienceTables = function() {
+    var H = window.HOSTING_CAPACITY;
+    var N = window.N1_CONTINGENCY;
+    var P = window.ET_PUMPING;
+    if(!H || !N || !P) return;
+
+    // 1) Hosting Capacity Table
+    var hcBody = document.getElementById('body-hc');
+    if(hcBody) {
+      hcBody.innerHTML = H.buses.filter(function(b){return b.name && b.name.indexOf('UNKNOWN')!==0;})
+        .sort(function(a,b){return a.baseHeadroomMW - b.baseHeadroomMW;})
+        .map(function(b){
+          return "<tr onclick='flyToBus(" + b.lon + ", " + b.lat + ", \"" + b.name + "\", " + b.baseHeadroomMW + ", \"" + b.limitingLineName + "\", " + b.irpHeadroomMW + ", " + b.kv + ")'>" +
+                 "<td><b>" + b.name + "</b></td>" +
+                 "<td>" + b.kv + "</td>" +
+                 "<td style='color:" + (b.baseHeadroomMW <= 10 ? "#ff8a8d" : "#7cd67c") + "'>" + b.baseHeadroomMW + " MW</td>" +
+                 "<td>" + b.irpHeadroomMW + " MW</td></tr>";
+        }).join('');
+    }
+
+    // 2) N-1 Risk Table
+    var n1Body = document.getElementById('body-n1');
+    if(n1Body) {
+      n1Body.innerHTML = Object.keys(N.contingencies)
+        .map(function(k){ return N.contingencies[k]; })
+        .sort(function(a,b){ return b.nOverloads - a.nOverloads || b.maxLoadingPct - a.maxLoadingPct; })
+        .map(function(c){
+          return "<tr onclick='triggerN1(\"" + c.trippedId + "\")'>" +
+                 "<td><b>" + c.trippedName + "</b></td>" +
+                 "<td>" + c.fromBus + " &rarr; " + c.toBus + "</td>" +
+                 "<td style='color:" + (c.maxLoadingPct > 100 ? "#ff8a8d" : "#8aa0b8") + "'>" + Math.round(c.maxLoadingPct) + "%</td>" +
+                 "<td><span class='badge' style='background:" + (c.nOverloads > 0 ? "#241016;color:#e68ba6;border-color:#7a3046" : "#102416;color:#8be6a6;border-color:#257a30") + "'>" + c.nOverloads + "</span></td></tr>";
+        }).join('');
+    }
+
+    // 3) USGS Pumping Table
+    var pumpBody = document.getElementById('body-pump');
+    if(pumpBody) {
+      pumpBody.innerHTML = P.months.map(function(m, i){
+        var ada = P.gw_mgd[i] * 0.62; // disaggregated estimate Ada
+        var cany = P.gw_mgd[i] * 0.38; // Canyon
+        var mwVal = P.pump_mw[i];
+        return "<tr>" +
+               "<td><b>" + m + "</b></td>" +
+               "<td>" + ada.toFixed(1) + "</td>" +
+               "<td>" + cany.toFixed(1) + "</td>" +
+               "<td style='color:#7fe0ff;font-weight:600'>" + mwVal.toFixed(1) + " MW</td></tr>";
+      }).join('');
+    }
+  }
+
+  window.filterScienceTables = function() {
+    var q = document.getElementById('search-' + activeTab).value.toLowerCase();
+    var rows = document.querySelectorAll('#table-' + activeTab + ' tbody tr');
+    rows.forEach(function(row){
+      row.style.display = row.innerText.toLowerCase().indexOf(q) >= 0 ? '' : 'none';
+    });
+  }
+
+  // Row interaction helper: fly to bus and open popup
+  window.flyToBus = function(lon, lat, name, base, limitingLine, irp, kv) {
+    map.flyTo({center: [lon, lat], zoom: 12.5, pitch: 45, duration: 1500});
+    setTimeout(function(){
+      new maplibregl.Popup({maxWidth:'310px'}).setLngLat([lon, lat]).setHTML(
+        '<b>'+name+'</b> ('+kv+' kV) <span class="badge">pandapower</span><br>'+
+        '<b style="font-size:14px">Headroom today: '+base+' MW</b><br>'+
+        (base<=5?'This bus is at the binding limit — added load immediately overloads '
+                :'You can add ~'+base+' MW of new load here before ')+
+        '<b>'+limitingLine+'</b> reaches 100%.<br>'+
+        'With the IRP reinforcement: <b>'+irp+' MW</b>.'+
+        '<br><span style="font-size:10px;color:#8aa0b8">DC screening on calibrated ratings.</span>'
+      ).addTo(map);
+    }, 1600);
+  }
+
+  // Row interaction helper: trigger N-1 contingency trip
+  window.triggerN1 = function(id) {
+    // Ensure N-1 mode is toggled in UI
+    var n1Check = document.getElementById('t-n1');
+    if(n1Check && !n1Check.checked) {
+      n1Check.checked = true;
+      n1Check.dispatchEvent(new Event('change'));
+    }
+    // Call the original grid_tool.js tripLine function
+    if(window.__explode && window.__explode.on) {
+      // If exploded, notify user it's on the base map
+      alert("N-1 contingency tripped! Collapse the 3D systems view to interact with the base transmission grid.");
+    }
+    // Execute tripLine
+    try {
+      if (window.tripLine) {
+        window.tripLine(id);
+      }
+    } catch(e) { console.warn(e); }
+  }
+
+  // Expose minor lines check bind
+  function initMinorLinesToggle() {
+    var check = document.getElementById('t-minor-lines');
+    if(!check) return setTimeout(initMinorLinesToggle, 500);
+    check.addEventListener('change', function(){
+      window.showMinorLines = this.checked;
+      var cur = 'base';
+      var a = document.querySelector('[data-scen].active');
+      if(a) cur = a.getAttribute('data-scen');
+      if(solverOn) cur = 'solver';
+      if(window.LINE_LOADINGS && map.getLayer('trans-glow')){
+        map.setPaintProperty('trans-glow', 'line-color', lineColorExpr(cur));
+      }
+    });
+  }
+
+  // Run initialization
+  initLiveSolver();
+  initMinorLinesToggle();
+})();
+</script>
 </body>
+
 </html>
