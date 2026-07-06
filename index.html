@@ -4,6 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Treasure Valley Grid Stress Sim — Data-Center Load &amp; Climate Risk (MVP2)</title>
+<link rel="icon" href="data:,">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <style>
@@ -52,6 +53,17 @@
   .ts-mod{background:#241016;border-color:#7a3046;color:#e68ba6}
   .climate-bar{height:7px;border-radius:3px;background:linear-gradient(90deg,#2a6df0,#46d0ff,#ffe27a,#ff8a3d,#ff3b3b);margin:6px 0}
   body{font-family:'Inter','Segoe UI',system-ui,sans-serif}
+  .domain-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:10px 12px 0}
+  .domain-tab{border:1px solid #2a405a;background:#111d2a;color:#9fb3c8;border-radius:7px;padding:7px 5px;font-size:11.5px;font-weight:700;letter-spacing:0;cursor:pointer;transition:background .15s,border-color .15s,color .15s,box-shadow .15s}
+  .domain-tab:hover{border-color:#5fd0ff;color:#eef8ff}
+  .domain-tab.active{color:#061018;box-shadow:0 0 0 1px rgba(255,255,255,.12) inset}
+  .domain-tab[data-domain-tab="energy"].active{background:#5fd0ff;border-color:#5fd0ff}
+  .domain-tab[data-domain-tab="water"].active{background:#89d66b;border-color:#89d66b}
+  .domain-tab[data-domain-tab="nexus"].active{background:#ffb74d;border-color:#ffb74d}
+  .domain-loadout{margin:8px 12px 0;border:1px solid rgba(127,168,207,.22);border-radius:8px;background:rgba(10,18,28,.58);padding:7px 9px}
+  .domain-loadout b{display:block;font-size:10px;color:#7fa8cf;letter-spacing:0;text-transform:uppercase;margin-bottom:3px}
+  .domain-loadout span{display:block;font-size:10.5px;color:#cdd9e6;line-height:1.35}
+  [data-domain-hidden="1"]{display:none!important}
   .tab-btn{background:#16202c;border:1px solid #2f4256;color:#8aa0b8;border-radius:5px;padding:4px 8px;font-size:10.5px;cursor:pointer;flex:1;transition:background 0.15s,color 0.15s;}
   .tab-btn.active{background:#5fd0ff;color:#0e1622;border-color:#5fd0ff;font-weight:600;}
   .science-table{width:100%;border-collapse:collapse;margin-top:6px;}
@@ -79,23 +91,25 @@
 <div id="map"></div>
 
 <!-- SCIENTIFIC DATASETS PANEL (Interactive tables) -->
-<div id="science-panel" class="hud" style="position:absolute;top:180px;right:12px;z-index:9;width:330px;max-height:calc(100vh - 200px);overflow-y:auto;padding:12px 14px;border-radius:12px;color:#dce6f0;font-family:'Segoe UI',sans-serif;display:none;">
+<div id="science-panel" class="hud" data-domain="energy nexus" style="position:absolute;top:180px;right:12px;z-index:9;width:330px;max-height:calc(100vh - 200px);overflow-y:auto;padding:12px 14px;border-radius:12px;color:#dce6f0;font-family:'Segoe UI',sans-serif;display:none;">
   <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:6px;margin-bottom:8px">
     <h3 style="margin:0;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:#5fd0ff">Risk Management & Datasets</h3>
     <button onclick="document.getElementById('science-panel').style.display='none'; document.getElementById('t-science-panel').checked=false; var trm=document.getElementById('t-raven-menu'); if(trm)trm.checked=false;" style="background:none;border:none;color:#8aa0b8;cursor:pointer;font-weight:bold;font-size:15px">&times;</button>
   </div>
   <div style="display:flex;gap:4px;margin-bottom:8px">
-    <button id="tab-hc" class="tab-btn active" onclick="switchScienceTab('hc')">Hosting Cap</button>
+    <button id="tab-hc" class="tab-btn active" onclick="switchScienceTab('hc')">Addable MW</button>
     <button id="tab-n1" class="tab-btn" onclick="switchScienceTab('n1')">N-1 Risk</button>
     <button id="tab-pump" class="tab-btn" onclick="switchScienceTab('pump')">USGS Pumping</button>
+    <button id="tab-pf" class="tab-btn" onclick="switchScienceTab('pf')" style="border-color:#5fd0ff;color:#bfefff;">PF Internals</button>
     <button id="tab-raven" class="tab-btn" onclick="switchScienceTab('raven')" style="border-color:#ffb74d;color:#ffe27a;">RAVEN Risk</button>
   </div>
   <div id="content-hc" class="tab-content" style="font-size:11px">
+    <div style="font-size:10px;color:#8aa0b8;line-height:1.35;margin:0 0 7px">Hosting capacity is shown as <b style="color:#cfe4f7">addable MW</b> before the first limiting line reaches 100% loading. It is not a percent-capacity score.</div>
     <input type="text" id="search-hc" placeholder="Search substations..." oninput="filterScienceTables()">
     <div style="overflow-x:auto;max-height:240px">
       <table class="science-table" id="table-hc">
         <thead>
-          <tr><th>Substation</th><th>kV</th><th>Base MW</th><th>IRP MW</th></tr>
+          <tr><th>Substation</th><th>kV</th><th>Today addable MW</th><th>With IRP addable MW</th></tr>
         </thead>
         <tbody id="body-hc"></tbody>
       </table>
@@ -106,7 +120,7 @@
     <div style="overflow-x:auto;max-height:240px">
       <table class="science-table" id="table-n1">
         <thead>
-          <tr><th>Tripped Line</th><th>From &rarr; To</th><th>Max %</th><th>Ovs</th></tr>
+          <tr><th>Tripped Line</th><th>From &rarr; To</th><th>Max loading %</th><th>Ovs</th></tr>
         </thead>
         <tbody id="body-n1"></tbody>
       </table>
@@ -133,11 +147,41 @@
       </table>
     </div>
   </div>
+  <div id="content-pf" class="tab-content" style="font-size:11px;display:none">
+    <div id="pf-assumptions" style="font-size:10px;color:#a8bed5;line-height:1.42;margin:0 0 8px"></div>
+    <input type="text" id="search-pf" placeholder="Search PF internals..." oninput="filterScienceTables()">
+    <div id="pf-generation" style="font-size:10px;color:#cdd9e6;line-height:1.45;margin:0 0 8px"></div>
+    <div style="font-size:10.5px;color:#7fa8cf;margin:8px 0 4px;font-weight:700">Substation load clusters</div>
+    <div style="overflow-x:auto;max-height:180px">
+      <table class="science-table" id="table-pf">
+        <thead>
+          <tr><th>Bus</th><th>Tracts</th><th>Pop</th><th>Avg MW</th><th>Peak MW</th><th>Live MW</th></tr>
+        </thead>
+        <tbody id="body-pf-clusters"></tbody>
+      </table>
+    </div>
+    <div style="font-size:10.5px;color:#7fa8cf;margin:8px 0 4px;font-weight:700">Voltage / angle by bus</div>
+    <div style="overflow-x:auto;max-height:180px">
+      <table class="science-table">
+        <thead>
+          <tr><th>Bus</th><th>kV</th><th>Vm pu</th><th>Angle deg</th><th>P load MW</th><th>P gen MW</th></tr>
+        </thead>
+        <tbody id="body-pf-bus"></tbody>
+      </table>
+    </div>
+    <div style="font-size:10.5px;color:#7fa8cf;margin:8px 0 4px;font-weight:700">Ybus matrix (DC Bbus approximation)</div>
+    <div style="overflow-x:auto;max-height:220px">
+      <table class="science-table">
+        <thead id="head-pf-ybus"></thead>
+        <tbody id="body-pf-ybus"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
-<!-- VALIDATED power-flow results (real pandapower runs) -->
-<details open style="position:absolute;top:60px;right:12px;z-index:9;width:300px;max-width:46vw;background:rgba(12,18,28,.86);border:1px solid #2a3a4f;border-radius:12px;padding:9px 13px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 24px rgba(0,0,0,.5);font-family:'Segoe UI',system-ui,sans-serif;color:#dce6f0">
-  <summary style="cursor:pointer;font-size:10.5px;letter-spacing:.5px;color:#7fa8cf;font-weight:700">VALIDATED POWER-FLOW (pandapower DC)</summary>
+<!-- Power-flow screening results (pandapower DC) -->
+<details id="powerflow-summary" data-domain="energy nexus" open style="position:absolute;top:60px;right:12px;z-index:9;width:300px;max-width:46vw;background:rgba(12,18,28,.86);border:1px solid #2a3a4f;border-radius:12px;padding:9px 13px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 24px rgba(0,0,0,.5);font-family:'Segoe UI',system-ui,sans-serif;color:#dce6f0">
+  <summary style="cursor:pointer;font-size:10.5px;letter-spacing:.5px;color:#7fa8cf;font-weight:700">POWER-FLOW SCREENING (pandapower DC)</summary>
   <div style="font-size:11px;line-height:1.5;margin-top:8px">
     <div style="margin-bottom:6px"><b style="color:#46d0ff">Base 2025</b> &mdash; 3,117 MW &middot; max <b>100%</b> &middot; 1 line at limit. Secure.</div>
     <div style="margin-bottom:6px"><b style="color:#ff8a3d">Targeted 2035</b> (data centers + Kuna/Meridian growth, not uniform) &mdash; 4,455 MW &middot; max <b>486%</b> &middot; 6 over. Worst: <b>Bowmont&rarr;Hemingway</b> tie, <b>TAP&rarr;Kuna</b> feeders.</div>
@@ -171,8 +215,17 @@
     <h1>TV Grid Stress Sim</h1>
     <div class="sub">Data-center load &amp; climate-risk on the Idaho Power grid. MapLibre 3D + deck.gl. Screening model for energy engineers — provenance at lower-left.</div>
   </header>
+  <div class="domain-tabs" role="tablist" aria-label="System domains">
+    <button class="domain-tab active" type="button" data-domain-tab="energy">Energy</button>
+    <button class="domain-tab" type="button" data-domain-tab="water">Water</button>
+    <button class="domain-tab" type="button" data-domain-tab="nexus">Nexus</button>
+  </div>
+  <div class="domain-loadout" id="domainLoadout">
+    <b>Energy loadout</b>
+    <span>Transmission, demand, generation, hosting capacity, N-1, and live EIA demand.</span>
+  </div>
 
-  <div id="readout">
+  <div id="readout" data-domain="energy nexus">
     <h2 style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#7fa8cf;margin:0">Grid stress <span class="tsbadge ts-mod">MODELED · screening</span></h2>
     <div class="big">
       <div class="kpi"><div class="n" id="kpiLoad">3,117</div><div class="l">Total load MW</div></div>
@@ -183,7 +236,7 @@
     <div id="heatBanner" style="display:none;font-size:10.5px;color:#ffb74d;margin-top:6px">Heat-derating active: conductor ampacity reduced → less headroom (illustrative).</div>
   </div>
 
-  <div class="sect">
+  <div class="sect" data-domain="energy nexus">
     <h2>Scenario <span class="tag">data-center &amp; climate</span></h2>
     <div id="live-solver-sect" style="border-top:1px dashed rgba(95,208,255,.2);margin-top:8px;padding-top:10px;margin-bottom:8px">
       <h2 style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#ffe27a;margin:0 0 6px">Live Interactive Solver <span class="tag" style="background:#302510;border-color:#7a6125;color:#ffd07a">local calc</span></h2>
@@ -217,7 +270,7 @@
     <button class="scen" data-scen="drought">Drought (hydro −60%)<span class="s2">+45 MW onto import ties</span></button>
   </div>
 
-  <div class="sect">
+  <div class="sect" data-domain="water nexus">
     <h2>Climate risk <span class="tag">mid-century</span></h2>
     <div class="climate-bar"></div>
     <div class="note">Warming to ~2051 (LOCA2 / IPCC AR6): <b>+1.1 °C</b> SSP2-4.5 / <b>+1.8 °C</b> SSP5-8.5 <span class="tsbadge ts-mod">MODELED-CITED</span>. Cooling degree-days <b>+22–38%</b> → higher A/C peak. Hydro availability falls <b>0.55 → 0.24</b> in severe drought <span class="tsbadge ts-mod">MODELED</span>.</div>
@@ -225,28 +278,44 @@
     <div class="note">Compounding: summer heat lifts demand <em>while</em> de-rating the same conductors, and drought pushes groundwater-pumping load onto ag feeders.</div>
   </div>
 
-  <div class="sect">
-    <h2>Layers</h2>
-    <label class="row"><input type="checkbox" id="t-naip" checked> NAIP aerial (0.6 m, USGS)</label>
-    <label class="row"><input type="checkbox" id="t-buildings" checked> 3D Buildings</label>
-    <label class="row"><input type="checkbox" id="t-terrain" checked> 3D Terrain (DEM)</label>
-    <label class="row"><input type="checkbox" id="t-hillshade" checked> Hillshade</label>
-    <label class="row"><input type="checkbox" id="t-load"> Modeled load (tract choropleth)</label>
-    <label class="row"><input type="checkbox" id="t-trans" checked> Transmission lines</label>
-    <label class="row" style="color:#a8b8cf"><input type="checkbox" id="t-minor-lines"> Show minor/non-modeled lines</label>
-    <label class="row"><input type="checkbox" id="t-subs" checked> Substations</label>
-    <label class="row"><input type="checkbox" id="t-plants" checked> Generation plants</label>
-    <label class="row"><input type="checkbox" id="t-large" checked> Large loads (Meta/Micron)</label>
-    <label class="row"><input type="checkbox" id="t-drone" checked> Corrals drone ortho (1cm)</label>
+  <div class="sect" data-domain="energy water nexus" id="domain-layer-sect">
+    <h2 id="domainLayerTitle">Energy layers</h2>
+    <div class="note" id="domainLayerNote" style="margin:0 0 7px">Transmission, generation, load, large-load, and substation overlays.</div>
+    <label class="row" data-domain="water nexus"><input type="checkbox" id="t-naip" checked> NAIP aerial (0.6 m, USGS)</label>
+    <label class="row" data-domain="energy nexus"><input type="checkbox" id="t-buildings" checked> 3D Buildings</label>
+    <label class="row" data-domain="water nexus"><input type="checkbox" id="t-terrain" checked> 3D Terrain (DEM)</label>
+    <label class="row" data-domain="water nexus"><input type="checkbox" id="t-hillshade" checked> Hillshade</label>
+    <label class="row" data-domain="energy nexus"><input type="checkbox" id="t-load"> Modeled load (tract choropleth)</label>
+    <label class="row" data-domain="energy nexus"><input type="checkbox" id="t-trans" checked> Transmission lines</label>
+    <label class="row" data-domain="energy nexus" style="color:#a8b8cf"><input type="checkbox" id="t-minor-lines"> Show minor/non-modeled lines</label>
+    <label class="row" data-domain="energy nexus"><input type="checkbox" id="t-subs" checked> Substations</label>
+    <label class="row" data-domain="energy nexus"><input type="checkbox" id="t-plants" checked> Generation plants</label>
+    <label class="row" data-domain="energy nexus"><input type="checkbox" id="t-large" checked> Large loads (Meta/Micron)</label>
+    <label class="row" data-domain="energy nexus" style="color:#bfefff"><input type="checkbox" id="t-team-transmission-model"> Team transmission model layer</label>
+    <label class="row" data-domain="water nexus"><input type="checkbox" id="t-drone" checked> Corrals drone ortho (1cm)</label>
   </div>
 
-  <div class="sect">
+  <div class="sect" id="team-transmission-model-sect" data-domain="energy nexus">
+    <h2>Transmission Model Review</h2>
+    <div class="small" style="color:#bfefff;line-height:1.35">
+      Substation load clusters use population-to-load assignment, sector-wise load shares,
+      load factor peak conversion, real-time EIA demand scaling, ideal transformer handling,
+      and steady-state DC power-flow internals.
+    </div>
+    <div class="small" style="margin-top:6px;color:var(--muted)">
+      Generation assumptions are shown separately from slack imports. Open PF Internals for the
+      Ybus matrix and Voltage / angle by bus table.
+    </div>
+    <button id="open-team-transmission-model" class="primary" style="margin-top:8px" onclick="window.openTeamTransmissionModel&&window.openTeamTransmissionModel()">Open PF Internals</button>
+  </div>
+
+  <div class="sect" data-domain="energy water nexus">
     <h2>Basemap</h2>
     <label class="row"><input type="radio" name="basemap" id="bm-vector" value="vector" checked> Vector (OpenFreeMap)</label>
     <label class="row"><input type="radio" name="basemap" id="bm-sat" value="satellite"> Satellite (Esri Imagery)</label>
   </div>
 
-  <div class="sect">
+  <div class="sect" data-domain="energy water nexus">
     <h2>Fly to</h2>
     <button class="btn" data-fly="downtown">Downtown Boise</button>
     <button class="btn" data-fly="micron">Micron Boise (~350 MW)</button>
@@ -255,7 +324,7 @@
     <button class="btn" data-fly="valley">Whole Valley</button>
   </div>
 
-  <div class="sect">
+  <div class="sect" data-domain="energy nexus">
     <h2>Legend</h2>
     <div class="note" style="margin:2px 0 6px">Line color = real modeled loading %. Width = voltage class.</div>
     <div class="legitem"><span class="sw" style="background:#36c46b"></span> under 50%</div>
@@ -277,7 +346,7 @@
     <div class="note">Tract choropleth: EIA-930 IPCO BA demand disaggregated by population (NREL ResStock ID hourly shape). County totals: Ada 1703 MW, Canyon 804, Gem 65, Boise 25, Owyhee 40 MW avg.</div>
   </div>
 
-  <div class="sect">
+  <div class="sect" data-domain="nexus">
     <h2>On-device AI <span class="tsbadge ts-mod">AI · screening</span></h2>
     <div class="note" style="margin-bottom:6px">Runs locally in your browser (WebGPU; Chrome/Edge). First use downloads a ~130 MB model. Answers reason over the live scenario loadings — screening only, not engineering advice.</div>
     <input id="aiInput" type="text" placeholder="Ask about the grid — e.g. which lines are overloaded?" style="width:100%;box-sizing:border-box;background:#0a1622;border:1px solid #2a3a4f;color:#e8edf4;border-radius:7px;padding:7px 9px;font-size:12.5px">
@@ -285,6 +354,70 @@
     <div id="aiOut" class="note" style="margin-top:8px;min-height:36px;color:#cdd9e6">On-device AI idle. Click to load the model (downloads once).</div>
   </div>
 </div>
+
+<script>
+(function(){
+  var DOMAIN_COPY={
+    energy:{
+      title:'Energy loadout',
+      body:'Transmission, demand, generation, hosting capacity, N-1, and live EIA demand.',
+      layerTitle:'Energy layers',
+      layerNote:'Transmission, generation, load, large-load, and substation overlays.'
+    },
+    water:{
+      title:'Water loadout',
+      body:'Terrain, aerials, groundwater, irrigation pumping, drought, and climate stress.',
+      layerTitle:'Water layers',
+      layerNote:'Terrain, hillshade, aerial, drone ortho, aquifer, irrigation, and climate overlays.'
+    },
+    nexus:{
+      title:'Nexus loadout',
+      body:'Combined energy-water stress, exploded systems, risk tables, and local AI review.',
+      layerTitle:'Nexus layers',
+      layerNote:'Shared overlays for comparing grid, water, climate, and demand together.'
+    }
+  };
+  function hasDomain(el,domain){
+    var raw=(el.getAttribute('data-domain')||'energy water nexus').trim();
+    return raw.split(/\s+/).indexOf(domain)!==-1;
+  }
+  function setDomain(domain){
+    if(!DOMAIN_COPY[domain]) domain='energy';
+    document.documentElement.setAttribute('data-active-domain',domain);
+    var buttons=document.querySelectorAll('[data-domain-tab]');
+    for(var i=0;i<buttons.length;i++){
+      var on=buttons[i].getAttribute('data-domain-tab')===domain;
+      buttons[i].classList.toggle('active',on);
+      buttons[i].setAttribute('aria-selected',on?'true':'false');
+    }
+    var copy=DOMAIN_COPY[domain], loadout=document.getElementById('domainLoadout');
+    if(loadout) loadout.innerHTML='<b>'+copy.title+'</b><span>'+copy.body+'</span>';
+    var layerTitle=document.getElementById('domainLayerTitle'), layerNote=document.getElementById('domainLayerNote');
+    if(layerTitle) layerTitle.textContent=copy.layerTitle;
+    if(layerNote) layerNote.textContent=copy.layerNote;
+    var nodes=document.querySelectorAll('[data-domain]');
+    for(var j=0;j<nodes.length;j++){
+      var show=hasDomain(nodes[j],domain)&&nodes[j].getAttribute('data-dup')!=='1';
+      if(show){ nodes[j].removeAttribute('data-domain-hidden'); }
+      else { nodes[j].setAttribute('data-domain-hidden','1'); }
+    }
+  }
+  window.setDomainTab=setDomain;
+  document.addEventListener('DOMContentLoaded',function(){
+    var buttons=document.querySelectorAll('[data-domain-tab]');
+    for(var i=0;i<buttons.length;i++){
+      buttons[i].addEventListener('click',function(){ setDomain(this.getAttribute('data-domain-tab')); });
+      buttons[i].setAttribute('role','tab');
+    }
+    setDomain('energy');
+    var panel=document.getElementById('panel');
+    if(panel && window.MutationObserver){
+      new MutationObserver(function(){ setDomain(document.documentElement.getAttribute('data-active-domain')||'energy'); })
+        .observe(panel,{childList:true,subtree:true});
+    }
+  });
+})();
+</script>
 
 <div id="attrib" class="hud">
   <span id="attrib-basemap">Basemap &copy; <a href="https://openfreemap.org" target="_blank">OpenFreeMap</a> &amp; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> - map data &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors (ODbL)</a>.</span>
@@ -678,10 +811,13 @@ map.on('load',function(){ initStress(); introSequence(); });
 })();
 </script>
 <script>
-window.EIA_DEMAND=[["2025-07-08T00",3620],["2025-07-08T01",3696],["2025-07-08T02",3685],["2025-07-08T03",3602],["2025-07-08T04",3425],["2025-07-08T05",3192],["2025-07-08T06",2907],["2025-07-08T07",2692],["2025-07-08T08",2526],["2025-07-08T09",2397],["2025-07-08T10",2310],["2025-07-08T11",2254],["2025-07-08T12",2278],["2025-07-08T13",2334],["2025-07-08T14",2489],["2025-07-08T15",2615],["2025-07-08T16",2756],["2025-07-08T17",2904],["2025-07-08T18",3081],["2025-07-08T19",3261],["2025-07-08T20",3453],["2025-07-08T21",3630],["2025-07-08T22",3768],["2025-07-08T23",3861],["2025-07-09T00",3895],["2025-07-09T01",3932],["2025-07-09T02",3873],["2025-07-09T03",3714],["2025-07-09T04",3604],["2025-07-09T05",3396],["2025-07-09T06",3108],["2025-07-09T07",2891],["2025-07-09T08",2695],["2025-07-09T09",2560],["2025-07-09T10",2460],["2025-07-09T11",2384],["2025-07-09T12",2383],["2025-07-09T13",2440],["2025-07-09T14",2590],["2025-07-09T15",2748],["2025-07-09T16",2879],["2025-07-09T17",3012],["2025-07-09T18",3157],["2025-07-09T19",3293],["2025-07-09T20",3429],["2025-07-09T21",3566],["2025-07-09T22",3679],["2025-07-09T23",3752],["2025-07-10T00",3811],["2025-07-10T01",3764],["2025-07-10T02",3615],["2025-07-10T03",3448],["2025-07-10T04",3273],["2025-07-10T05",3088],["2025-07-10T06",2838],["2025-07-10T07",2643],["2025-07-10T08",2520],["2025-07-10T09",2407],["2025-07-10T10",2322],["2025-07-10T11",2296],["2025-07-10T12",2314],["2025-07-10T13",2386],["2025-07-10T14",2535],["2025-07-10T15",2655],["2025-07-10T16",2746],["2025-07-10T17",2826],["2025-07-10T18",2902],["2025-07-10T19",2988],["2025-07-10T20",3100],["2025-07-10T21",3183],["2025-07-10T22",3294],["2025-07-10T23",3358],["2025-07-11T00",3443],["2025-07-11T01",3508],["2025-07-11T02",3511],["2025-07-11T03",3439],["2025-07-11T04",3291],["2025-07-11T05",3103],["2025-07-11T06",2867],["2025-07-11T07",2673],["2025-07-11T08",2506],["2025-07-11T09",2401],["2025-07-11T10",2339],["2025-07-11T11",2287],["2025-07-11T12",2295],["2025-07-11T13",2370],["2025-07-11T14",2513],["2025-07-11T15",2660],["2025-07-11T16",2755],["2025-07-11T17",2852],["2025-07-11T18",2953],["2025-07-11T19",3040],["2025-07-11T20",3141],["2025-07-11T21",3277],["2025-07-11T22",3373],["2025-07-11T23",3451],["2025-07-12T00",3515],["2025-07-12T01",3544],["2025-07-12T02",3525],["2025-07-12T03",3428],["2025-07-12T04",3271],["2025-07-12T05",3078],["2025-07-12T06",2860],["2025-07-12T07",2640],["2025-07-12T08",2481],["2025-07-12T09",2386],["2025-07-12T10",2289],["2025-07-12T11",2220],["2025-07-12T12",2211],["2025-07-12T13",2215],["2025-07-12T14",2316],["2025-07-12T15",2440],["2025-07-12T16",2571],["2025-07-12T17",2670],["2025-07-12T18",2819],["2025-07-12T19",2949],["2025-07-12T20",3087],["2025-07-12T21",3215],["2025-07-12T22",3328],["2025-07-12T23",3420],["2025-07-13T00",3513],["2025-07-13T01",3566],["2025-07-13T02",3551],["2025-07-13T03",3439],["2025-07-13T04",3258],["2025-07-13T05",3061],["2025-07-13T06",2838],["2025-07-13T07",2627],["2025-07-13T08",2470],["2025-07-13T09",2337],["2025-07-13T10",2282],["2025-07-13T11",2206],["2025-07-13T12",2181],["2025-07-13T13",2172],["2025-07-13T14",2229],["2025-07-13T15",2390],["2025-07-13T16",2518],["2025-07-13T17",2675],["2025-07-13T18",2827],["2025-07-13T19",3001],["2025-07-13T20",3157],["2025-07-13T21",3305],["2025-07-13T22",3433],["2025-07-13T23",3521],["2025-07-14T00",3638],["2025-07-14T01",3672],["2025-07-14T02",3666],["2025-07-14T03",3582],["2025-07-14T04",3390],["2025-07-14T05",3189],["2025-07-14T06",2896],["2025-07-14T07",2686],["2025-07-14T08",2514],["2025-07-14T09",2393],["2025-07-14T10",2315],["2025-07-14T11",2274],["2025-07-14T12",2294],["2025-07-14T13",2378],["2025-07-14T14",2537],["2025-07-14T15",2730],["2025-07-14T16",2884],["2025-07-14T17",3061],["2025-07-14T18",3221],["2025-07-14T19",3395],["2025-07-14T20",3550],["2025-07-14T21",3678],["2025-07-14T22",3788],["2025-07-14T23",3786],["2025-07-15T00",3841],["2025-07-15T01",3807],["2025-07-15T02",3805],["2025-07-15T03",3766],["2025-07-15T04",3588],["2025-07-15T05",3373],["2025-07-15T06",3087],["2025-07-15T07",2852],["2025-07-15T08",2649],["2025-07-15T09",2520],["2025-07-15T10",2412],["2025-07-15T11",2345],["2025-07-15T12",2348],["2025-07-15T13",2402],["2025-07-15T14",2544],["2025-07-15T15",2678],["2025-07-15T16",2792],["2025-07-15T17",2894],["2025-07-15T18",3024],["2025-07-15T19",3139],["2025-07-15T20",3281],["2025-07-15T21",3369],["2025-07-15T22",3422],["2025-07-15T23",3418],["2025-07-16T00",3454],["2025-07-16T01",3485],["2025-07-16T02",3472],["2025-07-16T03",3384],["2025-07-16T04",3243],["2025-07-16T05",3048],["2025-07-16T06",2795],["2025-07-16T07",2591],["2025-07-16T08",2451],["2025-07-16T09",2360],["2025-07-16T10",2272],["2025-07-16T11",2252],["2025-07-16T12",2264],["2025-07-16T13",2350],["2025-07-16T14",2472],["2025-07-16T15",2582],["2025-07-16T16",2662],["2025-07-16T17",2771],["2025-07-16T18",2882],["2025-07-16T19",3006],["2025-07-16T20",3146],["2025-07-16T21",3245],["2025-07-16T22",3341],["2025-07-16T23",3447],["2025-07-17T00",3526],["2025-07-17T01",3587],["2025-07-17T02",3597],["2025-07-17T03",3489],["2025-07-17T04",3303],["2025-07-17T05",3079],["2025-07-17T06",2816],["2025-07-17T07",2596],["2025-07-17T08",2454],["2025-07-17T09",2357],["2025-07-17T10",2285],["2025-07-17T11",2236],["2025-07-17T12",2271],["2025-07-17T13",2349],["2025-07-17T14",2463],["2025-07-17T15",2586],["2025-07-17T16",2694],["2025-07-17T17",2805],["2025-07-17T18",2949],["2025-07-17T19",3103],["2025-07-17T20",3268],["2025-07-17T21",3401],["2025-07-17T22",3569],["2025-07-17T23",3663],["2025-07-18T00",3743]];
+window.EIA_DEMAND=[["2026-06-26T23",2710],["2026-06-27T00",2750],["2026-06-27T01",2810],["2026-06-27T02",2820],["2026-06-27T03",2780],["2026-06-27T04",2694],["2026-06-27T05",2590],["2026-06-27T06",2457],["2026-06-27T07",2311],["2026-06-27T08",2245],["2026-06-27T09",2176],["2026-06-27T10",2133],["2026-06-27T11",2097],["2026-06-27T12",2095],["2026-06-27T13",2131],["2026-06-27T14",2190],["2026-06-27T15",2271],["2026-06-27T16",2326],["2026-06-27T17",2347],["2026-06-27T18",2371],["2026-06-27T19",2396],["2026-06-27T20",2356],["2026-06-27T21",2316],["2026-06-27T22",2296],["2026-06-27T23",2258],["2026-06-28T00",2263],["2026-06-28T01",2275],["2026-06-28T02",2308],["2026-06-28T03",2300],["2026-06-28T04",2286],["2026-06-28T05",2255],["2026-06-28T06",2140],["2026-06-28T07",2060],["2026-06-28T08",1988],["2026-06-28T09",1954],["2026-06-28T10",1893],["2026-06-28T11",1864],["2026-06-28T12",1845],["2026-06-28T13",1832],["2026-06-28T14",1894],["2026-06-28T15",1942],["2026-06-28T16",2025],["2026-06-28T17",2115],["2026-06-28T18",2135],["2026-06-28T19",2148],["2026-06-28T20",2202],["2026-06-28T21",2239],["2026-06-28T22",2266],["2026-06-28T23",2295],["2026-06-29T00",2318],["2026-06-29T01",2352],["2026-06-29T02",2281],["2026-06-29T03",2271],["2026-06-29T04",2260],["2026-06-29T05",2198],["2026-06-29T06",2079],["2026-06-29T07",1998],["2026-06-29T08",1943],["2026-06-29T09",1908],["2026-06-29T10",1903],["2026-06-29T11",1908],["2026-06-29T12",1986],["2026-06-29T13",2064],["2026-06-29T14",2213],["2026-06-29T15",2291],["2026-06-29T16",2333],["2026-06-29T17",2338],["2026-06-29T18",2351],["2026-06-29T19",2347],["2026-06-29T20",2358],["2026-06-29T21",2370],["2026-06-29T22",2391],["2026-06-29T23",2417],["2026-06-30T00",2496],["2026-06-30T01",2576],["2026-06-30T02",2607],["2026-06-30T03",2602],["2026-06-30T04",2550],["2026-06-30T05",2476],["2026-06-30T06",2333],["2026-06-30T07",2190],["2026-06-30T08",2117],["2026-06-30T09",2055],["2026-06-30T10",2033],["2026-06-30T11",2026],["2026-06-30T12",2080],["2026-06-30T13",2175],["2026-06-30T14",2287],["2026-06-30T15",2362],["2026-06-30T16",2432],["2026-06-30T17",2483],["2026-06-30T18",2507],["2026-06-30T19",2598],["2026-06-30T20",2647],["2026-06-30T21",2738],["2026-06-30T22",2802],["2026-06-30T23",2888],["2026-07-01T00",2942],["2026-07-01T01",2990],["2026-07-01T02",2976],["2026-07-01T03",2890],["2026-07-01T04",2812],["2026-07-01T05",2706],["2026-07-01T06",2535],["2026-07-01T07",2416],["2026-07-01T08",2367],["2026-07-01T09",2289],["2026-07-01T10",2247],["2026-07-01T11",2228],["2026-07-01T12",2251],["2026-07-01T13",2324],["2026-07-01T14",2416],["2026-07-01T15",2507],["2026-07-01T16",2565],["2026-07-01T17",2607],["2026-07-01T18",2627],["2026-07-01T19",2700],["2026-07-01T20",2782],["2026-07-01T21",2883],["2026-07-01T22",2974],["2026-07-01T23",3067],["2026-07-02T00",3134],["2026-07-02T01",3193],["2026-07-02T02",3200],["2026-07-02T03",3156],["2026-07-02T04",3038],["2026-07-02T05",2869],["2026-07-02T06",2658],["2026-07-02T07",2488],["2026-07-02T08",2378],["2026-07-02T09",2293],["2026-07-02T10",2238],["2026-07-02T11",2187],["2026-07-02T12",2208],["2026-07-02T13",2280],["2026-07-02T14",2399],["2026-07-02T15",2489],["2026-07-02T16",2544],["2026-07-02T17",2604],["2026-07-02T18",2656],["2026-07-02T19",2746],["2026-07-02T20",2814],["2026-07-02T21",2903],["2026-07-02T22",3008],["2026-07-02T23",3083],["2026-07-03T00",3204],["2026-07-03T01",3271],["2026-07-03T02",3237],["2026-07-03T03",3161],["2026-07-03T04",3009],["2026-07-03T05",2914],["2026-07-03T06",2694],["2026-07-03T07",2517],["2026-07-03T08",2374],["2026-07-03T09",2285],["2026-07-03T10",2230],["2026-07-03T11",2197],["2026-07-03T12",2175],["2026-07-03T13",2217],["2026-07-03T14",2384],["2026-07-03T15",2497],["2026-07-03T16",2615],["2026-07-03T17",2631],["2026-07-03T18",2690],["2026-07-03T19",2795],["2026-07-03T20",2929],["2026-07-03T21",3043],["2026-07-03T22",3021],["2026-07-03T23",3132],["2026-07-04T00",3226],["2026-07-04T01",3274],["2026-07-04T02",3381],["2026-07-04T03",3294],["2026-07-04T04",3135],["2026-07-04T05",2950],["2026-07-04T06",2764],["2026-07-04T07",2565],["2026-07-04T08",2410],["2026-07-04T09",2314],["2026-07-04T10",2230],["2026-07-04T11",2198],["2026-07-04T12",2168],["2026-07-04T13",2179],["2026-07-04T14",2344],["2026-07-04T15",2471],["2026-07-04T16",2610],["2026-07-04T17",2727],["2026-07-04T18",2791],["2026-07-04T19",2906],["2026-07-04T20",3069],["2026-07-04T21",3209],["2026-07-04T22",3335],["2026-07-04T23",3421],["2026-07-05T00",3486],["2026-07-05T01",3424],["2026-07-05T02",3405],["2026-07-05T03",3304],["2026-07-05T04",3085],["2026-07-05T05",2974],["2026-07-05T06",2829],["2026-07-05T07",2662],["2026-07-05T08",2506],["2026-07-05T09",2365],["2026-07-05T10",2260],["2026-07-05T11",2194],["2026-07-05T12",2155],["2026-07-05T13",2130],["2026-07-05T14",2190],["2026-07-05T15",2412],["2026-07-05T16",2518],["2026-07-05T17",2650],["2026-07-05T18",2796],["2026-07-05T19",2930],["2026-07-05T20",3041],["2026-07-05T21",3201],["2026-07-05T22",3329],["2026-07-05T23",3449],["2026-07-06T00",3395],["2026-07-06T01",3362],["2026-07-06T02",3301],["2026-07-06T03",3206],["2026-07-06T04",3165],["2026-07-06T05",3012],["2026-07-06T06",2795],["2026-07-06T07",2598],["2026-07-06T08",2446],["2026-07-06T09",2338],["2026-07-06T10",2277],["2026-07-06T11",2243],["2026-07-06T12",2273],["2026-07-06T13",2367],["2026-07-06T14",2485],["2026-07-06T15",2706],["2026-07-06T16",2876],["2026-07-06T17",3015],["2026-07-06T18",3094],["2026-07-06T19",3235],["2026-07-06T20",3325],["2026-07-06T21",3388],["2026-07-06T22",3478]];
+window.EIA_DEMAND_META={"source":"EIA API v2 electricity/rto/region-data","source_url":"https://api.eia.gov/v2/electricity/rto/region-data/data/","respondent":"IPCO","series":"D","series_name":"Demand","retrieved_at_utc":"2026-07-06T22:51:27Z","period_start":"2026-06-26T23","period_end":"2026-07-06T22","row_count":240,"headerLabel":"CURRENT EIA-930 DEMAND","subLabel":"Idaho Power - latest 240 hourly records","peakLabel":"rolling window peak","playLabel":"Play demand window","sourceLabel":"Source: U.S. EIA API v2 electricity/rto/region-data - IPCO Demand (D), latest 240 hourly records from 2026-06-26T23 through 2026-07-06T22; retrieved 2026-07-06T22:51:27Z. This is measured EIA-930 operating data, not a future forecast. Line colors map demand onto pandapower screening scenarios (relative stress indicators)."};
 /* REAL EIA-930 hourly demand (Idaho Power / IPCO) drives the timeline + chart. */
 (function(){
-  var D=window.EIA_DEMAND;
+  var D=window.EIA_DEMAND||[];
+  var META=window.EIA_DEMAND_META||{};
+  if(!D.length){return;}
   function ready(){
     if(typeof window.LINE_LOADINGS==='undefined'||typeof window.map==='undefined'||!map.getLayer||!map.getLayer('trans-glow')){return setTimeout(ready,800);}
     var L=window.LINE_LOADINGS;
@@ -695,9 +831,12 @@ window.EIA_DEMAND=[["2025-07-08T00",3620],["2025-07-08T01",3696],["2025-07-08T02
     var MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     function localLabel(per){ var Y=+per.slice(0,4),M=+per.slice(5,7),Dd=+per.slice(8,10),H=+per.slice(11,13);
       var dt=new Date(Date.UTC(Y,M-1,Dd,H)); dt.setUTCHours(dt.getUTCHours()-6);
-      var hh=dt.getUTCHours(); return MO[dt.getUTCMonth()]+' '+dt.getUTCDate()+', '+(hh<10?'0':'')+hh+':00 MT'; }
+      var hh=dt.getUTCHours(); return MO[dt.getUTCMonth()]+' '+dt.getUTCDate()+', '+dt.getUTCFullYear()+' '+(hh<10?'0':'')+hh+':00 MT'; }
     var timer=null;
-    function stop(){ if(timer){clearInterval(timer);timer=null;play.textContent='▶ Play 10-day demand';} }
+    var playText='▶ '+(META.playLabel||'Play demand window');
+    var peakLabel=META.peakLabel||'window peak';
+    function esc(s){ return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+    function stop(){ if(timer){clearInterval(timer);timer=null;play.textContent=playText;} }
     function draw(idx){ var w=cv.width,h=cv.height; cx.clearRect(0,0,w,h);
       cx.beginPath(); for(var i=0;i<D.length;i++){ var x=i/(D.length-1)*w, y=h-((D[i][1]-vmin)/(vmax-vmin))*(h-7)-4; if(i===0)cx.moveTo(x,y); else cx.lineTo(x,y); }
       cx.strokeStyle='#5fd0ff'; cx.lineWidth=1.4; cx.stroke();
@@ -712,14 +851,19 @@ window.EIA_DEMAND=[["2025-07-08T00",3620],["2025-07-08T01",3696],["2025-07-08T02
       var kl=document.getElementById('kpiLoad'); if(kl)kl.textContent=E.toLocaleString();
       var ko=document.getElementById('kpiOver'); if(ko){ko.textContent=over;ko.parentElement.className='kpi'+(over>=10?' crit':over>=6?' warn':'');}
       var km=document.getElementById('kpiMax'); if(km){km.textContent=Math.round(mx)+'%';km.parentElement.className='kpi'+(mx>250?' crit':mx>150?' warn':'');}
-      tlab.textContent=localLabel(per); dlab.textContent=E.toLocaleString()+' MW'+(E>=vmax?' · season peak':''); draw(idx); }
+      tlab.textContent=localLabel(per); dlab.textContent=E.toLocaleString()+' MW'+(E>=vmax?' · '+peakLabel:''); draw(idx); }
+    var headerLabel=esc(META.headerLabel||'EIA-930 DEMAND');
+    var subLabel=esc(META.subLabel||'Idaho Power - latest rolling window');
+    var sourceLabel=esc(META.sourceLabel||'Source: U.S. EIA Form EIA-930 Hourly Electric Grid Monitor - balancing authority IPCO (Idaho Power). This is measured operating data, not a future forecast. Line colors map demand onto pandapower screening scenarios (relative stress indicators).');
     var bar=document.createElement('div');
+    bar.setAttribute('data-domain','energy nexus');
     bar.style.cssText='position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:9;width:560px;max-width:94vw;background:rgba(12,18,28,.86);border:1px solid #2a3a4f;border-radius:13px;padding:9px 14px 7px;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);box-shadow:0 8px 30px rgba(0,0,0,.55);font-family:Segoe UI,system-ui,sans-serif';
-    bar.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-size:10.5px;color:#7fa8cf;letter-spacing:.4px">REAL HOURLY DEMAND &middot; <span style="color:#cfe4f7">Idaho Power &mdash; EIA-930</span></div><div style="font-size:11px;color:#dce6f0"><b id="tsTime">&mdash;</b> &middot; <span id="tsMW" style="color:#7fe0ff;font-weight:600">&mdash;</span></div></div>'
+    bar.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-size:10.5px;color:#7fa8cf;letter-spacing:.4px">'+headerLabel+' &middot; <span style="color:#cfe4f7">'+subLabel+'</span></div><div style="font-size:11px;color:#dce6f0"><b id="tsTime">&mdash;</b> &middot; <span id="tsMW" style="color:#7fe0ff;font-weight:600">&mdash;</span></div></div>'
       +'<canvas id="tsCv" width="532" height="46" style="width:100%;height:46px;display:block;border-radius:6px;background:rgba(8,14,22,.5)"></canvas>'
-      +'<div style="display:flex;align-items:center;gap:10px;margin-top:6px"><button id="tsPlay" style="background:#16263a;color:#cfe4f7;border:1px solid #2a405a;border-radius:7px;padding:5px 11px;cursor:pointer;font-size:12.5px;white-space:nowrap">▶ Play 10-day demand</button><input id="tsRange" type="range" min="0" max="'+(D.length-1)+'" value="25" step="1" style="flex:1;accent-color:#5fd0ff;cursor:pointer"></div>'
-      +'<div style="font-size:9px;color:#8aa0b8;margin-top:4px;line-height:1.35">Source: U.S. EIA Form EIA-930 Hourly Electric Grid Monitor &mdash; balancing authority IPCO (Idaho Power), Jul 8&ndash;18 2025; hourly record runs 2019&rarr;present. Line colors map real demand onto the pandapower screening scenarios (relative stress indicators).</div>';
+      +'<div style="display:flex;align-items:center;gap:10px;margin-top:6px"><button id="tsPlay" style="background:#16263a;color:#cfe4f7;border:1px solid #2a405a;border-radius:7px;padding:5px 11px;cursor:pointer;font-size:12.5px;white-space:nowrap">'+esc(playText)+'</button><input id="tsRange" type="range" min="0" max="'+(D.length-1)+'" value="25" step="1" style="flex:1;accent-color:#5fd0ff;cursor:pointer"></div>'
+      +'<div style="font-size:9px;color:#8aa0b8;margin-top:4px;line-height:1.35">'+sourceLabel+'</div>';
     document.body.appendChild(bar);
+    if(window.setDomainTab){ window.setDomainTab(document.documentElement.getAttribute('data-active-domain')||'energy'); }
     var range=bar.querySelector('#tsRange'),play=bar.querySelector('#tsPlay'),tlab=bar.querySelector('#tsTime'),dlab=bar.querySelector('#tsMW'),cv=bar.querySelector('#tsCv'),cx=cv.getContext('2d');
     range.addEventListener('input',function(){ stop(); apply(+range.value); });
     play.addEventListener('click',function(){ if(timer){stop();return;} play.textContent='⏸ Pause'; timer=setInterval(function(){ var n=+range.value+1; if(n>D.length-1)n=0; range.value=n; apply(n); },120); });
@@ -756,7 +900,7 @@ window.AQUIFER_WELLS=[[-116.9354,43.9935,80.0,0],[-116.9357,43.9935,62.0,0],[-11
       map.on('mouseleave','aquifer-wells',function(){map.getCanvas().style.cursor='';});
       var anchor=document.getElementById('t-naip');
       if(anchor){ var sect=anchor.closest('.sect')||anchor.parentElement;
-        var lab=document.createElement('label'); lab.className='row';
+        var lab=document.createElement('label'); lab.className='row'; lab.setAttribute('data-domain','water nexus');
         lab.innerHTML='<input type="checkbox" id="t-aquifer"> Aquifer &mdash; depth to water (USGS)';
         sect.appendChild(lab);
         lab.querySelector('#t-aquifer').addEventListener('change',function(){ map.setLayoutProperty('aquifer-wells','visibility', this.checked?'visible':'none'); });
@@ -777,7 +921,7 @@ window.AQUIFER_WELLS=[[-116.9354,43.9935,80.0,0],[-116.9357,43.9935,62.0,0],[-11
     try{ map.setSky(SKY); }catch(e){ if(tries++<200) return setTimeout(go,700); console.warn('sky',e); }
     var anchor=document.getElementById('t-naip');
     if(anchor && !document.getElementById('t-atmos')){ var sect=anchor.closest('.sect')||anchor.parentElement;
-      var lab=document.createElement('label'); lab.className='row';
+      var lab=document.createElement('label'); lab.className='row'; lab.setAttribute('data-domain','water nexus');
       lab.innerHTML='<input type="checkbox" id="t-atmos" checked> Atmosphere &amp; haze';
       sect.appendChild(lab);
       lab.querySelector('#t-atmos').addEventListener('change',function(){ try{ map.setSky(this.checked?SKY:null);}catch(e){} });
@@ -802,7 +946,7 @@ window.ET_PUMPING={"months":["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Se
     var c=v>25?'#ff8a3d':v>12?'#ffd166':v>2?'#46d0ff':'#2b6fb0';
     return '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+(bw-3).toFixed(1)+'" height="'+h.toFixed(1)+'" rx="1.5" fill="'+c+'"><title>'+P.months[i]+': '+v+' MW</title></rect>';}).join('');
   var labs=P.months.map(function(m,i){return '<text x="'+(i*bw+bw/2).toFixed(1)+'" y="'+(H+9)+'" font-size="6.5" fill="#8aa0b8" text-anchor="middle">'+m[0]+'</text>';}).join('');
-  var div=document.createElement('div'); div.className='sect'; div.id='et-pump-sect';
+  var div=document.createElement('div'); div.className='sect'; div.id='et-pump-sect'; div.setAttribute('data-domain','water nexus');
   div.innerHTML='<h2>Irrigation pumping (ETc-driven) <span class="badge">MODELED</span></h2>'+
    '<svg viewBox="0 0 '+W+' '+(H+12)+'" style="width:100%;height:auto">'+bars+labs+'</svg>'+
    '<div style="font-size:11px;line-height:1.45;color:#cdd9e6">Peak <b>'+P.peak_mw+' MW</b> in '+P.peak_month+' &mdash; groundwater irrigation pumping, coincident with summer demand &amp; heat derating.<br><span style="font-size:9.5px;color:#8aa0b8">'+P.assumptions.kW_per_MGD+' kW/MGD ('+P.assumptions.head_note+', '+Math.round(P.assumptions.pump_motor_eff*100)+'% pump+motor eff). Source: '+P.source+'</span></div>';
@@ -1326,12 +1470,12 @@ window.HOSTING_CAPACITY={
       var base=+b.baseHeadroomMW, irp=+b.irpHeadroomMW;
       new maplibregl.Popup({maxWidth:'310px'}).setLngLat(e.lngLat).setHTML(
         '<b>'+b.name+'</b> ('+b.kv+' kV) <span class="badge">pandapower</span><br>'+
-        '<b style="font-size:14px">Headroom today: '+base+' MW</b><br>'+
+        '<b style="font-size:14px">Addable load today: '+base+' MW</b><br>'+
         (base<=5?'This bus is at the binding limit — added load immediately overloads '
                 :'You can add ~'+base+' MW of new load here before ')+
         '<b>'+b.limitingLineName+'</b> reaches 100%.<br>'+
         'With the IRP reinforcement: <b>'+irp+' MW</b>'+(irp>base?' (+'+(irp-base)+' MW unlocked)':'')+'.'+
-        '<br><span style="font-size:10px;color:#8aa0b8">DC screening on calibrated ratings (base peak = 100%). Not a utility interconnection study.</span>').addTo(map);});
+        '<br><span style="font-size:10px;color:#8aa0b8">Hosting capacity is MW headroom before the first line reaches 100% loading. Line-loading percentages can exceed 100% only to flag overloads. Not a utility interconnection study.</span>').addTo(map);});
     map.on('mouseenter','hosting-c',function(){map.getCanvas().style.cursor='pointer';});
     map.on('mouseleave','hosting-c',function(){map.getCanvas().style.cursor='';});
   }
@@ -1367,9 +1511,9 @@ window.HOSTING_CAPACITY={
   function mountUI(){
     var panel=document.getElementById('panel'); if(!panel) return false;
     if(document.getElementById('gridtool-sect')) return true;
-    var d=document.createElement('div'); d.className='sect'; d.id='gridtool-sect';
+    var d=document.createElement('div'); d.className='sect'; d.id='gridtool-sect'; d.setAttribute('data-domain','energy nexus');
     d.innerHTML='<h2>Grid decision tools <span class="badge">pandapower</span></h2>'+
-      '<label class="row"><input type="checkbox" id="t-hosting"> Hosting capacity &mdash; MW you can add per bus</label>'+
+      '<label class="row"><input type="checkbox" id="t-hosting"> Hosting capacity &mdash; addable MW before a line reaches 100%</label>'+
       '<label class="row"><input type="checkbox" id="t-n1"> N-1 mode &mdash; click a line to trip it</label>'+
       '<label class="row" style="color:#ffe27a;font-weight:600;"><input type="checkbox" id="t-raven-menu"> Show RAVEN Risk Management</label>'+
       '<label class="row" style="color:#7fe0ff"><input type="checkbox" id="t-science-panel"> Show scientific dataset tables</label>'+
@@ -1420,6 +1564,528 @@ window.HOSTING_CAPACITY={
     if(!mountUI() && t<200) return setTimeout(ready,500);
   }
   ready();
+})();
+
+</script>
+<script>
+// Inlined team_transmission_model.js - expert review layer for substation load clustering and DC PF screening.
+window.TEAM_TRANSMISSION_MODEL = {
+  version: '2026-07-06-local-screening',
+  status: 'not-built',
+  assumptions: {},
+  sectorShares: {},
+  transformer: {},
+  buses: [],
+  clusters: [],
+  edges: [],
+  generation: [],
+  ybus: []
+};
+
+(function(){
+  const SELECTED_BUSES = [
+    'HEMINGWAY','BOWMONT','KUNA','HUBBARD','MORA','BOISE BENCH',
+    'LOCUSST','CLOVERDALE','MERIDIAN','FRANKLIN','NAMPA','CALDWELL'
+  ];
+  const LOAD_FACTOR = 0.515;
+  const SYSTEM_BASE_MVA = 5000;
+  const SECTOR_SHARES = { residential: 0.43, commercial: 0.37, industrial_other: 0.20 };
+  const EDGE_OVERRIDES = [
+    ['HEMINGWAY','BOWMONT',230,'203416','Idaho Power line endpoint'],
+    ['BOWMONT','KUNA',138,'203478 via TAP204904','tap-collapsed corridor'],
+    ['KUNA','HUBBARD',138,'derived corridor','substation adjacency screening corridor'],
+    ['HUBBARD','MORA',138,'derived corridor','substation adjacency screening corridor'],
+    ['MORA','BOISE BENCH',230,'203415','Idaho Power line endpoint'],
+    ['BOISE BENCH','LOCUSST',230,'203443','Idaho Power line endpoint'],
+    ['LOCUSST','CLOVERDALE',138,'203469','Idaho Power line endpoint'],
+    ['CLOVERDALE','MERIDIAN',138,'203468','Idaho Power line endpoint'],
+    ['MERIDIAN','FRANKLIN',138,'203467','Idaho Power line endpoint'],
+    ['FRANKLIN','NAMPA',138,'derived corridor','distribution tie screening corridor'],
+    ['NAMPA','CALDWELL',230,'203449/203454 via TAP204885','tap-collapsed corridor'],
+    ['CALDWELL','LOCUSST',138,'derived corridor','western valley closing corridor']
+  ];
+
+  function safeFeatures(collection){
+    return collection && Array.isArray(collection.features) ? collection.features : [];
+  }
+
+  function fmt(n, digits=1){
+    const v = Number(n);
+    if(!Number.isFinite(v)) return '0';
+    return v.toLocaleString(undefined, { maximumFractionDigits: digits, minimumFractionDigits: digits });
+  }
+
+  function centroid(feature){
+    const geom = feature && feature.geometry;
+    if(!geom || !geom.coordinates) return null;
+    let pts = [];
+    function collect(coords){
+      if(!Array.isArray(coords)) return;
+      if(typeof coords[0] === 'number' && typeof coords[1] === 'number'){
+        pts.push(coords);
+      } else {
+        coords.forEach(collect);
+      }
+    }
+    collect(geom.coordinates);
+    if(!pts.length) return null;
+    let x = 0, y = 0;
+    pts.forEach(p => { x += Number(p[0]); y += Number(p[1]); });
+    return [x / pts.length, y / pts.length];
+  }
+
+  function dist2(a, b){
+    const dx = a[0] - b[0];
+    const dy = a[1] - b[1];
+    return dx * dx + dy * dy;
+  }
+
+  function addEdge(edgeMap, from, to, kv, lineId, note){
+    if(!from || !to || from === to) return;
+    const key = [from, to].sort().join('|');
+    const voltage = Number(kv) || 138;
+    const susceptance = Math.max(8, (voltage / 230) * 12);
+    const existing = edgeMap.get(key);
+    if(existing && existing.voltage_kv >= voltage) return;
+    edgeMap.set(key, {
+      from, to,
+      voltage_kv: voltage,
+      line_id: lineId || 'derived',
+      note: note || 'embedded transmission endpoint',
+      b_pu: susceptance
+    });
+  }
+
+  function dispatchFactor(plant){
+    const fuel = String(plant.fuel || plant.prim_source || plant.tech || '').toLowerCase();
+    if(fuel.includes('hydro')) return 0.55;
+    if(fuel.includes('solar')) return 0.28;
+    if(fuel.includes('gas') || fuel.includes('biomass')) return 0.70;
+    if(fuel.includes('battery')) return 0.50;
+    return 0.45;
+  }
+
+  function solveLinear(A, b){
+    const n = b.length;
+    const M = A.map((row, i) => row.slice().concat([b[i]]));
+    for(let i = 0; i < n; i++){
+      let pivot = i;
+      for(let r = i + 1; r < n; r++){
+        if(Math.abs(M[r][i]) > Math.abs(M[pivot][i])) pivot = r;
+      }
+      if(Math.abs(M[pivot][i]) < 1e-9) return new Array(n).fill(0);
+      if(pivot !== i){
+        const tmp = M[i]; M[i] = M[pivot]; M[pivot] = tmp;
+      }
+      const div = M[i][i];
+      for(let c = i; c <= n; c++) M[i][c] /= div;
+      for(let r = 0; r < n; r++){
+        if(r === i) continue;
+        const factor = M[r][i];
+        for(let c = i; c <= n; c++) M[r][c] -= factor * M[i][c];
+      }
+    }
+    return M.map(row => row[n]);
+  }
+
+  function latestEiaMw(){
+    const rows = Array.isArray(window.EIA_DEMAND) ? window.EIA_DEMAND : [];
+    if(!rows.length) return null;
+    const latest = rows[rows.length - 1];
+    const mw = Number(latest && latest[1]);
+    return Number.isFinite(mw) && mw > 0 ? mw : null;
+  }
+
+  function buildTeamTransmissionModel(){
+    if(typeof DATA === 'undefined') return window.TEAM_TRANSMISSION_MODEL;
+
+    const subs = safeFeatures(DATA.subs);
+    const tracts = safeFeatures(DATA.tracts);
+    const lines = safeFeatures(DATA.trans);
+    const plants = safeFeatures(DATA.plants);
+    const subByName = new Map();
+    subs.forEach(f => {
+      const name = f.properties && f.properties.name;
+      if(name) subByName.set(name, f);
+    });
+
+    const buses = SELECTED_BUSES
+      .filter(name => subByName.has(name))
+      .map(name => {
+        const f = subByName.get(name);
+        return {
+          name,
+          coord: f.geometry.coordinates,
+          max_voltage_kv: Number(f.properties.max_voltage_kv || f.properties.min_voltage_kv || 138),
+          load_avg_mw: 0,
+          load_peak_mw: 0,
+          load_live_mw: 0,
+          population: 0,
+          tract_count: 0,
+          gen_nameplate_mw: 0,
+          gen_dispatch_mw: 0,
+          vm_pu: 1,
+          angle_deg: 0
+        };
+      });
+    const busByName = new Map(buses.map(b => [b.name, b]));
+    const clusters = buses.map(b => ({
+      bus: b.name,
+      coord: b.coord,
+      max_voltage_kv: b.max_voltage_kv,
+      population: 0,
+      tract_count: 0,
+      load_avg_mw: 0,
+      load_peak_mw: 0,
+      load_live_mw: 0,
+      sector_mw: {}
+    }));
+    const clusterByBus = new Map(clusters.map(c => [c.bus, c]));
+
+    tracts.forEach(feature => {
+      const c = centroid(feature);
+      if(!c || !buses.length) return;
+      let nearest = buses[0];
+      let best = dist2(c, nearest.coord);
+      buses.forEach(bus => {
+        const score = dist2(c, bus.coord);
+        if(score < best){ best = score; nearest = bus; }
+      });
+      const props = feature.properties || {};
+      const pop = Number(props.pop) || 0;
+      const avgMw = Number(props.load_mw) || 0;
+      const cl = clusterByBus.get(nearest.name);
+      cl.population += pop;
+      cl.tract_count += 1;
+      cl.load_avg_mw += avgMw;
+    });
+
+    const totalAvg = clusters.reduce((sum, c) => sum + c.load_avg_mw, 0);
+    const eiaMw = latestEiaMw();
+    const liveScale = totalAvg > 0 && eiaMw ? eiaMw / totalAvg : 1;
+    clusters.forEach(c => {
+      c.load_peak_mw = c.load_avg_mw / LOAD_FACTOR;
+      c.load_live_mw = c.load_avg_mw * liveScale;
+      c.sector_mw = {
+        residential: c.load_peak_mw * SECTOR_SHARES.residential,
+        commercial: c.load_peak_mw * SECTOR_SHARES.commercial,
+        industrial_other: c.load_peak_mw * SECTOR_SHARES.industrial_other
+      };
+      const bus = busByName.get(c.bus);
+      if(bus){
+        bus.population = c.population;
+        bus.tract_count = c.tract_count;
+        bus.load_avg_mw = c.load_avg_mw;
+        bus.load_peak_mw = c.load_peak_mw;
+        bus.load_live_mw = c.load_live_mw;
+      }
+    });
+
+    const generation = [];
+    plants.forEach(feature => {
+      const props = feature.properties || {};
+      const name = props.plant_name || props.name || 'Plant';
+      const cap = Number(props.capacity_mw) || 0;
+      if(cap <= 0 || !buses.length) return;
+      const c = centroid(feature) || (feature.geometry && feature.geometry.coordinates);
+      if(!Array.isArray(c)) return;
+      let nearest = buses[0];
+      let best = dist2(c, nearest.coord);
+      buses.forEach(bus => {
+        const score = dist2(c, bus.coord);
+        if(score < best){ best = score; nearest = bus; }
+      });
+      const factor = dispatchFactor(props);
+      const dispatchMw = cap * factor;
+      nearest.gen_nameplate_mw += cap;
+      nearest.gen_dispatch_mw += dispatchMw;
+      generation.push({
+        plant: name,
+        bus: nearest.name,
+        fuel: props.fuel || props.prim_source || props.tech || 'unknown',
+        nameplate_mw: cap,
+        dispatch_factor: factor,
+        dispatch_mw: dispatchMw
+      });
+    });
+
+    const selectedSet = new Set(buses.map(b => b.name));
+    const edgeMap = new Map();
+    lines.forEach(feature => {
+      const props = feature.properties || {};
+      const from = props.sub_from;
+      const to = props.sub_to;
+      if(selectedSet.has(from) && selectedSet.has(to)){
+        addEdge(edgeMap, from, to, props.voltage_kv, props.line_id, 'embedded transmission endpoint');
+      }
+    });
+    EDGE_OVERRIDES.forEach(e => {
+      if(selectedSet.has(e[0]) && selectedSet.has(e[1])) addEdge(edgeMap, e[0], e[1], e[2], e[3], e[4]);
+    });
+    const edges = Array.from(edgeMap.values());
+
+    const n = buses.length;
+    const idx = new Map(buses.map((b, i) => [b.name, i]));
+    const B = Array.from({ length: n }, () => Array.from({ length: n }, () => 0));
+    edges.forEach(e => {
+      const i = idx.get(e.from);
+      const j = idx.get(e.to);
+      if(i === undefined || j === undefined) return;
+      const b = e.b_pu;
+      B[i][i] += b; B[j][j] += b;
+      B[i][j] -= b; B[j][i] -= b;
+    });
+    for(let i = 0; i < n; i++) B[i][i] += 0.001;
+
+    const slack = idx.has('HEMINGWAY') ? idx.get('HEMINGWAY') : 0;
+    const reduced = [];
+    const rhs = [];
+    const nonSlack = [];
+    for(let i = 0; i < n; i++){
+      if(i !== slack) nonSlack.push(i);
+    }
+    nonSlack.forEach(i => {
+      const bus = buses[i];
+      const pMw = bus.gen_dispatch_mw - bus.load_live_mw;
+      rhs.push(pMw / SYSTEM_BASE_MVA);
+      reduced.push(nonSlack.map(j => B[i][j]));
+    });
+    const theta = new Array(n).fill(0);
+    const solved = solveLinear(reduced, rhs);
+    nonSlack.forEach((busIndex, k) => {
+      theta[busIndex] = solved[k] || 0;
+    });
+    buses.forEach((bus, i) => {
+      bus.vm_pu = 1;
+      bus.angle_deg = theta[i] * 180 / Math.PI;
+    });
+
+    const importsMw = clusters.reduce((sum, c) => sum + c.load_live_mw, 0) -
+      buses.reduce((sum, b) => sum + b.gen_dispatch_mw, 0);
+    const model = {
+      version: '2026-07-06-local-screening',
+      status: 'built',
+      retrieved_eia_mw: eiaMw,
+      live_scale: liveScale,
+      system_base_mva: SYSTEM_BASE_MVA,
+      assumptions: {
+        populationToLoad: 'Substation load clusters are assigned by nearest major substation centroid, then summed from embedded census-tract population and tract load_mw.',
+        loadFactor: `load factor ${LOAD_FACTOR.toFixed(3)} converts embedded average tract MW to modeled peak MW using local EIA-930 mean/peak evidence.`,
+        sectorWiseLoad: 'sector-wise load proxy is explicit until Idaho Power IRP class shares are wired: residential 43%, commercial 37%, industrial/other 20%.',
+        realTimeScaling: 'real-time EIA demand scaling multiplies tract average load by the latest embedded EIA-930 IPCO demand point.',
+        powerFlow: 'steady-state DC power-flow screening uses a normalized Bbus/Ybus-style susceptance matrix from embedded line endpoints and documented tap-collapsed corridors.',
+        transformer: 'ideal transformer assumption is used where transformer impedance/tap data is not embedded.'
+      },
+      sectorShares: SECTOR_SHARES,
+      transformer: { model: 'ideal transformer', reason: 'No Idaho Power transformer impedance/tap data is embedded in the live HTML.' },
+      buses,
+      clusters,
+      edges,
+      generation,
+      generationSummary: {
+        embedded_nameplate_mw: generation.reduce((sum, g) => sum + g.nameplate_mw, 0),
+        modeled_dispatch_mw: generation.reduce((sum, g) => sum + g.dispatch_mw, 0),
+        slack_imports_mw: importsMw
+      },
+      ybus: B.map(row => row.map(v => Number(v.toFixed(4))))
+    };
+    window.TEAM_TRANSMISSION_MODEL = model;
+    return model;
+  }
+
+  function mountTeamTransmissionPanel(){
+    const panel = document.getElementById('panel');
+    if(!panel || document.getElementById('team-transmission-model-sect')) return;
+    const section = document.createElement('div');
+    section.id = 'team-transmission-model-sect';
+    section.className = 'sect';
+    section.setAttribute('data-domain', 'energy nexus');
+    section.innerHTML = `
+      <h2>Transmission Model Review</h2>
+      <div class="small" style="color:#bfefff;line-height:1.35">
+        Substation load clusters use population-to-load assignment, sector-wise load shares,
+        load factor peak conversion, real-time EIA demand scaling, ideal transformer handling,
+        and steady-state DC power-flow internals.
+      </div>
+      <div class="small" style="margin-top:6px;color:var(--muted)">
+        Generation assumptions are shown separately from slack imports. Open PF Internals for the
+        Ybus matrix and Voltage / angle by bus table.
+      </div>
+      <button id="open-team-transmission-model" class="primary" style="margin-top:8px">Open PF Internals</button>`;
+    const anchor = document.getElementById('gridtool-sect') || document.getElementById('domain-layer-sect');
+    if(anchor && anchor.parentNode === panel){
+      anchor.insertAdjacentElement('afterend', section);
+    } else {
+      panel.appendChild(section);
+    }
+    const btn = document.getElementById('open-team-transmission-model');
+    if(btn) btn.addEventListener('click', () => window.openTeamTransmissionModel && window.openTeamTransmissionModel());
+    if(window.applyDomainFilter) window.applyDomainFilter();
+  }
+
+  function renderTeamTransmissionModel(){
+    const model = buildTeamTransmissionModel();
+    const assumptions = document.getElementById('pf-assumptions');
+    if(assumptions){
+      assumptions.innerHTML = `
+        <b>Transmission model review.</b> ${model.assumptions.populationToLoad || ''}
+        ${model.assumptions.loadFactor || ''} ${model.assumptions.sectorWiseLoad || ''}
+        ${model.assumptions.realTimeScaling || ''} ${model.assumptions.powerFlow || ''}
+        ${model.assumptions.transformer || ''}`;
+    }
+
+    const genBox = document.getElementById('pf-generation');
+    if(genBox && model.generationSummary){
+      genBox.innerHTML = `
+        <b>Generation assumptions:</b>
+        embedded nameplate ${fmt(model.generationSummary.embedded_nameplate_mw)} MW,
+        modeled dispatch ${fmt(model.generationSummary.modeled_dispatch_mw)} MW,
+        slack/import balance ${fmt(model.generationSummary.slack_imports_mw)} MW.
+        Latest EIA-scaled valley load ${fmt(model.clusters.reduce((s,c)=>s+c.load_live_mw,0))} MW.`;
+    }
+
+    const clusterBody = document.getElementById('body-pf-clusters');
+    if(clusterBody){
+      clusterBody.innerHTML = model.clusters
+        .slice()
+        .sort((a,b)=>b.load_peak_mw-a.load_peak_mw)
+        .map(c => `
+          <tr>
+            <td>${c.bus}</td>
+            <td>${c.tract_count}</td>
+            <td>${Math.round(c.population).toLocaleString()}</td>
+            <td>${fmt(c.load_avg_mw)}</td>
+            <td>${fmt(c.load_peak_mw)}</td>
+            <td>${fmt(c.load_live_mw)}</td>
+            <td>${fmt(c.sector_mw.residential)}/${fmt(c.sector_mw.commercial)}/${fmt(c.sector_mw.industrial_other)}</td>
+          </tr>`).join('');
+    }
+
+    const busBody = document.getElementById('body-pf-bus');
+    if(busBody){
+      busBody.innerHTML = model.buses.map(b => `
+        <tr>
+          <td>${b.name}</td>
+          <td>${fmt(b.load_live_mw)}</td>
+          <td>${fmt(b.gen_dispatch_mw)}</td>
+          <td>${fmt(b.vm_pu,3)}</td>
+          <td>${fmt(b.angle_deg,2)}</td>
+        </tr>`).join('');
+    }
+
+    const yHead = document.getElementById('head-pf-ybus');
+    const yBody = document.getElementById('body-pf-ybus');
+    if(yHead && yBody){
+      const names = model.buses.map(b => b.name);
+      yHead.innerHTML = `<tr><th>Bus</th>${names.map(n => `<th>${n}</th>`).join('')}</tr>`;
+      yBody.innerHTML = model.ybus.map((row, i) => `
+        <tr><td>${names[i]}</td>${row.map(v => `<td>${Number(v).toFixed(3)}</td>`).join('')}</tr>`).join('');
+    }
+
+    setupTeamTransmissionMap(model);
+    return model;
+  }
+
+  function setupTeamTransmissionMap(model){
+    if(typeof map === 'undefined' || !map || !map.getSource || !model || !model.clusters) return;
+    try {
+      if(map.isStyleLoaded && !map.isStyleLoaded()){
+        setTimeout(() => setupTeamTransmissionMap(model), 500);
+        return;
+      }
+      const features = model.clusters.map(c => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: c.coord },
+        properties: {
+          bus: c.bus,
+          pop: Math.round(c.population),
+          avg_mw: Number(c.load_avg_mw.toFixed(1)),
+          peak_mw: Number(c.load_peak_mw.toFixed(1)),
+          live_mw: Number(c.load_live_mw.toFixed(1))
+        }
+      }));
+      const geojson = { type:'FeatureCollection', features };
+      if(map.getSource('team-load-clusters')){
+        map.getSource('team-load-clusters').setData(geojson);
+      } else {
+        map.addSource('team-load-clusters', { type:'geojson', data: geojson });
+      }
+      if(!map.getLayer('team-load-clusters-c')){
+        map.addLayer({
+          id:'team-load-clusters-c',
+          type:'circle',
+          source:'team-load-clusters',
+          layout:{ visibility:'none' },
+          paint:{
+            'circle-color':['interpolate',['linear'],['get','live_mw'],50,'#57d68d',200,'#ffd86b',450,'#ff6b6b'],
+            'circle-radius':['interpolate',['linear'],['get','live_mw'],20,6,450,22],
+            'circle-opacity':0.72,
+            'circle-stroke-color':'#ffffff',
+            'circle-stroke-width':1.2
+          }
+        });
+      }
+      if(!map.getLayer('team-load-clusters-lbl')){
+        map.addLayer({
+          id:'team-load-clusters-lbl',
+          type:'symbol',
+          source:'team-load-clusters',
+          layout:{
+            visibility:'none',
+            'text-field':['concat',['get','bus'],'\n',['to-string',['get','live_mw']],' MW'],
+            'text-size':11,
+            'text-offset':[0,1.4],
+            'text-anchor':'top',
+            'text-allow-overlap':false
+          },
+          paint:{
+            'text-color':'#e9fbff',
+            'text-halo-color':'#06131f',
+            'text-halo-width':1.5
+          }
+        });
+      }
+    } catch(e) {
+      console.warn('team transmission map layer', e);
+    }
+  }
+
+  function setTeamTransmissionVisibility(on){
+    const ids = ['team-load-clusters-c','team-load-clusters-lbl'];
+    if(typeof map !== 'undefined' && map && map.getLayer){
+      ids.forEach(id => {
+        if(map.getLayer(id)) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none');
+      });
+    }
+    if(on && window.openTeamTransmissionModel) window.openTeamTransmissionModel();
+  }
+
+  window.renderTeamTransmissionModel = renderTeamTransmissionModel;
+  window.openTeamTransmissionModel = function(){
+    renderTeamTransmissionModel();
+    const panel = document.getElementById('science-panel');
+    if(panel) panel.style.display = 'block';
+    const scienceToggle = document.getElementById('t-science-panel');
+    if(scienceToggle) scienceToggle.checked = true;
+    if(window.switchScienceTab) window.switchScienceTab('pf');
+  };
+
+  function initTeamTransmission(){
+    mountTeamTransmissionPanel();
+    renderTeamTransmissionModel();
+    const toggle = document.getElementById('t-team-transmission-model');
+    if(toggle && !toggle.dataset.boundTeamTransmission){
+      toggle.dataset.boundTeamTransmission = '1';
+      toggle.addEventListener('change', e => setTeamTransmissionVisibility(e.target.checked));
+    }
+    if(toggle && toggle.checked) setTeamTransmissionVisibility(true);
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', () => setTimeout(initTeamTransmission, 250));
+  } else {
+    setTimeout(initTeamTransmission, 250);
+  }
 })();
 
 </script>
@@ -1723,7 +2389,7 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
   function mountUI(){
     var panel=document.getElementById('panel'); if(!panel) return false;
     if(document.getElementById('explode-sect')) return true;
-    var d=document.createElement('div'); d.className='sect'; d.id='explode-sect';
+    var d=document.createElement('div'); d.className='sect'; d.id='explode-sect'; d.setAttribute('data-domain','water nexus');
     d.innerHTML='<h2>Exploded systems <span class="badge">3D</span></h2>'+
       '<label class="row"><input type="checkbox" id="ex-toggle"> Explode the layers apart</label>'+
       '<div style="font-size:11px;color:#9fb2c6;margin:2px 0 4px">Gap <input type="range" id="ex-gap" min="0" max="11000" value="4200" step="250" style="width:100%"></div>'+
@@ -1764,7 +2430,7 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
       }
     }
     var bs='flex:1;padding:5px 4px;font-size:11px;cursor:pointer;border-radius:5px;border:1px solid #2f4256;background:#16202c;color:#cde;';
-    var d=document.createElement('div'); d.className='sect'; d.id='basemap-sect';
+    var d=document.createElement('div'); d.className='sect'; d.id='basemap-sect'; d.setAttribute('data-domain','energy water nexus');
     d.innerHTML='<h2>Basemap</h2><div class="row" style="display:flex;gap:6px">'+
       '<button id="bm-vec" style="'+bs+'">Vector</button>'+
       '<button id="bm-sat" style="'+bs+'">Satellite</button>'+
@@ -1780,100 +2446,50 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
 })();
 </script>
 <script>
-// Inlined ui_modes.js
-/* ============================================================================
-   Audience modes + readable legend.
-   Splits the dense panel into GENERAL (plain-language, few essentials) and
-   EXPERT (full engineering tools). Adds a plain "what the colors mean" legend,
-   de-dupes the Basemap section, and fixes a legend label.
-   ============================================================================ */
+// Inlined panel_cleanup.js
+/* Keep small panel cleanup behavior for duplicate basemap controls and labels. */
 (function(){
   var t=0;
-  // section h2 keywords that are EXPERT-ONLY (hidden in General)
-  var EXPERT=['on-device ai','exploded systems','grid decision tools','irrigation pumping','climate risk','layers','legend'];
   function title(s){var h=s.querySelector('h2');return h?h.textContent.toLowerCase():'';}
-  function setVis(layer,on){ try{ if(map.getLayer(layer)) map.setLayoutProperty(layer,'visibility',on?'visible':'none'); }catch(e){} }
-  function styleBtn(b,on){ b.style.cssText='flex:1;padding:7px 6px;border:0;cursor:pointer;font-weight:700;font-size:12px;'+(on?'background:#2f7fd6;color:#fff':'background:#15202c;color:#9fb6cc'); }
-
-  function applyMode(m){
-    var panel=document.getElementById('panel'); if(!panel) return;
-    [].slice.call(panel.querySelectorAll('.sect')).forEach(function(s){
-      if(s.dataset.dup==='1'){ s.style.display='none'; return; }
-      var a=s.dataset.aud||'both';
-      var show=(m==='expert')?(a!=='general'):(a!=='expert');
-      s.style.display=show?'':'none';
-    });
-    var g=document.getElementById('aud-gen'), e=document.getElementById('aud-exp');
-    if(g&&e){ styleBtn(g,m==='general'); styleBtn(e,m==='expert'); }
-    try{ localStorage.setItem('tvAud',m); }catch(e){}
+  function syncDomain(){
+    if(window.setDomainTab){
+      window.setDomainTab(document.documentElement.getAttribute('data-active-domain')||'energy');
+    }
   }
-
-  function wireGen(){
-    document.querySelectorAll('#gen-quick [data-gen]').forEach(function(cb){
-      cb.addEventListener('change',function(){ var k=this.dataset.gen, on=this.checked;
-        if(k==='sat'){ setVis('esri-imagery',on); setVis('naip',false); }
-        else if(k==='lines'){ ['trans-glow','trans-line','trans-cl','transmission'].forEach(function(l){setVis(l,on);}); }
-        else if(k==='loads'){ ['large-c','large','dc-col','plants-c'].forEach(function(l){setVis(l,on);}); }
-        else if(k==='aq'){ setVis('aquifer-wells',on); }
-      });
-    });
-    var def={sat:false,lines:true,loads:true,aq:false};
-    document.querySelectorAll('#gen-quick [data-gen]').forEach(function(cb){ if(def[cb.dataset.gen]){ cb.checked=true; cb.dispatchEvent(new Event('change')); } });
-  }
-
   function build(){
     t++;
     var panel=document.getElementById('panel');
     if(!panel || typeof map==='undefined' || !map.getLayer){ if(t<240) return setTimeout(build,500); return; }
-    // wait until ALL late sections are mounted so they get tagged
     if(!map.getLayer('trans-glow') || !document.getElementById('gridtool-sect') || !document.getElementById('explode-sect')){
-      if(t<240) return setTimeout(build,500); }
-    if(document.getElementById('aud-switch')) return;
+      if(t<240) return setTimeout(build,500);
+    }
+    if(document.documentElement.getAttribute('data-panel-cleanup')==='1') return;
+    document.documentElement.setAttribute('data-panel-cleanup','1');
 
-    // 1) de-dupe Basemap (keep the working button switcher #basemap-sect)
     var bms=[].slice.call(panel.querySelectorAll('.sect')).filter(function(s){return /basemap/i.test(title(s));});
-    if(bms.length>1) bms.forEach(function(s){ if(s.id!=='basemap-sect'){ s.dataset.dup='1'; s.style.display='none'; } });
+    if(bms.length>1){
+      bms.forEach(function(s){
+        if(s.id!=='basemap-sect'){
+          s.dataset.dup='1';
+          s.setAttribute('data-domain-hidden','1');
+        }
+      });
+    }
 
-    // 2) tag every section general/expert/both
-    [].slice.call(panel.querySelectorAll('.sect')).forEach(function(s){
-      if(s.id==='gen-quick'||s.id==='gen-legend'){ s.dataset.aud='general'; return; }
-      var ti=title(s);
-      s.dataset.aud = EXPERT.some(function(k){return ti.indexOf(k)>=0;}) ? 'expert':'both';
-    });
+    try{
+      var leg=[].slice.call(panel.querySelectorAll('.sect')).filter(function(s){return /legend/i.test(title(s));})[0];
+      if(leg){
+        var w=document.createTreeWalker(leg,NodeFilter.SHOW_TEXT,null),n;
+        while(n=w.nextNode()){
+          if(/0?22 MW/.test(n.nodeValue)){ n.nodeValue=n.nodeValue.replace(/0?22 MW/,'0-22 MW'); }
+        }
+      }
+    }catch(e){}
 
-    // 3) fix the broken legend label "022 MW" -> "0–22 MW"
-    try{ var leg=[].slice.call(panel.querySelectorAll('.sect')).filter(function(s){return /legend/i.test(title(s));})[0];
-      if(leg){ var w=document.createTreeWalker(leg,NodeFilter.SHOW_TEXT,null),n; while(n=w.nextNode()){ if(/0?22 MW/.test(n.nodeValue)) n.nodeValue=n.nodeValue.replace(/0?22 MW/,'0–22 MW'); } } }catch(e){}
-
-    // 4) General-mode sections: Quick view + plain legend
-    var quick=document.createElement('div'); quick.className='sect'; quick.id='gen-quick'; quick.dataset.aud='general';
-    quick.innerHTML='<h2>Quick view</h2>'+
-      '<div style="font-size:11.5px;color:#cfe3f2;line-height:1.5;margin-bottom:7px">A live map of the Treasure Valley power grid. Flip on the essentials below — or switch to <b>Expert</b> for the full engineering tools.</div>'+
-      ['Satellite imagery|sat','Power lines (colored by stress)|lines','Big power users (data centers)|loads','Groundwater wells|aq'].map(function(x){var p=x.split('|');
-        return '<label class="row"><input type="checkbox" data-gen="'+p[1]+'"> '+p[0]+'</label>';}).join('');
-    var plain=document.createElement('div'); plain.className='sect'; plain.id='gen-legend'; plain.dataset.aud='general';
-    plain.innerHTML='<h2>What the colors mean</h2>'+
-      '<div style="font-size:11.5px;line-height:1.8;color:#dde7f0">'+
-      '<span style="color:#39d353;font-size:15px">━</span> healthy power line &nbsp; <span style="color:#ffd54f;font-size:15px">━</span> getting full &nbsp; <span style="color:#ff3b3b;font-size:15px">━</span> overloaded<br>'+
-      '<span style="color:#46d0ff">●</span> substation &nbsp;&nbsp; <span style="color:#ff8a3d">▮</span> big electricity user (height = how much power)<br>'+
-      '<span style="color:#2bb6ff">●</span> groundwater well — color shows how deep the water is<br>'+
-      '<span style="color:#9fb6cc">Pick a <b>scenario</b> above to watch growth stress the grid.</span></div>';
-    panel.appendChild(quick); panel.appendChild(plain);
-    wireGen();
-
-    // 5) mode switch at the very top of the panel
-    var sw=document.createElement('div'); sw.id='aud-switch';
-    sw.style.cssText='display:flex;gap:0;margin:0 0 9px;border-radius:8px;overflow:hidden;border:1px solid #34506a';
-    sw.innerHTML='<button id="aud-gen">General</button><button id="aud-exp">Expert</button>';
-    panel.insertBefore(sw, panel.firstChild);
-    document.getElementById('aud-gen').onclick=function(){applyMode('general');};
-    document.getElementById('aud-exp').onclick=function(){applyMode('expert');};
-    var saved='general'; try{ saved=localStorage.getItem('tvAud')||'general'; }catch(e){}
-    applyMode(saved);
+    syncDomain();
   }
   build();
 })();
-
 </script>
 
 <!-- ==================== LIVE SOLVER & SCIENTIFIC TABLES LOGIC ==================== -->
@@ -2085,6 +2701,10 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
                "<td><span class='badge' style='background:" + (r.risk === 'Critical' ? '#241016;color:#ff5b6e;border-color:#7a3046' : r.risk === 'High' ? '#241a10;color:#ffb74d;border-color:#7a4a30' : r.risk === 'Medium' ? '#202410;color:#ffd23f;border-color:#7a6d10' : '#102416;color:#8be6a6;border-color:#257a30') + "'>" + r.risk + "</span></td></tr>";
       }).join('');
     }
+
+    if(window.renderTeamTransmissionModel) {
+      try { window.renderTeamTransmissionModel(); } catch(e) { console.warn('team transmission model', e); }
+    }
   }
 
   window.filterScienceTables = function() {
@@ -2101,12 +2721,12 @@ window.TV_LOAD_GRID=[[-116.756,43.2968,3.1],[-116.708,43.2968,3.1],[-116.66,43.2
     setTimeout(function(){
       new maplibregl.Popup({maxWidth:'310px'}).setLngLat([lon, lat]).setHTML(
         '<b>'+name+'</b> ('+kv+' kV) <span class="badge">pandapower</span><br>'+
-        '<b style="font-size:14px">Headroom today: '+base+' MW</b><br>'+
+        '<b style="font-size:14px">Addable load today: '+base+' MW</b><br>'+
         (base<=5?'This bus is at the binding limit — added load immediately overloads '
                 :'You can add ~'+base+' MW of new load here before ')+
         '<b>'+limitingLine+'</b> reaches 100%.<br>'+
         'With the IRP reinforcement: <b>'+irp+' MW</b>.'+
-        '<br><span style="font-size:10px;color:#8aa0b8">DC screening on calibrated ratings.</span>'
+        '<br><span style="font-size:10px;color:#8aa0b8">Hosting capacity is addable MW before a limiting line reaches 100% loading; overload percentages above 100% are line-loading stress, not capacity.</span>'
       ).addTo(map);
     }, 1600);
   }
