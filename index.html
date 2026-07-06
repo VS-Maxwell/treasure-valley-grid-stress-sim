@@ -489,7 +489,7 @@ function addEverything(){
   if(!map.getSource('esri-imagery')){
     map.addSource('esri-imagery',{
       type:'raster',
-      tiles:['https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+      tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{x}/{y}'],
       tileSize:256, maxzoom:19,
       attribution:'Esri, Maxar, Earthstar Geographics'
     });
