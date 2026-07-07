@@ -216,9 +216,9 @@
     <div class="sub">Data-center load &amp; climate-risk on the Idaho Power grid. MapLibre 3D + deck.gl. Screening model for energy engineers — provenance at lower-left.</div>
   </header>
   <div class="domain-tabs" role="tablist" aria-label="System domains">
-    <button class="domain-tab active" type="button" data-domain-tab="energy">Energy</button>
-    <button class="domain-tab" type="button" data-domain-tab="water">Water</button>
-    <button class="domain-tab" type="button" data-domain-tab="nexus">Nexus</button>
+    <button class="domain-tab active" type="button" data-domain-tab="energy">Energy (Grid)</button>
+    <button class="domain-tab" type="button" data-domain-tab="water">Water (Resource)</button>
+    <button class="domain-tab" type="button" data-domain-tab="nexus">Nexus (Combined)</button>
   </div>
   <div class="domain-loadout" id="domainLoadout">
     <b>Energy loadout</b>
@@ -359,20 +359,20 @@
 (function(){
   var DOMAIN_COPY={
     energy:{
-      title:'Energy loadout',
-      body:'Transmission, demand, generation, hosting capacity, N-1, and live EIA demand.',
+      title:'Energy (Grid) Mode',
+      body:'Power grid transmission modeling, load clusters, substation flows, and real-time EIA demand.',
       layerTitle:'Energy layers',
       layerNote:'Transmission, generation, load, large-load, and substation overlays.'
     },
     water:{
-      title:'Water loadout',
-      body:'Terrain, aerials, groundwater, irrigation pumping, drought, and climate stress.',
+      title:'Water (Resource) Mode',
+      body:'Terrain elevation, satellite imagery, groundwater wells, aquifer metrics, and climate risks.',
       layerTitle:'Water layers',
       layerNote:'Terrain, hillshade, aerial, drone ortho, aquifer, irrigation, and climate overlays.'
     },
     nexus:{
-      title:'Nexus loadout',
-      body:'Combined energy-water stress, exploded systems, risk tables, and local AI review.',
+      title:'Nexus (Combined) Mode',
+      body:'The intersection of water and energy — agricultural irrigation pumping, hydro generation, risk matrices, and local AI reviews.',
       layerTitle:'Nexus layers',
       layerNote:'Shared overlays for comparing grid, water, climate, and demand together.'
     }
@@ -1587,9 +1587,11 @@ window.TEAM_TRANSMISSION_MODEL = {
     'HEMINGWAY','BOWMONT','KUNA','HUBBARD','MORA','BOISE BENCH',
     'LOCUSST','CLOVERDALE','MERIDIAN','FRANKLIN','NAMPA','CALDWELL'
   ];
-  const LOAD_FACTOR = 0.515;
+  window.TEAM_MODEL_CONFIG = {
+    load_factor: 0.515,
+    sector_shares: { residential: 0.43, commercial: 0.37, industrial_other: 0.20 }
+  };
   const SYSTEM_BASE_MVA = 5000;
-  const SECTOR_SHARES = { residential: 0.43, commercial: 0.37, industrial_other: 0.20 };
   const EDGE_OVERRIDES = [
     ['HEMINGWAY','BOWMONT',230,'203416','Idaho Power line endpoint'],
     ['BOWMONT','KUNA',138,'203478 via TAP204904','tap-collapsed corridor'],
@@ -1764,12 +1766,12 @@ window.TEAM_TRANSMISSION_MODEL = {
     const eiaMw = latestEiaMw();
     const liveScale = totalAvg > 0 && eiaMw ? eiaMw / totalAvg : 1;
     clusters.forEach(c => {
-      c.load_peak_mw = c.load_avg_mw / LOAD_FACTOR;
+      c.load_peak_mw = c.load_avg_mw / window.TEAM_MODEL_CONFIG.load_factor;
       c.load_live_mw = c.load_avg_mw * liveScale;
       c.sector_mw = {
-        residential: c.load_peak_mw * SECTOR_SHARES.residential,
-        commercial: c.load_peak_mw * SECTOR_SHARES.commercial,
-        industrial_other: c.load_peak_mw * SECTOR_SHARES.industrial_other
+        residential: c.load_peak_mw * window.TEAM_MODEL_CONFIG.sector_shares.residential,
+        commercial: c.load_peak_mw * window.TEAM_MODEL_CONFIG.sector_shares.commercial,
+        industrial_other: c.load_peak_mw * window.TEAM_MODEL_CONFIG.sector_shares.industrial_other
       };
       const bus = busByName.get(c.bus);
       if(bus){
@@ -1870,13 +1872,13 @@ window.TEAM_TRANSMISSION_MODEL = {
       system_base_mva: SYSTEM_BASE_MVA,
       assumptions: {
         populationToLoad: 'Substation load clusters are assigned by nearest major substation centroid, then summed from embedded census-tract population and tract load_mw.',
-        loadFactor: `load factor ${LOAD_FACTOR.toFixed(3)} converts embedded average tract MW to modeled peak MW using local EIA-930 mean/peak evidence.`,
-        sectorWiseLoad: 'sector-wise load proxy is explicit until Idaho Power IRP class shares are wired: residential 43%, commercial 37%, industrial/other 20%.',
+        loadFactor: `load factor ${window.TEAM_MODEL_CONFIG.load_factor.toFixed(3)} converts embedded average tract MW to modeled peak MW using local EIA-930 mean/peak evidence.`,
+        sectorWiseLoad: `sector-wise load proxy is explicit until Idaho Power IRP class shares are wired: residential ${Math.round(window.TEAM_MODEL_CONFIG.sector_shares.residential * 100)}%, commercial ${Math.round(window.TEAM_MODEL_CONFIG.sector_shares.commercial * 100)}%, industrial/other ${Math.round(window.TEAM_MODEL_CONFIG.sector_shares.industrial_other * 100)}%.`,
         realTimeScaling: 'real-time EIA demand scaling multiplies tract average load by the latest embedded EIA-930 IPCO demand point.',
         powerFlow: 'steady-state DC power-flow screening uses a normalized Bbus/Ybus-style susceptance matrix from embedded line endpoints and documented tap-collapsed corridors.',
         transformer: 'ideal transformer assumption is used where transformer impedance/tap data is not embedded.'
       },
-      sectorShares: SECTOR_SHARES,
+      sectorShares: window.TEAM_MODEL_CONFIG.sector_shares,
       transformer: { model: 'ideal transformer', reason: 'No Idaho Power transformer impedance/tap data is embedded in the live HTML.' },
       buses,
       clusters,
@@ -1902,11 +1904,37 @@ window.TEAM_TRANSMISSION_MODEL = {
     section.setAttribute('data-domain', 'energy nexus');
     section.innerHTML = `
       <h2>Transmission Model Review</h2>
-      <div class="small" style="color:#bfefff;line-height:1.35">
+      <div class="small" style="color:#bfefff;line-height:1.35;margin-bottom:10px">
         Substation load clusters use population-to-load assignment, sector-wise load shares,
         load factor peak conversion, real-time EIA demand scaling, ideal transformer handling,
         and steady-state DC power-flow internals.
       </div>
+      
+      <div style="border-top:1px dashed rgba(95,208,255,.2);padding-top:10px;margin-bottom:10px">
+        <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#7fe0ff;margin:0 0 8px">Mutable Model Parameters</h3>
+        
+        <div style="font-size:11px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between"><span>Substation Peak Load Factor:</span><b id="team-lf-val" style="color:#7fe0ff">0.515</b></div>
+          <input type="range" id="team-lf-slider" min="0.30" max="0.90" step="0.005" value="0.515" style="width:100%;accent-color:#7fe0ff;cursor:pointer">
+        </div>
+        
+        <div style="font-size:11px;margin-bottom:6px">
+          <div style="font-weight:600;margin-bottom:4px;color:#8aa0b8">Sector Peak Load Allocations (Auto-balanced):</div>
+          <div style="display:flex;justify-content:space-between;margin-top:2px"><span>Residential Share:</span><b id="team-share-res-val" style="color:#7fe0ff">43%</b></div>
+          <input type="range" id="team-share-res-slider" min="0" max="100" value="43" style="width:100%;accent-color:#7fe0ff;cursor:pointer">
+        </div>
+        
+        <div style="font-size:11px;margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between"><span>Commercial Share:</span><b id="team-share-com-val" style="color:#7fe0ff">37%</b></div>
+          <input type="range" id="team-share-com-slider" min="0" max="100" value="37" style="width:100%;accent-color:#7fe0ff;cursor:pointer">
+        </div>
+        
+        <div style="font-size:11px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between"><span>Industrial &amp; Other Share:</span><b id="team-share-ind-val" style="color:#7fe0ff">20%</b></div>
+          <input type="range" id="team-share-ind-slider" min="0" max="100" value="20" style="width:100%;accent-color:#7fe0ff;cursor:pointer">
+        </div>
+      </div>
+
       <div class="small" style="margin-top:6px;color:var(--muted)">
         Generation assumptions are shown separately from slack imports. Open PF Internals for the
         Ybus matrix and Voltage / angle by bus table.
@@ -1920,6 +1948,45 @@ window.TEAM_TRANSMISSION_MODEL = {
     }
     const btn = document.getElementById('open-team-transmission-model');
     if(btn) btn.addEventListener('click', () => window.openTeamTransmissionModel && window.openTeamTransmissionModel());
+
+    // Wire up sliders
+    const lfSlider = document.getElementById('team-lf-slider');
+    const lfVal = document.getElementById('team-lf-val');
+    if(lfSlider && lfVal){
+      lfSlider.addEventListener('input', function(){
+        window.TEAM_MODEL_CONFIG.load_factor = Number(this.value);
+        lfVal.textContent = window.TEAM_MODEL_CONFIG.load_factor.toFixed(3);
+        window.renderTeamTransmissionModel();
+      });
+    }
+
+    const resSlider = document.getElementById('team-share-res-slider');
+    const comSlider = document.getElementById('team-share-com-slider');
+    const indSlider = document.getElementById('team-share-ind-slider');
+
+    function adjustShares(changedKey, newVal){
+      const current = {
+        res: Number(resSlider.value),
+        com: Number(comSlider.value),
+        ind: Number(indSlider.value)
+      };
+      current[changedKey] = newVal;
+      const sum = current.res + current.com + current.ind;
+      if(sum > 0){
+        window.TEAM_MODEL_CONFIG.sector_shares.residential = current.res / sum;
+        window.TEAM_MODEL_CONFIG.sector_shares.commercial = current.com / sum;
+        window.TEAM_MODEL_CONFIG.sector_shares.industrial_other = current.ind / sum;
+      }
+      document.getElementById('team-share-res-val').textContent = Math.round(window.TEAM_MODEL_CONFIG.sector_shares.residential * 100) + '%';
+      document.getElementById('team-share-com-val').textContent = Math.round(window.TEAM_MODEL_CONFIG.sector_shares.commercial * 100) + '%';
+      document.getElementById('team-share-ind-val').textContent = Math.round(window.TEAM_MODEL_CONFIG.sector_shares.industrial_other * 100) + '%';
+      
+      window.renderTeamTransmissionModel();
+    }
+
+    if(resSlider) resSlider.addEventListener('input', function(){ adjustShares('res', Number(this.value)); });
+    if(comSlider) comSlider.addEventListener('input', function(){ adjustShares('com', Number(this.value)); });
+    if(indSlider) indSlider.addEventListener('input', function(){ adjustShares('ind', Number(this.value)); });
     if(window.applyDomainFilter) window.applyDomainFilter();
   }
 
