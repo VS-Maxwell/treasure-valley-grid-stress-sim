@@ -85,48 +85,258 @@
   .maplibregl-ctrl-group{background:rgba(11,17,26,.80)!important;border:1px solid rgba(120,170,220,.18)!important}
   #cap{position:absolute;top:22px;left:50%;transform:translateX(-50%);z-index:6;background:rgba(11,17,26,.80);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(120,170,220,.25);color:#eaf3ff;font-size:15px;letter-spacing:.2px;padding:9px 18px;border-radius:11px;opacity:0;transition:opacity .6s ease;pointer-events:none;max-width:78%;text-align:center;box-shadow:0 10px 34px rgba(0,0,0,.55)}
 
-  .quick-views-container {
+  /* Game Entry Splash Screen Styles */
+  #game-entry-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: radial-gradient(circle at center, #0b1329 0%, #030712 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #f1f5f9;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
+  .entry-content {
+    max-width: 1000px;
+    width: 100%;
+    text-align: center;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    margin: 10px 0 14px;
-    padding: 8px 10px;
-    background: rgba(30, 41, 59, 0.45);
-    border: 1px solid rgba(148, 163, 184, 0.18);
-    border-radius: 8px;
-  }
-  .quick-views-header {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: #94a3b8;
-    margin-bottom: 2px;
-    font-weight: 700;
-  }
-  .quick-view-btn {
-    display: flex;
     align-items: center;
-    gap: 8px;
-    width: 100%;
-    padding: 6px 8px;
-    background: rgba(15, 23, 42, 0.65);
-    border: 1px solid rgba(148, 163, 184, 0.12);
-    border-radius: 5px;
-    color: #e2e8f0;
-    font-size: 11px;
-    text-align: left;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    animation: fadeIn 0.8s ease;
   }
-  .quick-view-btn:hover {
-    background: rgba(14, 165, 233, 0.18);
-    border-color: rgba(14, 165, 233, 0.45);
-    color: #38bdf8;
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .entry-header {
+    margin-bottom: 25px;
+  }
+  .entry-logo {
+    height: 48px;
+    width: auto;
+    margin-bottom: 12px;
+  }
+  .entry-header h1 {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    margin: 0;
+    background: linear-gradient(90deg, #38bdf8, #818cf8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .entry-header h2 {
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    color: #94a3b8;
+    margin: 6px 0 10px;
+    text-transform: uppercase;
+  }
+  .entry-sub {
+    font-size: 12px;
+    color: #64748b;
+    max-width: 650px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+  .entry-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    width: 100%;
+    margin-bottom: 30px;
+  }
+  .entry-card {
+    position: relative;
+    background: rgba(17, 24, 39, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 12px;
+    padding: 22px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-sizing: border-box;
+  }
+  .entry-card:hover {
+    transform: translateY(-6px);
+    background: rgba(17, 24, 39, 0.85);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+  }
+  .card-glow {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  .entry-card:hover .card-glow {
+    opacity: 0.12;
+  }
+  .card-energy .card-glow { background: radial-gradient(circle at center, #0ea5e9, transparent 65%); }
+  .card-water .card-glow { background: radial-gradient(circle at center, #14b8a6, transparent 65%); }
+  .card-nexus .card-glow { background: radial-gradient(circle at center, #f59e0b, transparent 65%); }
+
+  .entry-card:hover.card-energy { border-color: #0ea5e9; box-shadow: 0 0 15px rgba(14, 165, 233, 0.15); }
+  .entry-card:hover.card-water { border-color: #14b8a6; box-shadow: 0 0 15px rgba(20, 184, 166, 0.15); }
+  .entry-card:hover.card-nexus { border-color: #f59e0b; box-shadow: 0 0 15px rgba(245, 158, 11, 0.15); }
+
+  .card-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+  .entry-card h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    letter-spacing: 0.8px;
+  }
+  .card-energy h3 { color: #38bdf8; }
+  .card-water h3 { color: #2dd4bf; }
+  .card-nexus h3 { color: #fbbf24; }
+
+  .card-desc {
+    font-size: 11.5px;
+    color: #94a3b8;
+    line-height: 1.45;
+    margin: 0 0 12px;
+    text-align: center;
+  }
+  .card-bullets {
+    text-align: left;
+    font-size: 10.5px;
+    color: #64748b;
+    margin: 0 0 18px;
+    padding-left: 15px;
+    line-height: 1.55;
+    width: 100%;
+  }
+  .enter-btn {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    padding: 7px 14px;
+    border-radius: 5px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+  }
+  .card-energy .enter-btn { background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.25); color: #38bdf8; }
+  .card-water .enter-btn { background: rgba(20, 184, 166, 0.08); border: 1px solid rgba(20, 184, 166, 0.25); color: #2dd4bf; }
+  .card-nexus .enter-btn { background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); color: #fbbf24; }
+
+  .entry-card:hover.card-energy .enter-btn { background: #0ea5e9; color: #fff; }
+  .entry-card:hover.card-water .enter-btn { background: #14b8a6; color: #fff; }
+  .entry-card:hover.card-nexus .enter-btn { background: #f59e0b; color: #fff; }
+
+  #entry-loading-bar-container {
+    width: 400px;
+    margin-top: 15px;
+  }
+  .loading-label {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-bottom: 6px;
+    font-family: monospace;
+  }
+  .loading-bar-bg {
+    height: 5px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .loading-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #38bdf8, #818cf8);
+    border-radius: 3px;
+    transition: width 0.1s ease;
+  }
+  .entry-footer {
+    margin-top: 25px;
+    font-size: 10px;
+    color: #475569;
   }
 </style>
 <script src="https://unpkg.com/deck.gl@9.0.33/dist.min.js"></script>
 </head>
+
 <body>
+<!-- Premium Game-Style Load and Entry Screen -->
+<div id="game-entry-screen">
+  <div class="entry-content">
+    <div class="entry-header">
+      <img src="icrews_logo.png" alt="I-CREWS Logo" class="entry-logo">
+      <h1>TREASURE VALLEY</h1>
+      <h2>Grid &amp; Climate Nexus Simulator</h2>
+      <p class="entry-sub">An expert screening model for power engineers and hydrologists analyzing transmission limits, climate vulnerability, and joint aquifer-energy feedback loops in Idaho. NSF EPSCoR I-CREWS project.</p>
+    </div>
+    
+    <div class="entry-cards">
+      <div class="entry-card card-energy" onclick="window.launchSimulation && window.launchSimulation('energy')">
+        <div class="card-glow"></div>
+        <div class="card-icon">⚡</div>
+        <h3>ENERGY (GRID)</h3>
+        <p class="card-desc">Evaluate grid transmission stress, substation flows, and real-time load telemetry.</p>
+        <ul class="card-bullets">
+          <li>12-Bus Transmission Model</li>
+          <li>Steady-State DC Power Flow solver</li>
+          <li>Census-Tract Population-to-Load mapping</li>
+        </ul>
+        <span class="enter-btn">ENTER SYSTEM &rarr;</span>
+      </div>
+      
+      <div class="entry-card card-water" onclick="window.launchSimulation && window.launchSimulation('water')">
+        <div class="card-glow"></div>
+        <div class="card-icon">💧</div>
+        <h3>WATER (RESOURCES)</h3>
+        <p class="card-desc">Examine hydrology, aquifer levels, USGS pumping, and terrain elevation.</p>
+        <ul class="card-bullets">
+          <li>3D Digital Elevation Model (DEM)</li>
+          <li>Aquifer water table telemetry</li>
+          <li>1cm ultra-high res Drone Orthoimagery</li>
+        </ul>
+        <span class="enter-btn">ENTER SYSTEM &rarr;</span>
+      </div>
+      
+      <div class="entry-card card-nexus" onclick="window.launchSimulation && window.launchSimulation('nexus')">
+        <div class="card-glow"></div>
+        <div class="card-icon">🔗</div>
+        <h3>NEXUS (COMBINED)</h3>
+        <p class="card-desc">Analyze joint risks, agricultural pumping feedbacks, and climate vulnerability.</p>
+        <ul class="card-bullets">
+          <li>Coupled Water-Energy feedbacks</li>
+          <li>RAVEN Climate contingency analysis</li>
+          <li>Multi-domain parameter tuning</li>
+        </ul>
+        <span class="enter-btn">ENTER SYSTEM &rarr;</span>
+      </div>
+    </div>
+    
+    <div id="entry-loading-bar-container" style="display:none;">
+      <div class="loading-label" id="entry-loading-label">Initializing system components...</div>
+      <div class="loading-bar-bg">
+        <div class="loading-bar-fill" id="entry-loading-fill"></div>
+      </div>
+    </div>
+    
+    <div class="entry-footer">
+      Concepts by V.S. Maxwell &amp; Sai Kothapalli &bull; Research &amp; Review by Celina McPeak &bull; University of Idaho &bull; I-CREWS Project
+    </div>
+  </div>
+</div>
+
 <div id="map"></div>
 
 <!-- SCIENTIFIC DATASETS PANEL (Interactive tables) -->
@@ -263,7 +473,6 @@
     <b>Energy loadout</b>
     <span>Transmission, demand, generation, hosting capacity, N-1, and live EIA demand.</span>
   </div>
-  <div id="quick-navigation-section" class="quick-views-container"></div>
 
   <div id="readout" data-domain="energy nexus">
     <h2 style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#7fa8cf;margin:0">Grid stress <span class="tsbadge ts-mod">MODELED · screening</span></h2>
@@ -421,49 +630,62 @@
     var raw=(el.getAttribute('data-domain')||'energy water nexus').trim();
     return raw.split(/\s+/).indexOf(domain)!==-1;
   }
+
   
-  function updateQuickNavigation(domain) {
-    const container = document.getElementById('quick-navigation-section');
-    if (!container) return;
+  function launchSimulation(domain) {
+    // Hide entry cards and subtitle
+    document.querySelector('.entry-cards').style.display = 'none';
+    document.querySelector('.entry-header p').style.display = 'none';
     
-    let html = '';
-    if (domain === 'energy') {
-      html = `
-        <div class="quick-views-header">Quick Analysis Views</div>
-        <button class="quick-view-btn" onclick="window.openTeamTransmissionModel && window.openTeamTransmissionModel()">
-          <span>⚡</span> <b>PF Internals</b> (Voltages, Angles, Ybus, Mvars)
-        </button>
-        <button class="quick-view-btn" onclick="window.switchScienceTab && window.switchScienceTab('hc'); document.getElementById('science-panel').style.display='block';">
-          <span>🔌</span> <b>Hosting Capacity</b> (Addable Substation MW)
-        </button>
-        <button class="quick-view-btn" onclick="window.switchScienceTab && window.switchScienceTab('n1'); document.getElementById('science-panel').style.display='block';">
-          <span>⚠️</span> <b>N-1 Outage Risk</b> (Corridor Limit Scenarios)
-        </button>
-      `;
-    } else if (domain === 'water') {
-      html = `
-        <div class="quick-views-header">Quick Analysis Views</div>
-        <button class="quick-view-btn" onclick="window.switchScienceTab && window.switchScienceTab('pump'); document.getElementById('science-panel').style.display='block';">
-          <span>💧</span> <b>USGS Aquifer Pumping</b> (Pumping Rates by Month)
-        </button>
-        <button class="quick-view-btn" onclick="const t=document.getElementById('t-terrain'); if(t){t.click();}">
-          <span>🏔️</span> Toggle 3D Terrain &amp; DEM Layers
-        </button>
-      `;
-    } else if (domain === 'nexus') {
-      html = `
-        <div class="quick-views-header">Quick Analysis Views</div>
-        <button class="quick-view-btn" onclick="window.switchScienceTab && window.switchScienceTab('raven'); document.getElementById('science-panel').style.display='block';">
-          <span>🦊</span> <b>RAVEN Climate Risk</b> (Probabilities, LOLE, Metrics)
-        </button>
-        <button class="quick-view-btn" onclick="window.openTeamTransmissionModel && window.openTeamTransmissionModel()">
-          <span>⚡</span> <b>Grid Solver Internals</b> (Ybus / Power Flow)
-        </button>
-      `;
+    // Display loading bar
+    const container = document.getElementById('entry-loading-bar-container');
+    const label = document.getElementById('entry-loading-label');
+    const fill = document.getElementById('entry-loading-fill');
+    container.style.display = 'block';
+    
+    const steps = [
+      { progress: 15, msg: "Establishing secure EIA-930 telemetry connection..." },
+      { progress: 35, msg: "Parsing Census Tract population geometry..." },
+      { progress: 55, msg: "Building 12x12 Admittance susceptance matrix (Bbus)..." },
+      { progress: 75, msg: "Solving steady-state DC power-flow equations..." },
+      { progress: 90, msg: "Loading 3D Digital Elevation terrain mesh..." },
+      { progress: 100, msg: "Simulation ready. Launching grid viewport." }
+    ];
+    
+    let currentStep = 0;
+    function nextStep() {
+      if (currentStep < steps.length) {
+        const step = steps[currentStep];
+        label.textContent = step.msg;
+        fill.style.width = step.progress + '%';
+        currentStep++;
+        setTimeout(nextStep, 500);
+      } else {
+        // Fade out splash screen
+        const screen = document.getElementById('game-entry-screen');
+        screen.style.transition = 'opacity 0.5s ease';
+        screen.style.opacity = '0';
+        setTimeout(() => {
+          screen.style.display = 'none';
+          // Set active tab
+          if (window.setDomainTab) window.setDomainTab(domain);
+          
+          // Fly to starting viewport
+          if (typeof map !== 'undefined' && map.flyTo) {
+            if (domain === 'energy') {
+              map.flyTo({ center: [-116.129, 43.547], zoom: 11.5, pitch: 58, bearing: 10, duration: 2500 });
+            } else if (domain === 'water') {
+              map.flyTo({ center: [-116.17673, 43.66997], zoom: 13, pitch: 62, bearing: -30, duration: 2500 });
+            } else {
+              map.flyTo({ center: [-116.35, 43.58], zoom: 9.8, pitch: 52, bearing: -12, duration: 2500 });
+            }
+          }
+        }, 550);
+      }
     }
-    container.innerHTML = html;
+    nextStep();
   }
-  window.updateQuickNavigation = updateQuickNavigation;
+  window.launchSimulation = launchSimulation;
 
   function setDomain(domain){
     if(!DOMAIN_COPY[domain]) domain='energy';
@@ -476,7 +698,6 @@
     }
     var copy=DOMAIN_COPY[domain], loadout=document.getElementById('domainLoadout');
     if(loadout) loadout.innerHTML='<b>'+copy.title+'</b><span>'+copy.body+'</span>';
-    if(window.updateQuickNavigation) window.updateQuickNavigation(domain);
     var layerTitle=document.getElementById('domainLayerTitle'), layerNote=document.getElementById('domainLayerNote');
     if(layerTitle) layerTitle.textContent=copy.layerTitle;
     if(layerNote) layerNote.textContent=copy.layerNote;
