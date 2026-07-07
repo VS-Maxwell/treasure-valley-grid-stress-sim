@@ -530,10 +530,10 @@
   <div class="sect" data-domain="energy water nexus" id="domain-layer-sect">
     <h2 id="domainLayerTitle">Energy layers</h2>
     <div class="note" id="domainLayerNote" style="margin:0 0 7px">Transmission, generation, load, large-load, and substation overlays.</div>
-    <label class="row" data-domain="water nexus"><input type="checkbox" id="t-naip" checked> NAIP aerial (0.6 m, USGS)</label>
-    <label class="row" data-domain="energy nexus"><input type="checkbox" id="t-buildings" checked> 3D Buildings</label>
-    <label class="row" data-domain="water nexus"><input type="checkbox" id="t-terrain" checked> 3D Terrain (DEM)</label>
-    <label class="row" data-domain="water nexus"><input type="checkbox" id="t-hillshade" checked> Hillshade</label>
+    <label class="row" data-domain="water nexus"><input type="checkbox" id="t-naip"> NAIP aerial (0.6 m, USGS)</label>
+    <label class="row" data-domain="energy nexus"><input type="checkbox" id="t-buildings"> 3D Buildings</label>
+    <label class="row" data-domain="water nexus"><input type="checkbox" id="t-terrain"> 3D Terrain (DEM)</label>
+    <label class="row" data-domain="water nexus"><input type="checkbox" id="t-hillshade"> Hillshade</label>
     <label class="row" data-domain="energy nexus"><input type="checkbox" id="t-load"> Modeled load (tract choropleth)</label>
     <label class="row" data-domain="energy nexus"><input type="checkbox" id="t-trans" checked> Transmission lines</label>
     <label class="row" data-domain="energy nexus" style="color:#a8b8cf"><input type="checkbox" id="t-minor-lines"> Show minor/non-modeled lines</label>
@@ -541,7 +541,7 @@
     <label class="row" data-domain="energy nexus"><input type="checkbox" id="t-plants" checked> Generation plants</label>
     <label class="row" data-domain="energy nexus"><input type="checkbox" id="t-large" checked> Large loads (Meta/Micron)</label>
     <label class="row" data-domain="energy nexus" style="color:#bfefff"><input type="checkbox" id="t-team-transmission-model"> Team transmission model layer</label>
-    <label class="row" data-domain="water nexus"><input type="checkbox" id="t-drone" checked> Corrals drone ortho (1cm)</label>
+    <label class="row" data-domain="water nexus"><input type="checkbox" id="t-drone"> Corrals drone ortho (1cm)</label>
   </div>
 
   <div class="sect" id="team-transmission-model-sect" data-domain="energy nexus">
@@ -673,11 +673,11 @@
           // Fly to starting viewport
           if (typeof map !== 'undefined' && map.flyTo) {
             if (domain === 'energy') {
-              map.flyTo({ center: [-116.129, 43.547], zoom: 11.5, pitch: 58, bearing: 10, duration: 2500 });
+              map.jumpTo({ center: [-116.129, 43.547], zoom: 11.5, pitch: 58, bearing: 10 });
             } else if (domain === 'water') {
-              map.flyTo({ center: [-116.17673, 43.66997], zoom: 13, pitch: 62, bearing: -30, duration: 2500 });
+              map.jumpTo({ center: [-116.17673, 43.66997], zoom: 13, pitch: 62, bearing: -30 });
             } else {
-              map.flyTo({ center: [-116.35, 43.58], zoom: 9.8, pitch: 52, bearing: -12, duration: 2500 });
+              map.jumpTo({ center: [-116.35, 43.58], zoom: 9.8, pitch: 52, bearing: -12 });
             }
           }
         }, 550);
