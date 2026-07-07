@@ -939,7 +939,7 @@ function addEverything(){
     window.stressInitialized = true;
     try {
       if (typeof initStress === 'function') initStress();
-      if (typeof introSequence === 'function') introSequence();
+      // if (typeof introSequence === 'function') introSequence();
     } catch(e) {
       console.warn("initStress backstop warning:", e);
     }
@@ -1310,7 +1310,7 @@ window.ET_PUMPING={"months":["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Se
     ran=true;
     try{ addEverything(); }catch(e){ console.warn('backstop addEverything',e); }
     try{ if(typeof initStress==='function') initStress(); }catch(e){ console.warn('backstop initStress',e); }
-    try{ if(typeof introSequence==='function') introSequence(); }catch(e){ console.warn('backstop intro',e); }
+    // try{ if(typeof introSequence==='function') introSequence(); }catch(e){ console.warn('backstop intro',e); }
   }
   setTimeout(fire,1200);
 })();
