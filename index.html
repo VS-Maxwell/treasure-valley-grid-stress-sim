@@ -155,7 +155,7 @@
     <div style="overflow-x:auto;max-height:180px">
       <table class="science-table" id="table-pf">
         <thead>
-          <tr><th>Bus</th><th>Tracts</th><th>Pop</th><th>Avg MW</th><th>Peak MW</th><th>Live MW</th></tr>
+          <tr><th>Bus</th><th>Tracts</th><th>Pop</th><th>Avg MW</th><th>Peak MW / Mvar</th><th>Live MW / Mvar</th></tr>
         </thead>
         <tbody id="body-pf-clusters"></tbody>
       </table>
@@ -164,7 +164,7 @@
     <div style="overflow-x:auto;max-height:180px">
       <table class="science-table">
         <thead>
-          <tr><th>Bus</th><th>kV</th><th>Vm pu</th><th>Angle deg</th><th>P load MW</th><th>P gen MW</th></tr>
+          <tr><th>Bus</th><th>Base kV</th><th>Vm (pu)</th><th>Angle (deg)</th><th>P Load (MW) / Q Load (Mvar)</th><th>P Gen (MW)</th></tr>
         </thead>
         <tbody id="body-pf-bus"></tbody>
       </table>
@@ -311,8 +311,8 @@
 
   <div class="sect" data-domain="energy water nexus">
     <h2>Basemap</h2>
-    <label class="row"><input type="radio" name="basemap" id="bm-vector" value="vector" checked> Vector (OpenFreeMap)</label>
-    <label class="row"><input type="radio" name="basemap" id="bm-sat" value="satellite"> Satellite (Esri Imagery)</label>
+    <label class="row"><input type="radio" name="basemap" id="bm-vector" value="vector"> Vector (OpenFreeMap)</label>
+    <label class="row"><input type="radio" name="basemap" id="bm-sat" value="satellite" checked> Satellite (Esri Imagery)</label>
   </div>
 
   <div class="sect" data-domain="energy water nexus">
@@ -455,7 +455,7 @@ map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'top-righ
 map.addControl(new maplibregl.ScaleControl({unit:'imperial'}),'bottom-right');
 
 let usedFallback=false;
-let basemapMode='vector';   // 'vector' (OpenFreeMap) or 'satellite' (Esri World Imagery)
+let basemapMode='satellite';   // 'vector' (OpenFreeMap) or 'satellite' (Esri World Imagery)
 map.on('error',(e)=>{
   const msg = e && e.error ? String(e.error.message||'') : '';
   if(!usedFallback && /style|sprite|glyphs|fetch|load|Failed/i.test(msg) && !map.getSource('plants')){
@@ -1875,7 +1875,7 @@ window.TEAM_TRANSMISSION_MODEL = {
         loadFactor: `load factor ${window.TEAM_MODEL_CONFIG.load_factor.toFixed(3)} converts embedded average tract MW to modeled peak MW using local EIA-930 mean/peak evidence.`,
         sectorWiseLoad: `sector-wise load proxy is explicit until Idaho Power IRP class shares are wired: residential ${Math.round(window.TEAM_MODEL_CONFIG.sector_shares.residential * 100)}%, commercial ${Math.round(window.TEAM_MODEL_CONFIG.sector_shares.commercial * 100)}%, industrial/other ${Math.round(window.TEAM_MODEL_CONFIG.sector_shares.industrial_other * 100)}%.`,
         realTimeScaling: 'real-time EIA demand scaling multiplies tract average load by the latest embedded EIA-930 IPCO demand point.',
-        powerFlow: 'steady-state DC power-flow screening uses a normalized Bbus/Ybus-style susceptance matrix from embedded line endpoints and documented tap-collapsed corridors.',
+        powerFlow: 'steady-state DC power-flow screening uses a normalized Bbus/Ybus-style susceptance matrix. Constant power factor (cos phi = 0.95 lagging) is assumed to calculate reactive Mvar loads for pandapower/PowerWorld validation.',
         transformer: 'ideal transformer assumption is used where transformer impedance/tap data is not embedded.'
       },
       sectorShares: window.TEAM_MODEL_CONFIG.sector_shares,
@@ -2039,8 +2039,8 @@ window.TEAM_TRANSMISSION_MODEL = {
             <td>${c.tract_count}</td>
             <td>${Math.round(c.population).toLocaleString()}</td>
             <td>${fmt(c.load_avg_mw)}</td>
-            <td>${fmt(c.load_peak_mw)}</td>
-            <td>${fmt(c.load_live_mw)}</td>
+            <td>${fmt(c.load_peak_mw)} / ${fmt(c.load_peak_mw * 0.329)}</td>
+            <td>${fmt(c.load_live_mw)} / ${fmt(c.load_live_mw * 0.329)}</td>
             <td>${fmt(c.sector_mw.residential)}/${fmt(c.sector_mw.commercial)}/${fmt(c.sector_mw.industrial_other)}</td>
           </tr>`).join('');
     }
@@ -2050,10 +2050,11 @@ window.TEAM_TRANSMISSION_MODEL = {
       busBody.innerHTML = model.buses.map(b => `
         <tr>
           <td>${b.name}</td>
-          <td>${fmt(b.load_live_mw)}</td>
-          <td>${fmt(b.gen_dispatch_mw)}</td>
+          <td>${Math.round(b.max_voltage_kv)} kV</td>
           <td>${fmt(b.vm_pu,3)}</td>
           <td>${fmt(b.angle_deg,2)}</td>
+          <td>${fmt(b.load_live_mw)} / ${fmt(b.load_live_mw * 0.329)}</td>
+          <td>${fmt(b.gen_dispatch_mw)}</td>
         </tr>`).join('');
     }
 
