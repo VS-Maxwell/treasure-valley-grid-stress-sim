@@ -909,6 +909,17 @@ function addEverything(){
   wireToggles();
   wireBasemap();
   wirePopups();
+  
+  // Safe backstop to initialize stress engine under all basemap fallback configurations
+  if (!window.stressInitialized) {
+    window.stressInitialized = true;
+    try {
+      if (typeof initStress === 'function') initStress();
+      if (typeof introSequence === 'function') introSequence();
+    } catch(e) {
+      console.warn("initStress backstop warning:", e);
+    }
+  }
 }
 
 const ATTRIB_VECTOR = 'Basemap &copy; <a href="https://openfreemap.org" target="_blank">OpenFreeMap</a> &amp; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> - map data &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors (ODbL)</a>.';
@@ -1059,7 +1070,7 @@ function initStress(){
   var tbtn=document.getElementById('tourBtn'); if(tbtn) tbtn.onclick=function(){ setTour(!tourOn); };
   setScen('base');
 }
-map.on('load',function(){ initStress(); introSequence(); });
+// map.on('load',function(){ initStress(); introSequence(); });
 </script>
 <script type="module">
 (async () => {
