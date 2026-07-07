@@ -84,6 +84,45 @@
   #vignette{position:absolute;inset:0;pointer-events:none;z-index:1;box-shadow:inset 0 0 230px 70px rgba(4,7,12,.55);background:radial-gradient(125% 125% at 50% 36%,transparent 56%,rgba(4,7,12,.38) 100%)}
   .maplibregl-ctrl-group{background:rgba(11,17,26,.80)!important;border:1px solid rgba(120,170,220,.18)!important}
   #cap{position:absolute;top:22px;left:50%;transform:translateX(-50%);z-index:6;background:rgba(11,17,26,.80);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(120,170,220,.25);color:#eaf3ff;font-size:15px;letter-spacing:.2px;padding:9px 18px;border-radius:11px;opacity:0;transition:opacity .6s ease;pointer-events:none;max-width:78%;text-align:center;box-shadow:0 10px 34px rgba(0,0,0,.55)}
+
+  .quick-views-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 10px 0 14px;
+    padding: 8px 10px;
+    background: rgba(30, 41, 59, 0.45);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 8px;
+  }
+  .quick-views-header {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #94a3b8;
+    margin-bottom: 2px;
+    font-weight: 700;
+  }
+  .quick-view-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 8px;
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 5px;
+    color: #e2e8f0;
+    font-size: 11px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .quick-view-btn:hover {
+    background: rgba(14, 165, 233, 0.18);
+    border-color: rgba(14, 165, 233, 0.45);
+    color: #38bdf8;
+  }
 </style>
 <script src="https://unpkg.com/deck.gl@9.0.33/dist.min.js"></script>
 </head>
@@ -224,6 +263,7 @@
     <b>Energy loadout</b>
     <span>Transmission, demand, generation, hosting capacity, N-1, and live EIA demand.</span>
   </div>
+  <div id="quick-navigation-section" class="quick-views-container"></div>
 
   <div id="readout" data-domain="energy nexus">
     <h2 style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#7fa8cf;margin:0">Grid stress <span class="tsbadge ts-mod">MODELED · screening</span></h2>
@@ -381,6 +421,50 @@
     var raw=(el.getAttribute('data-domain')||'energy water nexus').trim();
     return raw.split(/\s+/).indexOf(domain)!==-1;
   }
+  
+  function updateQuickNavigation(domain) {
+    const container = document.getElementById('quick-navigation-section');
+    if (!container) return;
+    
+    let html = '';
+    if (domain === 'energy') {
+      html = `
+        <div class="quick-views-header">Quick Analysis Views</div>
+        <button class="quick-view-btn" onclick="window.openTeamTransmissionModel && window.openTeamTransmissionModel()">
+          <span>⚡</span> <b>PF Internals</b> (Voltages, Angles, Ybus, Mvars)
+        </button>
+        <button class="quick-view-btn" onclick="window.switchScienceTab && window.switchScienceTab('hc'); document.getElementById('science-panel').style.display='block';">
+          <span>🔌</span> <b>Hosting Capacity</b> (Addable Substation MW)
+        </button>
+        <button class="quick-view-btn" onclick="window.switchScienceTab && window.switchScienceTab('n1'); document.getElementById('science-panel').style.display='block';">
+          <span>⚠️</span> <b>N-1 Outage Risk</b> (Corridor Limit Scenarios)
+        </button>
+      `;
+    } else if (domain === 'water') {
+      html = `
+        <div class="quick-views-header">Quick Analysis Views</div>
+        <button class="quick-view-btn" onclick="window.switchScienceTab && window.switchScienceTab('pump'); document.getElementById('science-panel').style.display='block';">
+          <span>💧</span> <b>USGS Aquifer Pumping</b> (Pumping Rates by Month)
+        </button>
+        <button class="quick-view-btn" onclick="const t=document.getElementById('t-terrain'); if(t){t.click();}">
+          <span>🏔️</span> Toggle 3D Terrain &amp; DEM Layers
+        </button>
+      `;
+    } else if (domain === 'nexus') {
+      html = `
+        <div class="quick-views-header">Quick Analysis Views</div>
+        <button class="quick-view-btn" onclick="window.switchScienceTab && window.switchScienceTab('raven'); document.getElementById('science-panel').style.display='block';">
+          <span>🦊</span> <b>RAVEN Climate Risk</b> (Probabilities, LOLE, Metrics)
+        </button>
+        <button class="quick-view-btn" onclick="window.openTeamTransmissionModel && window.openTeamTransmissionModel()">
+          <span>⚡</span> <b>Grid Solver Internals</b> (Ybus / Power Flow)
+        </button>
+      `;
+    }
+    container.innerHTML = html;
+  }
+  window.updateQuickNavigation = updateQuickNavigation;
+
   function setDomain(domain){
     if(!DOMAIN_COPY[domain]) domain='energy';
     document.documentElement.setAttribute('data-active-domain',domain);
@@ -392,6 +476,7 @@
     }
     var copy=DOMAIN_COPY[domain], loadout=document.getElementById('domainLoadout');
     if(loadout) loadout.innerHTML='<b>'+copy.title+'</b><span>'+copy.body+'</span>';
+    if(window.updateQuickNavigation) window.updateQuickNavigation(domain);
     var layerTitle=document.getElementById('domainLayerTitle'), layerNote=document.getElementById('domainLayerNote');
     if(layerTitle) layerTitle.textContent=copy.layerTitle;
     if(layerNote) layerNote.textContent=copy.layerNote;
