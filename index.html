@@ -1954,8 +1954,10 @@ window.TEAM_TRANSMISSION_MODEL = {
     const lfVal = document.getElementById('team-lf-val');
     if(lfSlider && lfVal){
       lfSlider.addEventListener('input', function(){
+        lfVal.textContent = Number(this.value).toFixed(3);
+      });
+      lfSlider.addEventListener('change', function(){
         window.TEAM_MODEL_CONFIG.load_factor = Number(this.value);
-        lfVal.textContent = window.TEAM_MODEL_CONFIG.load_factor.toFixed(3);
         window.renderTeamTransmissionModel();
       });
     }
@@ -1964,7 +1966,7 @@ window.TEAM_TRANSMISSION_MODEL = {
     const comSlider = document.getElementById('team-share-com-slider');
     const indSlider = document.getElementById('team-share-ind-slider');
 
-    function adjustShares(changedKey, newVal){
+    function adjustShares(changedKey, newVal, isFinal){
       const current = {
         res: Number(resSlider.value),
         com: Number(comSlider.value),
@@ -1973,20 +1975,35 @@ window.TEAM_TRANSMISSION_MODEL = {
       current[changedKey] = newVal;
       const sum = current.res + current.com + current.ind;
       if(sum > 0){
-        window.TEAM_MODEL_CONFIG.sector_shares.residential = current.res / sum;
-        window.TEAM_MODEL_CONFIG.sector_shares.commercial = current.com / sum;
-        window.TEAM_MODEL_CONFIG.sector_shares.industrial_other = current.ind / sum;
+        const resShare = current.res / sum;
+        const comShare = current.com / sum;
+        const indShare = current.ind / sum;
+        
+        document.getElementById('team-share-res-val').textContent = Math.round(resShare * 100) + '%';
+        document.getElementById('team-share-com-val').textContent = Math.round(comShare * 100) + '%';
+        document.getElementById('team-share-ind-val').textContent = Math.round(indShare * 100) + '%';
+        
+        if(isFinal){
+          window.TEAM_MODEL_CONFIG.sector_shares.residential = resShare;
+          window.TEAM_MODEL_CONFIG.sector_shares.commercial = comShare;
+          window.TEAM_MODEL_CONFIG.sector_shares.industrial_other = indShare;
+          window.renderTeamTransmissionModel();
+        }
       }
-      document.getElementById('team-share-res-val').textContent = Math.round(window.TEAM_MODEL_CONFIG.sector_shares.residential * 100) + '%';
-      document.getElementById('team-share-com-val').textContent = Math.round(window.TEAM_MODEL_CONFIG.sector_shares.commercial * 100) + '%';
-      document.getElementById('team-share-ind-val').textContent = Math.round(window.TEAM_MODEL_CONFIG.sector_shares.industrial_other * 100) + '%';
-      
-      window.renderTeamTransmissionModel();
     }
 
-    if(resSlider) resSlider.addEventListener('input', function(){ adjustShares('res', Number(this.value)); });
-    if(comSlider) comSlider.addEventListener('input', function(){ adjustShares('com', Number(this.value)); });
-    if(indSlider) indSlider.addEventListener('input', function(){ adjustShares('ind', Number(this.value)); });
+    if(resSlider) {
+      resSlider.addEventListener('input', function(){ adjustShares('res', Number(this.value), false); });
+      resSlider.addEventListener('change', function(){ adjustShares('res', Number(this.value), true); });
+    }
+    if(comSlider) {
+      comSlider.addEventListener('input', function(){ adjustShares('com', Number(this.value), false); });
+      comSlider.addEventListener('change', function(){ adjustShares('com', Number(this.value), true); });
+    }
+    if(indSlider) {
+      indSlider.addEventListener('input', function(){ adjustShares('ind', Number(this.value), false); });
+      indSlider.addEventListener('change', function(){ adjustShares('ind', Number(this.value), true); });
+    }
     if(window.applyDomainFilter) window.applyDomainFilter();
   }
 
