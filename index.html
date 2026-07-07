@@ -6,9 +6,12 @@
 <title>Treasure Valley Grid Stress Sim — Data-Center Load &amp; Climate Risk (MVP2)</title>
 <link rel="icon" href="data:,">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <style>
-  html,body{margin:0;height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:#0a0e14;overflow:hidden}
+  html,body{margin:0;height:100%;font-family:'Outfit','Segoe UI',system-ui,sans-serif;background:#0a0e14;overflow:hidden}
   #map{position:absolute;inset:0;background:#070b12}
   .hud{position:absolute;background:rgba(12,18,28,.88);color:#e8edf4;border:1px solid #2a3a4f;
        border-radius:10px;box-shadow:0 6px 26px rgba(0,0,0,.5);backdrop-filter:blur(6px)}
@@ -90,15 +93,22 @@
     position: fixed;
     inset: 0;
     z-index: 99999;
-    background: radial-gradient(circle at center, #0b1329 0%, #030712 100%);
+    background: linear-gradient(-45deg, #020617, #0f172a, #1e1b4b, #030712);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif;
     color: #f1f5f9;
     padding: 20px;
     box-sizing: border-box;
     overflow-y: auto;
+  }
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
   .entry-content {
     max-width: 1000px;
@@ -155,18 +165,18 @@
   }
   .entry-card {
     position: relative;
-    background: rgba(17, 24, 39, 0.6);
-    border: 1px solid rgba(148, 163, 184, 0.15);
+    background: rgba(15, 23, 42, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     padding: 22px;
     cursor: pointer;
     overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
     flex-direction: column;
     align-items: center;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     box-sizing: border-box;
   }
   .entry-card:hover {
@@ -188,9 +198,9 @@
   .card-water .card-glow { background: radial-gradient(circle at center, #14b8a6, transparent 65%); }
   .card-nexus .card-glow { background: radial-gradient(circle at center, #f59e0b, transparent 65%); }
 
-  .entry-card:hover.card-energy { border-color: #0ea5e9; box-shadow: 0 0 15px rgba(14, 165, 233, 0.15); }
-  .entry-card:hover.card-water { border-color: #14b8a6; box-shadow: 0 0 15px rgba(20, 184, 166, 0.15); }
-  .entry-card:hover.card-nexus { border-color: #f59e0b; box-shadow: 0 0 15px rgba(245, 158, 11, 0.15); }
+  .entry-card:hover.card-energy { border-color: #0ea5e9; box-shadow: 0 0 35px rgba(14, 165, 233, 0.3), inset 0 0 12px rgba(14, 165, 233, 0.1); }
+  .entry-card:hover.card-water { border-color: #14b8a6; box-shadow: 0 0 35px rgba(20, 184, 166, 0.3), inset 0 0 12px rgba(20, 184, 166, 0.1); }
+  .entry-card:hover.card-nexus { border-color: #f59e0b; box-shadow: 0 0 35px rgba(245, 158, 11, 0.3), inset 0 0 12px rgba(245, 158, 11, 0.1); }
 
   .card-icon {
     font-size: 28px;
@@ -259,7 +269,8 @@
   .loading-bar-fill {
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, #38bdf8, #818cf8);
+    background: linear-gradient(90deg, #0ea5e9, #14b8a6, #f59e0b);
+    box-shadow: 0 0 12px rgba(20, 184, 166, 0.6);
     border-radius: 3px;
     transition: width 0.1s ease;
   }
