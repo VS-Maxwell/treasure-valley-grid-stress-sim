@@ -3,9 +3,9 @@
 *.tmp
 .temp*
 
-# Local environment variables
-.env
-.env.*
+# Local environment variables (tracked in private repo)
+# .env
+# .env.*
 jkeys/
 *key*
 
