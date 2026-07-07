@@ -727,7 +727,7 @@ function setDomain(domain){
   }
 }
 window.setDomainTab=setDomain;
-  document.addEventListener('DOMContentLoaded',function(){
+  function initDomain() {
     var buttons=document.querySelectorAll('[data-domain-tab]');
     for(var i=0;i<buttons.length;i++){
       buttons[i].addEventListener('click',function(){ setDomain(this.getAttribute('data-domain-tab')); });
@@ -739,7 +739,12 @@ window.setDomainTab=setDomain;
       new MutationObserver(function(){ setDomain(document.documentElement.getAttribute('data-active-domain')||'energy'); })
         .observe(panel,{childList:true,subtree:true});
     }
-  });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDomain);
+  } else {
+    initDomain();
+  }
 })();
 </script>
 
