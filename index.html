@@ -778,7 +778,8 @@ const map = new maplibregl.Map({
   style:STYLE_URL,
   center:[-116.20,43.61],
   zoom:9.4, pitch:55, bearing:-12, hash:true,
-  maxPitch:80, attributionControl:false
+  maxPitch:80, attributionControl:false,
+  powerPreference: 'high-performance'
 });
 map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'top-right');
 map.addControl(new maplibregl.ScaleControl({unit:'imperial'}),'bottom-right');
