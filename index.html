@@ -1,15 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+  window.addEventListener('error', function(e) {
+    fetch('http://127.0.0.1:8080/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'error', message: e.message, filename: e.filename, lineno: e.lineno, colno: e.colno, error: e.error ? e.error.stack : '' })
+    }).catch(() => {});
+  });
+  window.addEventListener('unhandledrejection', function(e) {
+    fetch('http://127.0.0.1:8080/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'unhandledrejection', reason: e.reason ? (e.reason.message || e.reason.stack || String(e.reason)) : '' })
+    }).catch(() => {});
+  });
+  const originalConsoleError = console.error;
+  console.error = function() {
+    originalConsoleError.apply(console, arguments);
+    const args = Array.prototype.slice.call(arguments).map(String).join(' ');
+    fetch('http://127.0.0.1:8080/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'console_error', message: args })
+    }).catch(() => {});
+  };
+</script>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Treasure Valley Grid Stress Sim — Data-Center Load &amp; Climate Risk (MVP2)</title>
 <link rel="icon" href="data:,">
-<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <style>
   html,body{margin:0;height:100%;font-family:'Outfit','Segoe UI',system-ui,sans-serif;background:#0a0e14;overflow:hidden}
   #map{position:absolute;inset:0;background:#070b12}
@@ -280,7 +306,7 @@
     color: #475569;
   }
 </style>
-<script src="https://unpkg.com/deck.gl@9.0.33/dist.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/deck.gl@9.0.33/dist.min.js"></script>
 </head>
 
 <body>
