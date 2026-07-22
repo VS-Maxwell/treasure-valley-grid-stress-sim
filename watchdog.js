@@ -8,6 +8,7 @@
     truth: 'MODELED-SCREENING'
   };
   function el(tag, attrs, html){var n=document.createElement(tag);Object.keys(attrs||{}).forEach(function(k){n.setAttribute(k,attrs[k]);});if(html!=null)n.innerHTML=html;return n;}
+  function appDocument(){var frame=document.getElementById('simulator');try{return frame&&frame.contentDocument?frame.contentDocument:document;}catch(e){return document;}}
   function openDrawer(section){var d=document.getElementById('watchdog-drawer');d.classList.add('open');d.setAttribute('aria-hidden','false');if(section){var target=document.getElementById(section);if(target)target.scrollIntoView({block:'start'});}}
   function closeDrawer(){var d=document.getElementById('watchdog-drawer');d.classList.remove('open');d.setAttribute('aria-hidden','true');}
   var rail=el('nav',{id:'watchdog-rail','aria-label':'Model status and evidence controls'},
@@ -29,6 +30,6 @@
   rail.addEventListener('click',function(e){var id=e.target.getAttribute('data-open');if(id)openDrawer(id);});
   drawer.querySelector('.wd-close').addEventListener('click',closeDrawer);
   document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDrawer();});
-  drawer.addEventListener('click',function(e){var path=e.target.getAttribute('data-path');if(!path)return;if(path==='risk'){openDrawer('wd-risk');return;}var tab=document.querySelector('[data-domain-tab="'+path+'"]');if(tab){tab.click();closeDrawer();}});
+  drawer.addEventListener('click',function(e){var path=e.target.getAttribute('data-path');if(!path)return;if(path==='risk'){openDrawer('wd-risk');return;}var tab=appDocument().querySelector('[data-domain-tab="'+path+'"]');if(tab){tab.click();closeDrawer();}});
   setTimeout(function(){var splash=document.getElementById('game-entry-screen');if(!splash||splash.style.display==='none')openDrawer('wd-scope');},1800);
 })();
