@@ -15,9 +15,16 @@
 </head>
 <body>
   <div class="shell-loading" id="shell-loading" role="status">Loading the Treasure Valley model…</div>
-  <iframe id="simulator" title="Treasure Valley interactive Earth-state simulator" src="legacy.html" allow="fullscreen; webgl" loading="eager"></iframe>
+  <iframe id="simulator" title="Treasure Valley interactive Earth-state simulator" allow="fullscreen; webgl" loading="eager"></iframe>
   <script>
-    document.getElementById('simulator').addEventListener('load',function(){document.getElementById('shell-loading').classList.add('done')});
+    const frame=document.getElementById('simulator');
+    frame.addEventListener('load',function(){document.getElementById('shell-loading').classList.add('done')});
+    fetch('legacy.html').then(function(r){if(!r.ok)throw new Error('Legacy model unavailable');return r.text()}).then(function(html){
+      html=html.replace(/<script>\s*window\.addEventListener\('error',[\s\S]*?<\/script>\s*(?=<meta charset)/,'');
+      html=html.replaceAll('INL RAVEN Probabilistic Risk Output','RAVEN-STYLE SCREENING · UNVALIDATED');
+      html=html.replace('<head>','<head><base href="./">');
+      frame.srcdoc=html;
+    }).catch(function(){document.getElementById('shell-loading').textContent='The simulator could not be loaded. Please refresh.'});
   </script>
   <script src="watchdog.js"></script>
 </body>
