@@ -3,9 +3,10 @@
 *.tmp
 .temp*
 
-# Local environment variables (tracked in private repo)
-# .env
-# .env.*
+# Local environment variables — never commit credentials
+.env
+.env.*
+!.env.example
 jkeys/
 *key*
 
