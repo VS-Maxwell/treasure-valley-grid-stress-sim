@@ -30,6 +30,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Assemble Earth-state watchdog release
+        run: node tools/inject_watchdog.mjs
+      - name: Validate scientific release boundary
+        run: node tools/validate_release.mjs
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

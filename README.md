@@ -1,8 +1,8 @@
-# Treasure Valley Grid-Stress Simulator (3D)
+# Treasure Valley Earth-State Watchdog
 
-An interactive 3D web demonstrator of how **data-center load growth and climate stress (drought, heat)**
-stress the **Idaho Power transmission grid** in the Treasure Valley. Built for energy-engineering and
-I-CREWS (NSF EPSCoR) audiences.
+An interactive public-interest screening tool for exploring how grid topology, large-load growth,
+heat, drought, water demand, land conversion, and infrastructure decisions interact across the
+Treasure Valley.
 
 **Live demo:** once GitHub Pages is enabled, this loads at the repository's Pages URL
 (`https://<user>.github.io/<repo>/`). It is a single self-contained HTML file — just open `index.html`.
@@ -22,9 +22,22 @@ indicators for prioritization, **not validated thermal limits**. Each layer carr
 in the UI. Sources: EIA-930/860, HIFLD topology, U.S. Census, USGS 3DEP + NAIP, pandapower DC power flow.
 Companion white paper documents every figure.
 
+The app distinguishes the larger 94-bus/156-line screening representation from the 12 selected buses
+used by the interactive solver. Transformers are idealized because authoritative impedance and tap
+parameters are not embedded. RAVEN-style probabilities, LOLE, and EUE remain unvalidated scenario
+assumptions until linked input/output receipts are recovered. Visible infrastructure is not necessarily
+electrically modeled.
+
+Absence of Tribal representation in a public dataset is treated as a documentary or governance gap,
+not as evidence of absent Tribal presence, activity, knowledge, or rights.
+
 ## Tech / licensing
-Open stack only — MapLibre GL JS, deck.gl, OpenFreeMap (ODbL), AWS Terrarium DEM, USGS NAIP/3DEP
-(public domain), Esri World Imagery (public endpoint), WebLLM. **No API keys or secrets are embedded.**
+Open stack — MapLibre GL JS, deck.gl, OpenFreeMap (ODbL), AWS Terrarium DEM, USGS NAIP/3DEP
+(public domain), Esri World Imagery (public endpoint), and WebLLM. Local refresh credentials belong
+only in an ignored `.env`; `.env.example` contains blank placeholders.
+
+Project-owned source code is available under `Apache-2.0 OR MIT`. Third-party software and data
+retain their own licenses and terms; see `LICENSE`, `LICENSE-APACHE`, `LICENSE-MIT`, and `NOTICE`.
 
 ## Attribution
 Van Maxwell · University of Idaho — I-CREWS. Screening model + 3D demonstrator, 2026.

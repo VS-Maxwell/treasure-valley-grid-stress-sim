@@ -1,0 +1,14 @@
+Treasure Valley Earth-State Watchdog
+
+Project-owned source code in this repository is dual-licensed under either:
+
+    Apache License, Version 2.0
+    OR
+    MIT License
+
+at your option. See LICENSE-APACHE and LICENSE-MIT.
+
+SPDX-License-Identifier: Apache-2.0 OR MIT
+
+Third-party libraries, services, imagery, basemaps, fonts, and datasets remain
+under their own licenses and terms. This dual license does not relicense them.
