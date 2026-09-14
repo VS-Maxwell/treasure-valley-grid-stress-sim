@@ -2,6 +2,7 @@ import "./styles.css";
 
 import { RuntimeDiagnostics } from "./diagnostics/RuntimeDiagnostics";
 import { loadGridCore } from "./data/loadGridCore";
+import { loadTvgwfmGrid } from "./data/loadTvgwfmGrid";
 import { InputController } from "./input/InputController";
 import { CanvasFallbackRenderer } from "./render/CanvasFallbackRenderer";
 import type {
@@ -26,7 +27,7 @@ function required<T extends HTMLElement>(selector: string): T {
 async function boot(): Promise<void> {
   const diagnostics = new RuntimeDiagnostics();
   window.TV_SIM_DIAGNOSTICS = () => diagnostics.snapshot();
-  const grid = await loadGridCore();
+  const [grid, tvgwfm] = await Promise.all([loadGridCore(), loadTvgwfmGrid()]);
   diagnostics.setDataReceipt(
     grid.source_sha256,
     grid.trans.features.length,
@@ -111,14 +112,19 @@ async function boot(): Promise<void> {
       );
       const { ThreeCockpitRenderer } =
         await import("./render/ThreeCockpitRenderer");
-      const three = new ThreeCockpitRenderer(required("#playfield"), grid, {
-        onContextLost: () =>
-          activateFallback(
-            "WebGL context was lost; switched to the bounded Canvas view.",
-            true,
-          ),
-        onMetrics: recordMetrics,
-      });
+      const three = new ThreeCockpitRenderer(
+        required("#playfield"),
+        grid,
+        tvgwfm,
+        {
+          onContextLost: () =>
+            activateFallback(
+              "WebGL context was lost; switched to the bounded Canvas view.",
+              true,
+            ),
+          onMetrics: recordMetrics,
+        },
+      );
       renderer = three;
       diagnostics.setRenderer(three.kind);
       three.mount();

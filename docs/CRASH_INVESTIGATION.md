@@ -12,13 +12,13 @@ Updated: 2026-09-14 11:20 PDT
 
 These facts establish a real browser crash and runaway renderer memory. They do not establish that the application was the only possible cause of the Firefox `libxul` fault.
 
-## Repair candidate now on the default route
+## Repair now promoted on the default route
 
-- `/` loads one document directly.
-- No intro gate, iframe, `srcdoc`, automatic watchdog drawer, MapLibre startup, remote tile request, or perpetual timer runs on the default route.
+- `/` redirects directly to the built modular cockpit at `/dist/`.
+- No intro gate, iframe, `srcdoc`, automatic watchdog drawer, MapLibre startup, or remote tile request runs on the default route.
 - The local 397 KB grid core retains all 244 transmission corridors and 94 substations with a source SHA-256 receipt.
 - Grid construction performs at most 32 visible redraw states and does not replace the underlying dataset.
-- The page labels itself “Stability build · full 4D simulator in progress.”
+- WebGL context loss is wired to dispose the 3D renderer and activate the bounded Canvas view.
 
 ## Current verification
 

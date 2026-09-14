@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-09-14T18:47:00Z",
+  "release_rule": "No model weight, adapter, tokenizer, or generated model artifact inherits the project code license. Every active model requires an exact artifact hash and verified upstream terms.",
+  "models": [
+    {
+      "id": "offline-guide-tbd",
+      "role": "Offline evidence and lesson guide",
+      "provider": "unselected",
+      "model_name": "unselected",
+      "version": "unselected",
+      "local_path": null,
+      "sha256": null,
+      "license": "unverified",
+      "bundled": false,
+      "status": "blocked-missing",
+      "constraints": [
+        "Must use an allow-listed local gateway",
+        "Cannot alter accepted scientific state",
+        "Cannot cross restricted collection boundaries",
+        "Must pass citation, leakage, and prompt-injection tests"
+      ]
+    },
+    {
+      "id": "offline-transcription-tbd",
+      "role": "Offline voice transcription with source-audio linkage",
+      "provider": "unselected",
+      "model_name": "unselected",
+      "version": "unselected",
+      "local_path": null,
+      "sha256": null,
+      "license": "unverified",
+      "bundled": false,
+      "status": "blocked-missing",
+      "constraints": [
+        "Requires confidence and segment timestamps",
+        "Restricted audio requires explicit authority",
+        "Transcript acceptance remains a human decision"
+      ]
+    },
+    {
+      "id": "grid-surrogate-tbd",
+      "role": "Interactive reduced-order grid response",
+      "provider": "project-trained",
+      "model_name": "untrained",
+      "version": "untrained",
+      "local_path": null,
+      "sha256": null,
+      "license": "not-applicable-until-trained",
+      "bundled": false,
+      "status": "blocked-missing",
+      "constraints": [
+        "Requires held-out comparison to accepted pandapower runs",
+        "Must disclose domain limits and error metrics",
+        "Cannot be labeled validated without reviewer acceptance"
+      ]
+    }
+  ]
+}

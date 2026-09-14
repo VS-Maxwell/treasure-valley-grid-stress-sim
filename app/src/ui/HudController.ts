@@ -191,7 +191,15 @@ export class HudController {
       ),
       this.#heading("Terrain truth state"),
       this.#paragraph(
-        "The terrain and aquifer surfaces in this Phase 1 view are reconstructed visual previews, not USGS elevation or validated groundwater output.",
+        "The broad terrain remains a reconstructed visual preview. The blue Treasure Valley footprint is an ingested transform of the CC0 USGS TVGWFM grid: 6 layers, 64 rows, 65 columns, and 4,055 active top cells.",
+      ),
+      this.#heading("USGS water-model source"),
+      this.#paragraph(
+        "DOI 10.5066/P9U6OOPH · original model.zip bytes and upstream MD5 verified · local SHA-256 bdefb11eaf7b75ab63dc0b23b0de4f65fe9d68798c0ff229420322bf8abb0dd6",
+      ),
+      this.#heading("Baseline reproduction"),
+      this.#paragraph(
+        "MODFLOW 6.1.1 completed all 361 stress periods normally. Final budget discrepancy rounds to 0.00%; four observation tables match at published precision; maximum head difference versus the archived output is 3.14e-11 feet. New-scenario suitability still requires domain review.",
       ),
       this.#heading("Release boundary"),
       this.#paragraph(

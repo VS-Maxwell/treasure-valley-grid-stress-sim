@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the direct-entry, replayable transmission-grid build slice."""
+"""Verify direct simulator entry plus the retained degraded grid renderer."""
 
 from __future__ import annotations
 
@@ -31,16 +31,18 @@ def main() -> int:
     css = (ROOT / "grid-live.css").read_text(encoding="utf-8")
     script = (ROOT / "grid-live.js").read_text(encoding="utf-8")
     canvas_script = (ROOT / "grid-canvas.js").read_text(encoding="utf-8")
+    cockpit_renderer = (ROOT / "app/src/render/ThreeCockpitRenderer.ts").read_text(
+        encoding="utf-8"
+    )
     grid_core = json.loads((ROOT / "data" / "grid-core.json").read_text(encoding="utf-8"))
     data = embedded_data(legacy)
     transmission = data["trans"]
     features = transmission["features"]
 
-    require('src="grid-canvas.js"' in index, "root loads the bounded Canvas renderer directly")
+    require("window.location.replace(destination)" in index and "url=./dist/" in index,
+            "root enters the built simulator directly")
     require("<iframe" not in index and "watchdog.js" not in index,
             "root has no nested document or automatic intro/watchdog layer")
-    require("full 4D simulator in progress" in index,
-            "root clearly labels the current view as an incomplete stability build")
     require('href="grid-live.css"' in live_grid, "grid view loads live-grid styles")
     require('src="grid-canvas.js"' in live_grid, "grid view loads bounded Canvas controls")
     require("maplibre" not in live_grid.lower() and "https://" not in live_grid,
@@ -74,6 +76,8 @@ def main() -> int:
             "Canvas animation is bounded to 32 redraw states")
     require("setInterval" not in canvas_script,
             "Canvas view has no perpetual render timer")
+    require("#requestRender" in cockpit_renderer and "#settleFrames" in cockpit_renderer,
+            "3D cockpit renders in bounded bursts and idles between changes")
     require("INL RAVEN Probabilistic Risk Output" not in legacy,
             "unreceipted RAVEN output is not labeled as validated")
     return 0

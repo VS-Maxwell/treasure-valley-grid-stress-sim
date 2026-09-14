@@ -1,10 +1,10 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-14T18:43:27Z",
-  "phase": "Phase 1 — Modular walking skeleton",
-  "task": "Begin Phase 2 source registries and offline data plane",
-  "state": "active",
-  "progress_percent": 18,
+  "updated_at": "2026-09-14T19:03:57Z",
+  "phase": "Phase 2 - Historical water data plane",
+  "task": "Generate compact time-slice tables from reproduced MODFLOW heads and budgets",
+  "state": "passed",
+  "progress_percent": 25,
   "preview_url": "http://127.0.0.1:8001/dist/",
   "machines": [
     {
@@ -76,7 +76,12 @@
     "grid-canvas.js",
     "data/grid-core.json",
     "tools/extract_grid_core.py",
-    "legacy.html"
+    "legacy.html",
+    "app/src/render/ThreeCockpitRenderer.ts",
+    "app/src/diagnostics/RuntimeDiagnostics.ts",
+    "receipts/tvgwfm-baseline-reproduction-20260914.json",
+    "app/public/data/tvgwfm-grid.json",
+    "app/public/data/tvgwfm-baseline-summary.json"
   ],
   "events": [
     {
@@ -168,6 +173,30 @@
       "state": "active",
       "summary": "Phase 1 3D cockpit functional gates passed",
       "detail": "Three.js cockpit, seven scenes, six user verbs, exact 244-corridor pack, responsive HUD, timeline, evidence boundary, 9-draw-call scene, and deterministic Canvas mode pass; screenshots, clean-load performance, and natural context-loss remain open while Phase 2 begins"
+    },
+    {
+      "at": "2026-09-14T18:45:10Z",
+      "state": "failed",
+      "summary": "Licensing skill reference files are missing",
+      "detail": "The installed apache-mit-licensing SKILL.md requires references/license-workflow.md and references/model-and-data-boundaries.md, but neither exists; proceeding with the complete core rules and retaining the packaging defect"
+    },
+    {
+      "at": "2026-09-14T18:50:06Z",
+      "state": "active",
+      "summary": "Stabilizing the live cockpit before Phase 2 acquisition",
+      "detail": "Current Three.js build reloads successfully at 244 corridors. Host CPU saturation is recorded separately; building an automatic health governor and continuing the source-grounded data plane."
+    },
+    {
+      "at": "2026-09-14T19:03:56Z",
+      "state": "failed",
+      "summary": "Legacy direct-grid validator rejected the intentional root promotion",
+      "detail": "The validator still required the old Canvas default after the cockpit was promoted. Updating it to verify direct simulator entry plus the retained degraded Canvas path."
+    },
+    {
+      "at": "2026-09-14T19:03:57Z",
+      "state": "passed",
+      "summary": "Direct simulator and USGS baseline gates passed",
+      "detail": "Root opens the cockpit directly; 3D rendering now idles between bounded interaction bursts; Canvas fallback remains; 361-period MODFLOW 6.1.1 baseline terminated normally and matches archived outputs within recorded tolerances."
     }
   ]
 }

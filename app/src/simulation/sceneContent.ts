@@ -21,12 +21,13 @@ export const SCENE_CONTENT: Record<SceneId, SceneContent> = {
     ],
   },
   water: {
-    eyebrow: "WATER · SURFACE AND SUBSURFACE",
-    title: "Trace rivers, canals, recharge, and pumping",
-    copy: "The current blue surfaces are a reconstructed preview. Published USGS groundwater heads and budgets remain blocked until the official archive is reproduced.",
+    eyebrow: "WATER · USGS BASELINE REPRODUCED",
+    title: "Enter the six-layer Treasure Valley aquifer model",
+    copy: "The blue footprint comes from the verified USGS MODFLOW 6 archive. Its 1986–2015 baseline now runs to normal termination and matches archived heads and observation tables within recorded tolerances; new scenarios still require domain review.",
     metrics: [
-      { value: "6", label: "planned aquifer layers" },
-      { value: "BLOCKED", label: "MODFLOW baseline" },
+      { value: "6", label: "model layers" },
+      { value: "4,055", label: "active top cells" },
+      { value: "0.00%", label: "budget discrepancy" },
     ],
   },
   energy: {

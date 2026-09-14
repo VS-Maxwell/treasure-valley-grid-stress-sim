@@ -2,7 +2,7 @@
 
 Updated: 2026-09-14
 
-## Active milestone — Phase 1 modular walking skeleton
+## Active milestone — Phase 2 historical data plane
 
 - [x] Preserve the original legacy application and baseline commit.
 - [x] Provide a stable direct-root Canvas grid while the 3D runtime is built.
@@ -19,6 +19,12 @@ Updated: 2026-09-14
 - [x] Add deterministic `dist/` build and release-only-from-dist enforcement.
 - [ ] Pass unit, contract, build, release, performance, and browser playtests. Automated gates pass; clean-load performance and screenshots remain.
 - [ ] Capture visual evidence or retain the screenshot blocker with exact cause.
+- [x] Promote the simulator cockpit to the default route; retain the Canvas grid only as a degraded renderer.
+- [x] Acquire and byte-verify the bounded USGS TVGWFM core archive set on the T drive.
+- [x] Extract the official 6-layer, 64×65 model grid and 4,055 active top cells into a browser-safe pack.
+- [x] Render the ingested USGS model footprint inside the Water and Nexus scenes with an explicit non-validation label.
+- [x] Reproduce all 361 USGS MODFLOW stress periods and compare heads, observation outputs, and water-budget closure against the archived baseline.
+- [ ] Produce browser-safe time slices from the reproduced heads and budgets without shipping the 72 MB binary output.
 
 ## Later phases
 

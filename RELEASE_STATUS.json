@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-09-14T18:57:00Z",
+  "public_release_approved": false,
+  "reason": "The application is under active construction and the current grid pack has incomplete source and redistribution metadata.",
+  "open_gates": [
+    "grid source URLs and retrieval dates",
+    "grid component redistribution terms",
+    "visual screenshot receipt",
+    "clean-load performance acceptance",
+    "natural WebGL context-loss test",
+    "third-party transitive dependency audit",
+    "scientific model validation",
+    "IDWR ESPAM source and redistribution terms",
+    "authority review for any restricted collection"
+  ]
+}

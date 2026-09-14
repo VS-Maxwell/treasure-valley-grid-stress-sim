@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "receipt_id": "tvgwfm-baseline-reproduction-20260914",
+  "completed_at": "2026-09-14T19:01:47Z",
+  "model": "USGS Treasure Valley Groundwater Flow Model 1986-2015",
+  "doi": "10.5066/P9U6OOPH",
+  "engine": {
+    "version": "MODFLOW 6.1.1 06/12/2020",
+    "binary_path": "/run/media/madame-butterfly/Toshiba/Treasure_Valley_Model/work/tvgwfm_baseline_20260914/source/source_code/modflow6-6.1.1/make/mf6",
+    "binary_sha256": "6e1f27a02a97eed45197a95e195479392b3574a4ee5bdc25956b94e53a45719d",
+    "build_note": "Compiled serially from the source_code.zip preserved with the USGS release using GNU Fortran 16.2.1."
+  },
+  "run_directory": "/run/media/madame-butterfly/Toshiba/Treasure_Valley_Model/work/tvgwfm_baseline_20260914/run/model",
+  "reference_directory": "/run/media/madame-butterfly/Toshiba/Treasure_Valley_Model/work/tvgwfm_baseline_20260914/reference",
+  "normal_termination": true,
+  "rounded_budget_discrepancy_zero_percent": true,
+  "heads": {
+    "records": 2166,
+    "finite_values_compared": 3293764,
+    "values_with_binary_difference": 2895425,
+    "max_absolute_difference_feet": 3.1377567211166024e-11,
+    "max_relative_difference": 1.2146952859878601e-14,
+    "rmse_feet": 7.631523115110442e-12,
+    "actual_sha256": "0c1bccc894e3c4b2b0c602b0dec02978978e19bea371a54be1658efec6b4035a",
+    "archived_sha256": "e2f99abab1b172751ba36fad611f0782cfebe23d5bc03502269be4d091a54266"
+  },
+  "observation_outputs": {
+    "sim_equiv-tv_hist-drn_obs.csv": {
+      "rows": 361,
+      "values_compared": 6859,
+      "values_with_text_precision_difference": 0,
+      "max_absolute_difference": 0.0,
+      "max_relative_difference": 0.0,
+      "rmse": 0.0,
+      "actual_sha256": "f9b9b0a5e20b066c3c0d715c3acc80bef132855d5ea9b3f35edac178e1205650",
+      "archived_sha256": "bbfb76a95bb0cb67d4ffa381d5ec6fde62f1e954bde25eb37de7321aa726f839"
+    },
+    "sim_equiv-tv_hist-lowell_obs.csv": {
+      "rows": 361,
+      "values_compared": 722,
+      "values_with_text_precision_difference": 0,
+      "max_absolute_difference": 0.0,
+      "max_relative_difference": 0.0,
+      "rmse": 0.0,
+      "actual_sha256": "22c9fef9aad4b1be3dc66b27737628cfc7465a52ebbd03047337245939239e4f",
+      "archived_sha256": "551bc689c1830a279466a0f4910d037e2b61fd48750627c09d2967ff540b3710"
+    },
+    "sim_equiv-tv_hist-ny_canal_riv_obs.csv": {
+      "rows": 361,
+      "values_compared": 722,
+      "values_with_text_precision_difference": 0,
+      "max_absolute_difference": 0.0,
+      "max_relative_difference": 0.0,
+      "rmse": 0.0,
+      "actual_sha256": "24a99189977276716c9d61c34e97eec46eaf5c64e2d9d79f300d8f5348bdd59d",
+      "archived_sha256": "a46f54f919e102f94738f16f50088a15c4663a7cf7713bbcafd27c598efc13d0"
+    },
+    "sim_equiv-tv_hist-riv_obs.csv": {
+      "rows": 361,
+      "values_compared": 5054,
+      "values_with_text_precision_difference": 0,
+      "max_absolute_difference": 0.0,
+      "max_relative_difference": 0.0,
+      "rmse": 0.0,
+      "actual_sha256": "65896475ee2a9d5d4df8a66a43b64eed10c5db19aaeb97d7e8c1cf6f8f139520",
+      "archived_sha256": "d5dbb50e65d2e411f2a301de0ccfd74062e6569be4777a8d4f4b619e9d493500"
+    }
+  },
+  "acceptance_thresholds": {
+    "head_max_absolute_difference_feet": 0.001,
+    "observation_max_relative_difference": 1e-05,
+    "normal_termination_required": true,
+    "rounded_zero_percent_budget_discrepancy_required": true
+  },
+  "status": "numerically-reproduced",
+  "acceptance_boundary": "Numerical reproduction compares the archived USGS outputs. Scientific suitability for a new scenario still requires domain review."
+}

@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "id": "tvgwfm-baseline-reproduction-20260914",
+  "model": "USGS Treasure Valley Groundwater Flow Model 1986-2015",
+  "doi": "10.5066/P9U6OOPH",
+  "truth_state": "modeled-screening",
+  "status": "numerically-reproduced",
+  "engine": "MODFLOW 6.1.1 06/12/2020",
+  "stress_periods": 361,
+  "normal_termination": true,
+  "rounded_budget_discrepancy_percent": 0.0,
+  "head_comparison": {
+    "records": 2166,
+    "finite_values": 3293764,
+    "max_absolute_difference_feet": 3.1377567211166024e-11,
+    "rmse_feet": 7.631523115110442e-12
+  },
+  "observation_tables": {
+    "count": 4,
+    "values_compared": 13357,
+    "values_with_text_precision_difference": 0
+  },
+  "acceptance_boundary": "The archived baseline is numerically reproduced. Scientific suitability for new scenarios still requires domain review."
+}

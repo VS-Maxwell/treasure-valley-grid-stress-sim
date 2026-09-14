@@ -8,6 +8,8 @@ node_modules/
 dist/
 coverage/
 .vite/
+scratch/
+data/raw/
 
 # Local environment variables — never commit credentials
 .env

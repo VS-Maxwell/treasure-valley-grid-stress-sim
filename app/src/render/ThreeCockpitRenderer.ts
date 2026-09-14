@@ -8,6 +8,7 @@ import {
   projectPosition,
 } from "../data/geo";
 import { lineParts, type GridCore } from "../data/gridTypes";
+import type { TvgwfmGrid } from "../data/tvgwfmTypes";
 import type { RendererAdapter, RendererCallbacks } from "./RendererAdapter";
 
 const TERRAIN_WIDTH = 230;
@@ -33,6 +34,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   readonly kind = "three-webgl" as const;
   readonly #container: HTMLElement;
   readonly #grid: GridCore;
+  readonly #tvgwfm: TvgwfmGrid;
   readonly #callbacks: RendererCallbacks;
   readonly #scene = new THREE.Scene();
   readonly #camera = new THREE.PerspectiveCamera(47, 1, 0.1, 1200);
@@ -47,16 +49,19 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   #frameCount = 0;
   #metricSeconds = 0;
   #lastRenderTime = 0;
+  #settleFrames = 0;
   #running = false;
   #resizeObserver: ResizeObserver | null = null;
 
   constructor(
     container: HTMLElement,
     grid: GridCore,
+    tvgwfm: TvgwfmGrid,
     callbacks: RendererCallbacks,
   ) {
     this.#container = container;
     this.#grid = grid;
+    this.#tvgwfm = tvgwfm;
     this.#callbacks = callbacks;
     this.#renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -85,6 +90,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#controls.maxDistance = 310;
     this.#controls.maxPolarAngle = Math.PI * 0.47;
     this.#controls.target.set(0, -1, 0);
+    this.#controls.addEventListener("change", this.#onControlsChange);
 
     this.#terrainMaterial = new THREE.MeshStandardMaterial({
       vertexColors: true,
@@ -93,12 +99,13 @@ export class ThreeCockpitRenderer implements RendererAdapter {
       side: THREE.DoubleSide,
     });
     this.#waterMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0x1976a8,
-      roughness: 0.18,
-      metalness: 0.06,
+      color: 0x20a7dc,
+      roughness: 0.36,
+      metalness: 0.03,
       transparent: true,
-      opacity: 0.32,
+      opacity: 0.16,
       depthWrite: false,
+      wireframe: true,
     });
     this.#buildScene();
     this.focusHome();
@@ -115,13 +122,14 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     if (this.#running) return;
     this.#running = true;
     this.#timer.reset();
-    this.#lastRenderTime = performance.now();
-    this.#frameHandle = requestAnimationFrame(this.#frame);
+    this.#lastRenderTime = 0;
+    this.#requestRender(2);
   }
 
   stop(): void {
     this.#running = false;
     cancelAnimationFrame(this.#frameHandle);
+    this.#frameHandle = 0;
   }
 
   applyState(state: SimulationState): void {
@@ -135,7 +143,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
       );
     });
     this.#waterMaterial.opacity =
-      state.scene === "water" || state.scene === "nexus" ? 0.62 : 0.23;
+      state.scene === "water" ? 0.82 : state.scene === "nexus" ? 0.5 : 0.16;
     this.#terrainMaterial.wireframe = state.scene === "record";
     const future = Math.max(0, (state.year - 2026) / 74);
     this.#scene.background = new THREE.Color().setRGB(
@@ -153,12 +161,14 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#sun.color.set(
       state.climateScenario === "heat-drought-2050" ? 0xffc08a : 0xfff0d1,
     );
+    this.#requestRender(2);
   }
 
   focusHome(): void {
     this.#camera.position.set(112, 92, 132);
     this.#controls.target.set(0, -2, 0);
     this.#controls.update();
+    this.#requestRender(10);
   }
 
   dispose(): void {
@@ -168,6 +178,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
       "webglcontextlost",
       this.#onContextLost,
     );
+    this.#controls.removeEventListener("change", this.#onControlsChange);
     this.#controls.dispose();
     this.#timer.dispose();
     this.#scene.traverse((object) => {
@@ -228,17 +239,82 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     terrain.name = "reconstructed-preview-terrain";
     this.#scene.add(terrain);
 
-    const waterGeometry = new THREE.PlaneGeometry(132, 60, 1, 1);
-    waterGeometry.rotateX(-Math.PI / 2);
-    const water = new THREE.Mesh(waterGeometry, this.#waterMaterial);
-    water.position.set(5, -3.25, 2);
-    water.name = "synthetic-aquifer-preview";
-    this.#scene.add(water);
+    this.#addTvgwfmSurface();
 
     this.#addGridLines();
     this.#addSubstations();
     this.#addPlants();
     this.#addAtmosphereMarkers();
+  }
+
+  #addTvgwfmSurface(): void {
+    const model = this.#tvgwfm.grid;
+    const bounds = measureGridBounds(this.#grid);
+    const corners = model.corners_wgs84;
+    const vertices: number[] = [];
+    const indices: number[] = [];
+    const elevations = model.top_elevation_feet;
+    const elevationSpan = model.top_max_feet - model.top_min_feet;
+
+    const mix = (start: number, end: number, amount: number): number =>
+      start + (end - start) * amount;
+    for (let row = 0; row < model.rows; row += 1) {
+      const v = row / (model.rows - 1);
+      const left: readonly [number, number] = [
+        mix(corners.upper_left[0], corners.lower_left[0], v),
+        mix(corners.upper_left[1], corners.lower_left[1], v),
+      ];
+      const right: readonly [number, number] = [
+        mix(corners.upper_right[0], corners.lower_right[0], v),
+        mix(corners.upper_right[1], corners.lower_right[1], v),
+      ];
+      for (let column = 0; column < model.columns; column += 1) {
+        const u = column / (model.columns - 1);
+        const longitude = mix(left[0], right[0], u);
+        const latitude = mix(left[1], right[1], u);
+        const point = projectPosition([longitude, latitude], bounds);
+        const elevation = elevations[row * model.columns + column] ?? 0;
+        const relief =
+          elevation > 0
+            ? ((elevation - model.top_min_feet) / elevationSpan) * 3.2
+            : 0;
+        vertices.push(point.x, point.y + 0.9 + relief, point.z);
+      }
+    }
+
+    const isActive = (row: number, column: number): boolean =>
+      (elevations[row * model.columns + column] ?? 0) > 0;
+    for (let row = 0; row < model.rows - 1; row += 1) {
+      for (let column = 0; column < model.columns - 1; column += 1) {
+        const a = row * model.columns + column;
+        const b = a + 1;
+        const c = a + model.columns;
+        const d = c + 1;
+        if (
+          isActive(row, column) &&
+          isActive(row, column + 1) &&
+          isActive(row + 1, column)
+        )
+          indices.push(a, c, b);
+        if (
+          isActive(row, column + 1) &&
+          isActive(row + 1, column) &&
+          isActive(row + 1, column + 1)
+        )
+          indices.push(b, c, d);
+      }
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(vertices, 3),
+    );
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+    const surface = new THREE.Mesh(geometry, this.#waterMaterial);
+    surface.name = "usgs-tvgwfm-ingested-top-surface";
+    this.#scene.add(surface);
   }
 
   #addGridLines(): void {
@@ -375,6 +451,18 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#camera.aspect = width / height;
     this.#camera.updateProjectionMatrix();
     this.#renderer.setSize(width, height, false);
+    this.#requestRender(2);
+  }
+
+  readonly #onControlsChange = (): void => {
+    this.#requestRender(3);
+  };
+
+  #requestRender(settleFrames = 1): void {
+    if (!this.#running) return;
+    this.#settleFrames = Math.max(this.#settleFrames, settleFrames);
+    if (this.#frameHandle === 0)
+      this.#frameHandle = requestAnimationFrame(this.#frame);
   }
 
   readonly #onContextLost = (event: Event): void => {
@@ -384,13 +472,19 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   };
 
   readonly #frame = (now: number): void => {
+    this.#frameHandle = 0;
     if (!this.#running) return;
-    this.#frameHandle = requestAnimationFrame(this.#frame);
-    if (now - this.#lastRenderTime < TARGET_FRAME_INTERVAL) return;
+    if (
+      this.#lastRenderTime > 0 &&
+      now - this.#lastRenderTime < TARGET_FRAME_INTERVAL
+    ) {
+      this.#frameHandle = requestAnimationFrame(this.#frame);
+      return;
+    }
     this.#lastRenderTime = now;
     this.#timer.update(now);
     const delta = Math.min(this.#timer.getDelta(), 0.1);
-    this.#controls.update(delta);
+    const controlsChanged = this.#controls.update(delta);
     this.#renderer.render(this.#scene, this.#camera);
     this.#frameCount += 1;
     this.#metricSeconds += delta;
@@ -403,5 +497,9 @@ export class ThreeCockpitRenderer implements RendererAdapter {
       this.#frameCount = 0;
       this.#metricSeconds = 0;
     }
+    if (controlsChanged) this.#settleFrames = Math.max(this.#settleFrames, 2);
+    else this.#settleFrames = Math.max(0, this.#settleFrames - 1);
+    if (this.#settleFrames > 0)
+      this.#frameHandle = requestAnimationFrame(this.#frame);
   };
 }

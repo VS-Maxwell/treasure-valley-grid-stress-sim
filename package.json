@@ -10,10 +10,11 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run --config vite.config.ts",
     "lint": "eslint app/src vite.config.ts eslint.config.mjs",
-    "format": "prettier --write app/src app/index.html schemas tools/validate_dist.mjs package.json tsconfig.json vite.config.ts eslint.config.mjs",
-    "format:check": "prettier --check app/src app/index.html schemas tools/validate_dist.mjs package.json tsconfig.json vite.config.ts eslint.config.mjs",
+    "format": "prettier --write app/src app/index.html schemas tools/validate_dist.mjs package.json tsconfig.json vite.config.ts eslint.config.mjs MODEL_REGISTRY.json RELEASE_STATUS.json",
+    "format:check": "prettier --check app/src app/index.html schemas tools/validate_dist.mjs package.json tsconfig.json vite.config.ts eslint.config.mjs MODEL_REGISTRY.json RELEASE_STATUS.json",
+    "validate:registries": "python tools/validate_registries.py",
     "validate:dist": "node tools/validate_dist.mjs",
-    "validate": "npm run format:check && npm run lint && npm run test && npm run build && npm run validate:dist"
+    "validate": "npm run format:check && npm run lint && npm run test && npm run validate:registries && npm run build && npm run validate:dist"
   },
   "dependencies": {
     "three": "0.186.0"

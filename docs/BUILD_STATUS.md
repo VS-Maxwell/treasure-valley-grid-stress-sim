@@ -14,13 +14,13 @@ Updated: 2026-09-14
 
 ## Validation state
 
-- Overall simulator: **INCOMPLETE / ACTIVE BUILD** — the current default is a stability-first grid slice, not the planned 4D Earth-water-energy simulator.
+- Overall simulator: **INCOMPLETE / ACTIVE BUILD** — the current default now enters the modular 3D cockpit directly; terrain, coupled science, climate, RAVEN, local AI, and desktop packaging still have open gates.
 - Firefox stability: **UNDER INVESTIGATION** — Firefox produced a confirmed `SIGSEGV` in `libxul.so` after an earlier renderer grew into tens of gigabytes. The lightweight Canvas path passes structural checks and is visible, but it has not yet completed the required sustained clean-tab stability gate.
-- Direct-entry grid: **PASSED** — `/` loads the bounded Canvas renderer itself; there is no intro gate, iframe, or automatically opening watchdog layer on the default route.
+- Direct-entry simulator: **PASSED** — `/` redirects immediately into the built cockpit at `/dist/`; there is no intro gate or iframe. The bounded Canvas grid remains available as an automatic or explicit degraded renderer.
 - Visible grid builder: **REPAIR CANDIDATE** — 244 embedded map corridors are progressively revealed through 32 bounded Canvas redraw states. The earlier implementation repeatedly serialized the multi-megabyte GeoJSON source and was removed; sustained browser validation is still pending.
 - Retired wrapper parser: **ROOT CAUSE REMOVED** — the earlier wrapper both mishandled a closing script tag and duplicated the legacy document through `srcdoc`; the default route no longer uses that wrapper.
 - First-playable boot: **LIGHTWEIGHT GRID CORE ADDED** — the default view now loads only the exact 244-corridor, 94-substation grid core. The preserved full legacy model is no longer allowed to block the first screen. “Crash-safe” remains a target, not a completed claim.
-- First-playable renderer: **CANVAS SAFE MODE** — the default grid has no remote tile, WebGL, or perpetual render-loop dependency. Drag, wheel zoom, replay, and refresh are available; the full MapLibre model remains preserved for modular repair.
+- Degraded renderer: **CANVAS SAFE MODE** — `?renderer=canvas` has no remote tile, WebGL, or perpetual render-loop dependency and retains all 244 corridors.
 - Representation boundary: **CONFIRMED** — the geographic map has 244 drawable corridor features; the power-flow screening graph separately reports 94 buses and 156 solver branches.
 - Primary JavaScript parse: **PASSED** — `node --check grid-canvas.js` and `node --check grid-live.js`.
 - 5060 worker cross-check: **PASSED** — the current crash-safe files matched local SHA-256 receipts and passed 20 structural, scope, and provenance checks on Palimpsest.
@@ -43,9 +43,18 @@ Updated: 2026-09-14
 - Responsive layout: **PASSED STRUCTURAL PLAYTEST** — 390 × 844 retained seven scene tabs and six primary actions while collapsing secondary narrative.
 - Deterministic Canvas mode: **PASSED** — `?renderer=canvas` booted the same state and 244-corridor pack without WebGL.
 - Natural WebGL context-loss test: **OPEN** — handler is implemented; browser automation cannot yet force and visually receipt the transition.
-- Automated toolchain: **PASSED** — format, lint, strict typing, 10 unit tests, production build, and distribution scan.
-- Distribution: **PASSED WITH SIZE WARNING** — 7 files and 3,893,460 bytes; Three.js is lazy-loaded but its 572 KB minified engine chunk exceeds Vite's 500 KB advisory threshold.
+- Automated toolchain: **PASSED** — format, lint, strict typing, 13 unit tests, source/registry checks, production build, and distribution scan.
+- Distribution: **PASSED WITH SIZE WARNING** — 8 files and 3,961,886 bytes; Three.js is lazy-loaded but its 573 KB minified engine chunk exceeds Vite's 500 KB advisory threshold.
 - Browser performance: **NOT ACCEPTED** — controlled browser reported 10 FPS while unrelated CPU inference consumed substantial host resources; repeat under a clean or bounded load before promotion.
 - Drive connectivity: **PASSED** — bounded `rclone about gdrive:` returned quota data without reading file names or secrets; the shared client-ID retirement warning remains.
+
+## Phase 2 verified data plane increment
+
+- USGS TVGWFM source: **ORIGINAL BYTES VERIFIED** — 10 bounded core files totaling 71,707,343 bytes are preserved on the T drive; all upstream ScienceBase MD5 values, local SHA-256 hashes, and six ZIP integrity checks pass.
+- Large development archive: **DEFERRED EXPLICITLY** — `model_development_scripts.zip` is 15,881,621,281 bytes and was not pulled blindly. The USGS README says it supports redevelopment, while `model.zip` is the runnable published model.
+- Browser pack: **GENERATED AND VERIFIED** — an exact extraction from `model/mf6-tv_hist.dis` contains 6 layers, 64 rows, 65 columns, 4,055 active top cells, official georeference corners, and the source-archive SHA-256.
+- USGS baseline: **NUMERICALLY REPRODUCED** — native MODFLOW 6.1.1 completed all 361 stress periods in 81.189 seconds with normal termination and a final rounded 0.00% budget discrepancy. Four observation CSVs match the archived values exactly at published text precision. Across 3,293,764 finite head values, the maximum absolute difference is 3.14e-11 feet and RMSE is 7.63e-12 feet.
+- Water scene: **SOURCE AND BASELINE RECEIPTED** — the 3D cockpit renders the USGS model footprint and top-surface mesh and discloses the reproduction result. New climate, pumping, recharge, or coupling scenarios remain blocked until domain review defines scientifically defensible changes.
+- Eastern Snake Plain: **SOURCE LOCATED, NOT ACQUIRED** — IDWR publishes ESPAM model files separately. The simulator will keep ESPAM and TVGWFM as distinct calibrated domains joined only through a documented coupling seam.
 
 Open blockers remain visible until resolved.

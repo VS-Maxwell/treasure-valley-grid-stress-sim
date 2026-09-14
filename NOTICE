@@ -1,9 +1,10 @@
-Treasure Valley Earth-State Watchdog
+Treasure Valley Earth-State Simulator
 Copyright 2026 Van Maxwell
 
 This product includes or accesses third-party software and data. Their licenses
 and attribution requirements remain controlling. See README.md and the in-app
-attribution panel. A complete component-level provenance audit remains required
-before representing the full assembled application as Apache-2.0 compatible.
+attribution panel. Component-level provenance and redistribution gates are
+recorded in THIRD_PARTY_LICENSES.csv, MODEL_REGISTRY.json, DATA_SOURCES.csv,
+RESTRICTED_DATA_POLICY.md, and RELEASE_STATUS.json.
 
 Scientific results are screening outputs unless specifically labeled VALIDATED.
