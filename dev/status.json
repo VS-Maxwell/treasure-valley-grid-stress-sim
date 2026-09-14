@@ -1,11 +1,11 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-14T18:20:18Z",
-  "phase": "Phase 0 — Baseline, visibility and custody",
-  "task": "Continue full simulator as gated modules",
+  "updated_at": "2026-09-14T18:43:27Z",
+  "phase": "Phase 1 — Modular walking skeleton",
+  "task": "Begin Phase 2 source registries and offline data plane",
   "state": "active",
-  "progress_percent": 11,
-  "preview_url": "http://127.0.0.1:8001/",
+  "progress_percent": 18,
+  "preview_url": "http://127.0.0.1:8001/dist/",
   "machines": [
     {
       "name": "Madame-Butterfly",
@@ -41,6 +41,7 @@
   "blockers": [
     "Fresh Firefox reload and sustained Firefox-specific stability gate remain pending",
     "Browser screenshot capture times out despite successful DOM and control-state inspection",
+    "Controlled WebGL view reports 10 FPS under current heavy host CPU load; clean-load performance is unaccepted",
     "Terrain, historical timeline, water, climate, RAVEN, and coupled 4D modules are not yet built into the stable shell",
     "Palimpsest NVIDIA driver/library mismatch",
     "Queen availability must be refreshed before preservation transfer",
@@ -51,6 +52,19 @@
     "docs/MASTER_BUILD_PLAN.md",
     "docs/BUILD_STATUS.md",
     "docs/CRASH_INVESTIGATION.md",
+    "docs/PHASE1_PLAYTEST.md",
+    "implementation_plan.md",
+    "task.md",
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    "vite.config.ts",
+    "eslint.config.mjs",
+    ".prettierignore",
+    "app/index.html",
+    "app/src/",
+    "schemas/",
+    "tools/validate_dist.mjs",
     "dev/index.html",
     "dev/status.json",
     "tools/dev_status.py",
@@ -124,6 +138,36 @@
       "state": "active",
       "summary": "Intro layer removed; direct grid stability slice verified",
       "detail": "Root now loads one Canvas document with no iframe or auto-opening watchdog menu; 75-second monitored run completed rebuild and refresh at 244/244 with about 1.7 MB Firefox-process growth and no new coredump. Full 4D simulator remains incomplete; Firefox-specific fresh reload and screenshot capture remain open."
+    },
+    {
+      "at": "2026-09-14T18:24:10Z",
+      "state": "active",
+      "summary": "Phase 1 modular 3D walking skeleton started",
+      "detail": "Scaffolding Vite and strict TypeScript with renderer-independent simulation state, Three.js cockpit, DOM HUD, diagnostics, and Canvas fallback; full simulator goal remains active"
+    },
+    {
+      "at": "2026-09-14T18:31:54Z",
+      "state": "failed",
+      "summary": "Toolchain install rejected incompatible TypeScript 7",
+      "detail": "typescript-eslint 8.70.0 requires TypeScript below 6.1; dependency override was not used. Pinning TypeScript 6.0.3 and retrying."
+    },
+    {
+      "at": "2026-09-14T18:32:47Z",
+      "state": "failed",
+      "summary": "Phase 1 compiler and lint gates exposed integration defects",
+      "detail": "Unit tests pass 10/10; typecheck needs Three declarations, exact optional fetch handling, and Vitest config typing; lint scope incorrectly includes its own config; formatting not yet applied"
+    },
+    {
+      "at": "2026-09-14T18:35:02Z",
+      "state": "active",
+      "summary": "Phase 1 build gates passed; browser playtest starting",
+      "detail": "Strict TypeScript, ESLint, formatting, 10 unit tests, Vite production build, and dist validation pass; testing the Three.js cockpit and degraded-mode boundary at /dist/"
+    },
+    {
+      "at": "2026-09-14T18:43:27Z",
+      "state": "active",
+      "summary": "Phase 1 3D cockpit functional gates passed",
+      "detail": "Three.js cockpit, seven scenes, six user verbs, exact 244-corridor pack, responsive HUD, timeline, evidence boundary, 9-draw-call scene, and deterministic Canvas mode pass; screenshots, clean-load performance, and natural context-loss remain open while Phase 2 begins"
     }
   ]
 }

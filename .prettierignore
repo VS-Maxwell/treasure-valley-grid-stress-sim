@@ -1,0 +1,4 @@
+dist
+node_modules
+legacy.html
+data/grid-core.json

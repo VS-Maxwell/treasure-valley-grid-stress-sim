@@ -399,11 +399,12 @@ Google, Esri and other service-delivered imagery is not placed inside the open-s
 
 ## 12. Current Confirmed Blockers
 
-1. Existing transmission verifier fails against the wrapper/source layout.
-2. Existing release validator fails on unreceipted RAVEN attribution.
-3. Modular source history described in `GIT_LESSONS.md` is not present on the remote.
-4. No browser surface is available to this agent for the required screenshot baseline.
+1. Screenshot capture times out in the available browser-control surface, so visual composition is not yet receipted.
+2. The controlled 3D browser reported 10 FPS while the workstation was under unrelated heavy CPU load; clean-load performance is not yet accepted.
+3. A natural WebGL context-loss transition has not been forced in browser automation; deterministic Canvas launch passes.
+4. Modular source history described in `GIT_LESSONS.md` is not present on the remote.
 5. Palimpsest has NVIDIA driver 610.57.04 loaded with NVML library 615.71; GPU telemetry fails.
-6. Lemonade's requested automatic installer supports apt-based Linux only and did not configure this CachyOS workspace.
-7. Queen is not currently confirmed online for preservation.
-8. Third-party dependency/data/model licensing inventory is incomplete.
+6. Google Drive checkpoint access did not complete in the first bounded check and its shared client ID is being retired.
+7. Lemonade's requested automatic installer supports apt-based Linux only and did not configure this CachyOS workspace.
+8. Queen is not currently confirmed online for preservation.
+9. Third-party dependency/data/model licensing inventory is incomplete.

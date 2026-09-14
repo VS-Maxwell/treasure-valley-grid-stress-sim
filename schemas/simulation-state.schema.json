@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vs-maxwell.github.io/treasure-valley-grid-stress-sim/schemas/simulation-state.schema.json",
+  "title": "Treasure Valley Simulation State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "scene",
+    "year",
+    "playing",
+    "compare",
+    "drawer",
+    "climateScenario",
+    "truthState"
+  ],
+  "properties": {
+    "scene": {
+      "enum": ["time", "water", "energy", "nexus", "risk", "record", "learning"]
+    },
+    "year": { "type": "integer", "minimum": -15000, "maximum": 2100 },
+    "playing": { "type": "boolean" },
+    "compare": { "type": "boolean" },
+    "drawer": { "enum": ["closed", "evidence", "ask"] },
+    "climateScenario": {
+      "enum": ["historical", "baseline", "heat-drought-2050"]
+    },
+    "truthState": { "$ref": "truth-state.schema.json" }
+  }
+}

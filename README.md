@@ -1,43 +1,66 @@
-# Treasure Valley Earth-State Watchdog
+# Treasure Valley Earth-State Simulator
 
-An interactive public-interest screening tool for exploring how grid topology, large-load growth,
-heat, drought, water demand, land conversion, and infrastructure decisions interact across the
-Treasure Valley.
+An open, place-bound simulator for exploring how time, water, energy, climate, land, infrastructure, and risk interact across Idaho’s Treasure Valley and the Western Snake River Plain.
 
-**Live demo:** once GitHub Pages is enabled, this loads at the repository's Pages URL
-(`https://<user>.github.io/<repo>/`). It is a single self-contained HTML file — just open `index.html`.
+The project is under active construction. It is not yet a research-grade coupled model.
 
-## What it shows
-- Real **3DEP terrain** of the Treasure Valley (MapLibre GL + deck.gl).
-- The **transmission network recolored green → red** by per-line loading, from a pandapower DC
-  screening model, across 7 scenarios (base, named-DC +25/+50%, all-load +25/+50%, N-1, drought).
-- **Data-center loads** (Meta/Kuna ~130 MW, Micron/Boise ~350 MW) as columns scaled by MW.
-- **USGS NAIP aerial imagery** (0.6 m, public domain) draped on the terrain.
-- An **on-device AI panel** (WebLLM, runs in your browser via WebGPU — no server, no key).
-- Animated power-flow, a cinematic fly-through tour, and a glassy heads-up display.
+## What runs now
 
-## Data & honesty
-This is a **screening tool on public data with assumed line ratings** — loadings are relative stress
-indicators for prioritization, **not validated thermal limits**. Each layer carries a truth-state badge
-in the UI. Sources: EIA-930/860, HIFLD topology, U.S. Census, USGS 3DEP + NAIP, pandapower DC power flow.
-Companion white paper documents every figure.
+Two interfaces are preserved while the modular application is built:
 
-The app distinguishes the larger 94-bus/156-line screening representation from the 12 selected buses
-used by the interactive solver. Transformers are idealized because authoritative impedance and tap
-parameters are not embedded. RAVEN-style probabilities, LOLE, and EUE remain unvalidated scenario
-assumptions until linked input/output receipts are recovered. Visible infrastructure is not necessarily
-electrically modeled.
+- `/` — a bounded Canvas stability view with 244 transmission corridors and 94 mapped substations.
+- `/dist/` after `npm run build` — the Phase 1 Three.js cockpit with shared simulation state, seven system scenes, time controls, comparison and stress actions, evidence labels, runtime diagnostics, responsive layouts, and deterministic Canvas fallback.
 
-Absence of Tribal representation in a public dataset is treated as a documentary or governance gap,
-not as evidence of absent Tribal presence, activity, knowledge, or rights.
+The current Three.js terrain and aquifer surfaces are **reconstructed visual previews**. They are not USGS elevation, satellite imagery, or validated groundwater output. The geographic grid pack is an exact extraction from the preserved legacy application and carries a SHA-256 receipt.
 
-## Tech / licensing
-Open stack — MapLibre GL JS, deck.gl, OpenFreeMap (ODbL), AWS Terrarium DEM, USGS NAIP/3DEP
-(public domain), Esri World Imagery (public endpoint), and WebLLM. Local refresh credentials belong
-only in an ignored `.env`; `.env.example` contains blank placeholders.
+## Build and validate
 
-Project-owned source code is available under `Apache-2.0 OR MIT`. Third-party software and data
-retain their own licenses and terms; see `LICENSE`, `LICENSE-APACHE`, `LICENSE-MIT`, and `NOTICE`.
+Requirements: Node.js 22.12 or newer.
+
+```bash
+npm install
+npm run validate
+npm run dev
+```
+
+`npm run validate` runs formatting, linting, unit tests, strict TypeScript, the Vite production build, and the distribution safety check. Only `dist/` is eligible for future hosting; the repository root is not a release artifact.
+
+To exercise the degraded renderer deliberately, add `?renderer=canvas` to the built application URL.
+
+## Current scientific boundary
+
+The app distinguishes the 244 visible corridor features from the larger 94-bus/156-branch screening representation and the 12 selected buses used by the legacy interactive solver. Transformers remain idealized because authoritative impedance and tap parameters are not embedded.
+
+No current screen is a validated operational grid, groundwater, climate, public-health, or risk forecast. RAVEN values cannot ship until a pinned version, distributions, inputs, seed, outputs, and acceptance receipt reproduce them. Planned pandapower and MODFLOW adapters must reproduce accepted baselines before forecasts are enabled.
+
+The interface uses explicit truth states: observed, ingested, reconstructed, modeled-screening, validated-model, synthetic, and blocked-missing. Absence of Tribal representation in a public dataset is treated as a documentary or governance gap—not evidence of absent Tribal presence, activity, knowledge, or rights.
+
+## Architecture
+
+- Vite + strict TypeScript product shell
+- renderer-independent serializable simulation state
+- Three.js 3D adapter with merged grid geometry and instanced assets
+- bounded Canvas degraded-mode adapter
+- DOM HUD and accessibility surfaces
+- JSON Schemas for state, scenarios, sources, truth labels, and run receipts
+- future CesiumJS, Rust, Python, DuckDB, STAC, RAVEN, Tauri, and offline-AI modules gated in `docs/MASTER_BUILD_PLAN.md`
+
+The preserved `legacy.html` remains source evidence and a regression reference. It is not the default boot path.
+
+## Status and plans
+
+- `implementation_plan.md` — long-run delivery sequence
+- `task.md` — live checklist
+- `docs/MASTER_BUILD_PLAN.md` — full scientific and engineering plan
+- `docs/BUILD_STATUS.md` — evidence-backed status
+- `docs/CRASH_INVESTIGATION.md` — Firefox crash findings and repair boundary
+- `docs/PHASE1_PLAYTEST.md` — current browser test receipt
+- `/dev/` — live local build status when the repository server is running
+
+## Licensing
+
+Project-owned source code is available under `Apache-2.0 OR MIT`. Third-party software, models, data, imagery, and archives retain their own licenses and terms. No provider credential belongs in source, logs, screenshots, URLs, or the public distribution.
 
 ## Attribution
-Van Maxwell · University of Idaho — I-CREWS. Screening model + 3D demonstrator, 2026.
+
+Van Maxwell · University of Idaho — I-CREWS. Earth-state simulation research and 3D demonstrator, 2026.

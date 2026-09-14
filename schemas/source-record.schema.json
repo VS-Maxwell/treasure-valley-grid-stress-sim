@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vs-maxwell.github.io/treasure-valley-grid-stress-sim/schemas/source-record.schema.json",
+  "title": "Treasure Valley Source Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "provider",
+    "retrievedAt",
+    "sha256",
+    "truthState",
+    "access"
+  ],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "provider": { "type": "string", "minLength": 1 },
+    "retrievedAt": { "type": "string", "format": "date-time" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "truthState": { "$ref": "truth-state.schema.json" },
+    "access": { "enum": ["public", "internal", "restricted"] }
+  }
+}

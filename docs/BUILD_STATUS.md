@@ -33,4 +33,19 @@ Updated: 2026-09-14
 - 5060 GPU worker: **BLOCKED** — NVIDIA driver/library mismatch prevents telemetry.
 - Lemonade local multimodal routing: **BLOCKED** — provided installer does not support CachyOS.
 
+## Phase 1 modular application
+
+- Vite 8 + TypeScript 6 scaffold: **PASSED**.
+- Renderer-independent state and JSON contracts: **PASSED** — seven scenes, time, comparison, climate scenario, drawers, and seven explicit truth states.
+- Three.js cockpit: **PASSED FUNCTIONAL PLAYTEST** — exact 244-corridor pack, 94 instanced substations, 14 instanced plants, reconstructed terrain, aquifer preview, explicit camera controls, and 9 draw calls in the tested scene.
+- User verbs: **PASSED** — Explore, Follow, Compare, Stress, Evidence, and Ask all changed the shared state through visible controls.
+- Timeline: **PASSED** — exact 2026 start, play/pause, deep-time wrap, and time-dependent truth labeling.
+- Responsive layout: **PASSED STRUCTURAL PLAYTEST** — 390 × 844 retained seven scene tabs and six primary actions while collapsing secondary narrative.
+- Deterministic Canvas mode: **PASSED** — `?renderer=canvas` booted the same state and 244-corridor pack without WebGL.
+- Natural WebGL context-loss test: **OPEN** — handler is implemented; browser automation cannot yet force and visually receipt the transition.
+- Automated toolchain: **PASSED** — format, lint, strict typing, 10 unit tests, production build, and distribution scan.
+- Distribution: **PASSED WITH SIZE WARNING** — 7 files and 3,893,460 bytes; Three.js is lazy-loaded but its 572 KB minified engine chunk exceeds Vite's 500 KB advisory threshold.
+- Browser performance: **NOT ACCEPTED** — controlled browser reported 10 FPS while unrelated CPU inference consumed substantial host resources; repeat under a clean or bounded load before promotion.
+- Drive connectivity: **PASSED** — bounded `rclone about gdrive:` returned quota data without reading file names or secrets; the shared client-ID retirement warning remains.
+
 Open blockers remain visible until resolved.
