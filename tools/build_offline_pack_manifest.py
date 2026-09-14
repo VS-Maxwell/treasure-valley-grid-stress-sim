@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "app/public/data/offline-pack-manifest-v10.json"
+OUTPUT = ROOT / "app/public/data/offline-pack-manifest-v11.json"
 ARTIFACTS = (
     ("tvgwfm-grid", "app/public/data/tvgwfm-grid.json", "application/json", "ingested"),
     (
@@ -67,14 +67,14 @@ ARTIFACTS = (
         "observed",
     ),
     (
-        "usace-nid-regional-dams-manifest",
-        "app/public/data/usace-nid-dams-manifest.json",
+        "usace-nid-snake-plain-dams-manifest-v2",
+        "app/public/data/usace-nid-snake-plain-dams-manifest-v2.json",
         "application/json",
         "observed",
     ),
     (
-        "usace-nid-regional-dams-f32",
-        "app/public/data/usace-nid-dams-f32.bin",
+        "usace-nid-snake-plain-dams-f32-v2",
+        "app/public/data/usace-nid-snake-plain-dams-f32-v2.bin",
         "application/octet-stream",
         "observed",
     ),
@@ -161,8 +161,8 @@ def main() -> int:
         )
     payload = {
         "schema_version": 1,
-        "id": "treasure-valley-offline-earth-pack-v10",
-        "created_at": "2026-09-14T21:15:00Z",
+        "id": "treasure-valley-offline-earth-pack-v11",
+        "created_at": "2026-09-14T21:25:00Z",
         "source_doi": "10.5066/P9U6OOPH",
         "network_required": False,
         "artifact_count": len(artifacts),

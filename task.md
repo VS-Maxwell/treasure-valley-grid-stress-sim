@@ -45,6 +45,7 @@ Updated: 2026-09-14
 - [ ] Map archived ESPAM budgets and independently reproduce the published baseline before enabling new ESPAM scenarios.
 - [x] Acquire and normalize 193 current USACE NID regional dam records, retaining one missing NIDID and three shared-NIDID records under distinct Corps OBJECTIDs.
 - [x] Render all 193 regional dams in water/nexus/risk and distinguish 11 hydroelectric-purpose dams in Energy without claiming watershed or grid connectivity.
+- [x] Preserve and render the expanded full-scene inventory of 647 NID dams, including 55 hydroelectric-purpose candidates, without rewriting the 193-dam checkpoint.
 - [x] Define the normalized historical tables, charts, and relationship matrices needed for an API-independent runtime.
 - [ ] Build and validate the directed upstream watershed graph that selects every dam feeding the target regional water system.
 - [ ] Match hydroelectric dams to EIA generators and expand all active/planned/retired regional energy projects by technology and status.

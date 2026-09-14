@@ -101,8 +101,7 @@ def main() -> int:
             raise ValueError(f"Dam lies in multiple HUC8 polygons: {properties['OBJECTID']}")
         watershed_properties = matches[0]["properties"] if matches else {}
         member = bool(matches)
-        records.append(
-            {
+        record = {
                 "provider_record_id": (
                     f"nid:{properties['NIDID']}:objectid:{properties['OBJECTID']}"
                     if properties.get("NIDID")
@@ -122,18 +121,23 @@ def main() -> int:
                 "hazard_potential": properties.get("HAZARD_POTENTIAL"),
                 "operational_status": properties.get("OPERATIONAL_STATUS"),
                 "hydroelectric_purpose": "hydroelectric" in purposes.lower(),
-                "huc8": watershed_properties.get("huc8"),
-                "huc8_name": watershed_properties.get("name"),
-                "boise_huc8_member": member,
-                "watershed_membership_state": "observed-wbd-membership"
-                if member
-                else "outside-target-huc8",
                 "regional_water_connectivity": "huc8-membership-screening-pending-directed-flow-path"
                 if member
                 else "unresolved",
                 "grid_link_state": "unmatched",
             }
-        )
+        if watersheds:
+            record.update(
+                {
+                    "huc8": watershed_properties.get("huc8"),
+                    "huc8_name": watershed_properties.get("name"),
+                    "boise_huc8_member": member,
+                    "watershed_membership_state": "observed-wbd-membership"
+                    if member
+                    else "outside-target-huc8",
+                }
+            )
+        records.append(record)
     records.sort(key=lambda record: record["provider_record_id"])
     payload = {
         "schema_version": 1,
@@ -146,23 +150,29 @@ def main() -> int:
         "hydroelectric_purpose_count": sum(
             record["hydroelectric_purpose"] for record in records
         ),
-        "boise_huc8_member_count": sum(record["boise_huc8_member"] for record in records),
-        "boise_huc8_hydroelectric_purpose_count": sum(
-            record["boise_huc8_member"] and record["hydroelectric_purpose"]
-            for record in records
-        ),
         "connectivity_state": "huc8-membership-screening-pending-directed-flow-path"
         if watersheds
         else "unresolved-pending-upstream-watershed-graph",
-        "watershed_source_receipt": str(args.watershed_receipt.relative_to(ROOT))
-        if args.watershed_receipt
-        else None,
-        "watershed_source_receipt_sha256": sha256(args.watershed_receipt)
-        if args.watershed_receipt
-        else None,
         "records": records,
         "limitations": receipt["limitations"],
     }
+    if watersheds:
+        payload.update(
+            {
+                "boise_huc8_member_count": sum(
+                    record["boise_huc8_member"] for record in records
+                ),
+                "boise_huc8_hydroelectric_purpose_count": sum(
+                    record["boise_huc8_member"]
+                    and record["hydroelectric_purpose"]
+                    for record in records
+                ),
+                "watershed_source_receipt": str(
+                    args.watershed_receipt.relative_to(ROOT)
+                ),
+                "watershed_source_receipt_sha256": sha256(args.watershed_receipt),
+            }
+        )
     args.output.write_text(
         json.dumps(payload, separators=(",", ":"), ensure_ascii=False) + "\n",
         encoding="utf-8",
@@ -189,15 +199,7 @@ def main() -> int:
         "bbox_epsg_4326": receipt["bbox_epsg_4326"],
         "dam_count": len(records),
         "hydroelectric_purpose_count": payload["hydroelectric_purpose_count"],
-        "boise_huc8_member_count": payload["boise_huc8_member_count"],
-        "boise_huc8_hydroelectric_purpose_count": payload[
-            "boise_huc8_hydroelectric_purpose_count"
-        ],
         "connectivity_state": payload["connectivity_state"],
-        "watershed_source_receipt": payload["watershed_source_receipt"],
-        "watershed_source_receipt_sha256": payload[
-            "watershed_source_receipt_sha256"
-        ],
         "binary": {
             "file": args.binary.name,
             "bytes": args.binary.stat().st_size,
@@ -210,6 +212,19 @@ def main() -> int:
         },
         "limitations": payload["limitations"],
     }
+    if watersheds:
+        browser_manifest.update(
+            {
+                "boise_huc8_member_count": payload["boise_huc8_member_count"],
+                "boise_huc8_hydroelectric_purpose_count": payload[
+                    "boise_huc8_hydroelectric_purpose_count"
+                ],
+                "watershed_source_receipt": payload["watershed_source_receipt"],
+                "watershed_source_receipt_sha256": payload[
+                    "watershed_source_receipt_sha256"
+                ],
+            }
+        )
     args.manifest.write_text(
         json.dumps(browser_manifest, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",

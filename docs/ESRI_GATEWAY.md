@@ -6,7 +6,7 @@ Updated: 2026-09-14
 
 The locally stored Esri EDU credential was validated without printing or copying it into the repository. The ArcGIS basemap style endpoint and World Geocoding Service both returned valid bounded responses when the credential was supplied in an `Authorization: Bearer` header. The earlier basemap HTTP 403 was caused by using `POST` against a `GET` endpoint, not by an invalid credential.
 
-The credential is never placed in a URL. Esri imagery tile requests do not support the same header-only pattern, so this adapter does not forward privileged tile URLs to the browser. It streams the public Esri World Imagery export for the fixed 118°W–115°W, 43°N–45°N region and applies the required on-screen attribution. The service response is not saved into the offline pack.
+The credential is never placed in a URL. Esri imagery tile requests do not support the same header-only pattern, so this adapter does not forward privileged tile URLs to the browser. It streams the public Esri World Imagery export for the fixed 119°W–111°W, 42°N–46°N Snake Plain scene envelope and applies the required on-screen attribution. The service response is not saved into the offline pack.
 
 ## Run
 

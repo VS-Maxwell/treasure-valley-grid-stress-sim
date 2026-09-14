@@ -563,7 +563,7 @@ export class HudController {
       this.#heading("Dam and hydropower inventory"),
       this.#paragraph(
         this.#regionalDams
-          ? `${this.#regionalDams.manifest.dam_count.toLocaleString()} current USACE NID records are loaded in the six-tile region; ${this.#regionalDams.manifest.hydroelectric_purpose_count.toLocaleString()} list hydroelectric generation among their purposes. All remain connectivity-unresolved until the upstream watershed graph is receipted; generation capacity and electrical links require EIA matching.`
+          ? `${this.#regionalDams.manifest.dam_count.toLocaleString()} current USACE NID records are loaded across the full 119°W–111°W, 42°N–46°N Snake Plain scene envelope; ${this.#regionalDams.manifest.hydroelectric_purpose_count.toLocaleString()} list hydroelectric generation among their purposes. All remain connectivity-unresolved until the upstream watershed graph is receipted; generation capacity and electrical links require EIA matching.`
           : `The USACE dam layer is unavailable${this.#damLoadError ? `: ${this.#damLoadError}` : "."}`,
       ),
       this.#heading("USGS water-model source"),

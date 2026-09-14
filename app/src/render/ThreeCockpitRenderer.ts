@@ -732,7 +732,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
         depthWrite: false,
       }),
     );
-    this.#damPoints.name = "usace-nid-regional-dams-193";
+    this.#damPoints.name = "usace-nid-snake-plain-dams-647";
     this.#damPoints.visible = false;
     this.#scene.add(this.#damPoints);
 
@@ -752,7 +752,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
         depthWrite: false,
       }),
     );
-    this.#hydroDamPoints.name = "usace-nid-hydroelectric-purpose-dams-11";
+    this.#hydroDamPoints.name = "usace-nid-hydroelectric-purpose-dams-55";
     this.#hydroDamPoints.visible = false;
     this.#scene.add(this.#hydroDamPoints);
   }

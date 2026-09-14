@@ -1,11 +1,11 @@
 import type { RegionalDams, RegionalDamsManifest } from "./regionalDams";
 
 const MANIFEST_URL = new URL(
-  "../../public/data/usace-nid-dams-manifest.json",
+  "../../public/data/usace-nid-snake-plain-dams-manifest-v2.json",
   import.meta.url,
 ).href;
 const BINARY_URL = new URL(
-  "../../public/data/usace-nid-dams-f32.bin",
+  "../../public/data/usace-nid-snake-plain-dams-f32-v2.bin",
   import.meta.url,
 ).href;
 
@@ -38,15 +38,15 @@ export function validateRegionalDamsManifest(
   const manifest = candidate as Partial<RegionalDamsManifest>;
   if (
     manifest.schema_version !== 1 ||
-    manifest.id !== "usace-nid-regional-dam-points-v1" ||
+    manifest.id !== "usace-nid-snake-plain-dam-points-v2" ||
     manifest.truth_state !== "observed" ||
-    manifest.dam_count !== 193 ||
-    manifest.hydroelectric_purpose_count !== 11 ||
+    manifest.dam_count !== 647 ||
+    manifest.hydroelectric_purpose_count !== 55 ||
     manifest.connectivity_state !==
       "unresolved-pending-upstream-watershed-graph" ||
     manifest.binary?.encoding !== "little-endian-float32" ||
     manifest.binary.stride !== 3 ||
-    manifest.binary.bytes !== 2_316 ||
+    manifest.binary.bytes !== 7_764 ||
     !/^[a-f0-9]{64}$/u.test(manifest.binary.sha256 ?? "")
   )
     throw new Error("Regional NID dam manifest is invalid");

@@ -43,6 +43,8 @@ No current screen is a validated operational grid, groundwater, climate, public-
 
 The interface uses explicit truth states: observed, ingested, reconstructed, modeled-screening, validated-model, synthetic, and blocked-missing. Absence of Tribal representation in a public dataset is treated as a documentary or governance gap—not evidence of absent Tribal presence, activity, knowledge, or rights.
 
+The HTML client and any future Unreal/ArcGIS client are replaceable renderers, not authorities over community data. See `docs/SOVEREIGNTY_ARCHITECTURE.md` for the protected-data, credential, offline and publication gates.
+
 ## Architecture
 
 - Vite + strict TypeScript product shell

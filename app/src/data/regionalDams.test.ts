@@ -7,10 +7,10 @@ describe("validateRegionalDamsManifest", () => {
     expect(() =>
       validateRegionalDamsManifest({
         schema_version: 1,
-        id: "usace-nid-regional-dam-points-v1",
+        id: "usace-nid-snake-plain-dam-points-v2",
         truth_state: "observed",
-        dam_count: 193,
-        hydroelectric_purpose_count: 11,
+        dam_count: 647,
+        hydroelectric_purpose_count: 55,
         connectivity_state: "unresolved-pending-upstream-watershed-graph",
         binary: {
           encoding: "little-endian-float32",

@@ -1,6 +1,6 @@
 export interface RegionalDamsManifest {
   readonly schema_version: 1;
-  readonly id: "usace-nid-regional-dam-points-v1";
+  readonly id: "usace-nid-snake-plain-dam-points-v2";
   readonly truth_state: "observed";
   readonly source_receipt: string;
   readonly source_receipt_sha256: string;

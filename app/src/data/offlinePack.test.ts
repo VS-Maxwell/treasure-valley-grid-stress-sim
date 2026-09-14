@@ -19,7 +19,7 @@ describe("validateOfflinePack", () => {
     expect(
       validateOfflinePack({
         schema_version: 1,
-        id: "treasure-valley-offline-earth-pack-v10",
+        id: "treasure-valley-offline-earth-pack-v11",
         created_at: "2026-09-14T19:25:00Z",
         source_doi: "10.5066/P9U6OOPH",
         network_required: false,
@@ -38,7 +38,7 @@ describe("validateOfflinePack", () => {
     expect(() =>
       validateOfflinePack({
         schema_version: 1,
-        id: "treasure-valley-offline-earth-pack-v10",
+        id: "treasure-valley-offline-earth-pack-v11",
         created_at: "2026-09-14T19:25:00Z",
         source_doi: "10.5066/P9U6OOPH",
         network_required: false,

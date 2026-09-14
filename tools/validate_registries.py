@@ -50,16 +50,20 @@ def main() -> int:
         "app/public/data/offline-pack-manifest-v8.json",
         "app/public/data/offline-pack-manifest-v9.json",
         "app/public/data/offline-pack-manifest-v10.json",
+        "app/public/data/offline-pack-manifest-v11.json",
         "app/public/data/grid-screening-model.json",
         "receipts/usgs-groundwater-field-measurements-20260914.json",
         "receipts/usgs-monitoring-locations-20260914.json",
         "receipts/usgs-3dep-terrain-20260914.json",
         "receipts/usgs-3dep-snake-plain-20260914.json",
         "receipts/usace-nid-regional-dams-20260914.json",
+        "receipts/usace-nid-snake-plain-20260914.json",
         "receipts/idwr-espam22-model-20260914.json",
         "receipts/idwr-espam22-grid-20260914.json",
         "app/public/data/idwr-espam22-heads-manifest-v1.json",
         "app/public/data/idwr-espam22-heads-q10-v1.bin",
+        "app/public/data/usace-nid-snake-plain-dams-manifest-v2.json",
+        "app/public/data/usace-nid-snake-plain-dams-f32-v2.bin",
     ]
     for name in required_files:
         require((ROOT / name).is_file(), f"{name} exists")
@@ -134,7 +138,7 @@ def main() -> int:
     )
 
     offline_pack = json.loads(
-        (ROOT / "app/public/data/offline-pack-manifest-v10.json").read_text(
+        (ROOT / "app/public/data/offline-pack-manifest-v11.json").read_text(
             encoding="utf-8"
         )
     )
@@ -144,7 +148,7 @@ def main() -> int:
     )
     require(
         offline_pack["artifact_count"] == len(offline_pack["artifacts"]) == 21,
-        "offline earth pack v10 has twenty-one manifested artifacts",
+        "offline earth pack v11 has twenty-one manifested artifacts",
     )
     verified_bytes = 0
     for artifact in offline_pack["artifacts"]:
@@ -514,6 +518,56 @@ def main() -> int:
         dam_binary.stat().st_size == dam_manifest["binary"]["bytes"] == 2_316
         and sha256(dam_binary) == dam_manifest["binary"]["sha256"],
         "regional dam point binary hash and byte count match",
+    )
+    plain_dam_receipt = json.loads(
+        (ROOT / "receipts/usace-nid-snake-plain-20260914.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    plain_dam_source = (
+        Path(plain_dam_receipt["local_root"]) / plain_dam_receipt["source_file"]
+    )
+    require(
+        plain_dam_receipt["status"] == "original-api-response-verified"
+        and plain_dam_receipt["bbox_epsg_4326"]
+        == [-119.0, 42.0, -111.0, 46.0]
+        and plain_dam_receipt["feature_count"]
+        == plain_dam_receipt["unique_provider_record_count"]
+        == 647
+        and plain_dam_receipt["hydroelectric_purpose_count"] == 55,
+        "full-scene NID source retains exact scope and counts",
+    )
+    require(
+        plain_dam_source.is_file()
+        and plain_dam_source.stat().st_size
+        == plain_dam_receipt["bytes"]
+        == 581_335
+        and sha256(plain_dam_source) == plain_dam_receipt["sha256"],
+        "full-scene NID original GeoJSON bytes match the receipt",
+    )
+    plain_dam_manifest = json.loads(
+        (
+            ROOT / "app/public/data/usace-nid-snake-plain-dams-manifest-v2.json"
+        ).read_text(encoding="utf-8")
+    )
+    plain_dam_binary = (
+        ROOT / "app/public/data/usace-nid-snake-plain-dams-f32-v2.bin"
+    )
+    require(
+        plain_dam_manifest["dam_count"] == 647
+        and plain_dam_manifest["hydroelectric_purpose_count"] == 55
+        and plain_dam_manifest["bbox_epsg_4326"]
+        == [-119.0, 42.0, -111.0, 46.0]
+        and plain_dam_manifest["connectivity_state"]
+        == "unresolved-pending-upstream-watershed-graph",
+        "full-scene dam layer retains its geographic and connectivity boundary",
+    )
+    require(
+        plain_dam_binary.stat().st_size
+        == plain_dam_manifest["binary"]["bytes"]
+        == 7_764
+        and sha256(plain_dam_binary) == plain_dam_manifest["binary"]["sha256"],
+        "full-scene dam point binary matches its byte count and hash",
     )
 
     bottoms_manifest = json.loads(
