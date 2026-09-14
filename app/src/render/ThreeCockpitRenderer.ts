@@ -708,23 +708,43 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   #addRegionalDams(): void {
     if (!this.#regionalDams) return;
     const allPositions: number[] = [];
+    const allColors: number[] = [];
     const hydroPositions: number[] = [];
+    const hydroColors: number[] = [];
     const values = this.#regionalDams.values;
-    for (let index = 0; index < values.length; index += 3) {
+    for (let index = 0; index < values.length; index += 4) {
       const point = this.#projectPosition([values[index]!, values[index + 1]!]);
       allPositions.push(point.x, point.y + 1.05, point.z);
-      if (values[index + 2] === 1)
+      const connectivity = values[index + 3]!;
+      const color = new THREE.Color(
+        connectivity === 1
+          ? 0x43f0c2
+          : connectivity === 0
+            ? 0x607a89
+            : 0xff6577,
+      );
+      allColors.push(color.r, color.g, color.b);
+      if (values[index + 2] === 1) {
         hydroPositions.push(point.x, point.y + 1.45, point.z);
+        const hydroColor = new THREE.Color(
+          connectivity === 1 ? 0xffd166 : 0xb2774f,
+        );
+        hydroColors.push(hydroColor.r, hydroColor.g, hydroColor.b);
+      }
     }
     const allGeometry = new THREE.BufferGeometry();
     allGeometry.setAttribute(
       "position",
       new THREE.Float32BufferAttribute(allPositions, 3),
     );
+    allGeometry.setAttribute(
+      "color",
+      new THREE.Float32BufferAttribute(allColors, 3),
+    );
     this.#damPoints = new THREE.Points(
       allGeometry,
       new THREE.PointsMaterial({
-        color: 0x5bdcff,
+        vertexColors: true,
         size: 0.72,
         sizeAttenuation: true,
         transparent: true,
@@ -741,10 +761,14 @@ export class ThreeCockpitRenderer implements RendererAdapter {
       "position",
       new THREE.Float32BufferAttribute(hydroPositions, 3),
     );
+    hydroGeometry.setAttribute(
+      "color",
+      new THREE.Float32BufferAttribute(hydroColors, 3),
+    );
     this.#hydroDamPoints = new THREE.Points(
       hydroGeometry,
       new THREE.PointsMaterial({
-        color: 0xffd166,
+        vertexColors: true,
         size: 1.8,
         sizeAttenuation: true,
         transparent: true,

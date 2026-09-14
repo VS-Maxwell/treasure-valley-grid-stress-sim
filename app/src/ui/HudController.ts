@@ -288,13 +288,12 @@ export class HudController {
       metrics = [
         ...metrics,
         {
-          value: this.#regionalDams.manifest.dam_count.toLocaleString(),
-          label: "regional dam records",
+          value: `${this.#regionalDams.manifest.connected_dam_count.toLocaleString()} / ${this.#regionalDams.manifest.dam_count.toLocaleString()}`,
+          label: "connected / mapped dams",
         },
         {
-          value:
-            this.#regionalDams.manifest.hydroelectric_purpose_count.toLocaleString(),
-          label: "hydroelectric-purpose dams",
+          value: `${this.#regionalDams.manifest.connected_hydroelectric_purpose_count.toLocaleString()} / ${this.#regionalDams.manifest.hydroelectric_purpose_count.toLocaleString()}`,
+          label: "connected / hydro-purpose",
         },
       ];
     this.#contextMetrics.replaceChildren(
@@ -563,7 +562,7 @@ export class HudController {
       this.#heading("Dam and hydropower inventory"),
       this.#paragraph(
         this.#regionalDams
-          ? `${this.#regionalDams.manifest.dam_count.toLocaleString()} current USACE NID records are loaded across the full 119°W–111°W, 42°N–46°N Snake Plain scene envelope; ${this.#regionalDams.manifest.hydroelectric_purpose_count.toLocaleString()} list hydroelectric generation among their purposes. All remain connectivity-unresolved until the upstream watershed graph is receipted; generation capacity and electrical links require EIA matching.`
+          ? `${this.#regionalDams.manifest.dam_count.toLocaleString()} current USACE NID records are loaded across the full 119°W–111°W, 42°N–46°N scene. An official NLDI/NHDPlusV2 directed graph resolves ${this.#regionalDams.manifest.connected_dam_count.toLocaleString()} dams upstream of ${this.#regionalDams.manifest.target_outlet.name}; ${this.#regionalDams.manifest.outside_dam_count.toLocaleString()} are outside that receiving system and ${this.#regionalDams.manifest.unresolved_dam_count.toLocaleString()} remain unresolved. Of ${this.#regionalDams.manifest.hydroelectric_purpose_count.toLocaleString()} hydroelectric-purpose dams, ${this.#regionalDams.manifest.connected_hydroelectric_purpose_count.toLocaleString()} have a verified hydrologic path. This does not prove Treasure Valley water delivery, generator capacity, or electrical interconnection; EIA matching remains separate.`
           : `The USACE dam layer is unavailable${this.#damLoadError ? `: ${this.#damLoadError}` : "."}`,
       ),
       this.#heading("USGS water-model source"),

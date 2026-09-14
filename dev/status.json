@@ -1,10 +1,10 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-14T21:23:25Z",
+  "updated_at": "2026-09-14T21:36:43Z",
   "phase": "Phase 3 - full-plain water and energy inventory",
-  "task": "Connect the verified full-scene dam inventory to directed watershed paths and reviewed hydropower assets",
+  "task": "Match the directed hydropower candidates to reviewed EIA generator records while preserving the offline-first renderer boundary",
   "state": "active",
-  "progress_percent": 85,
+  "progress_percent": 88,
   "preview_url": "http://127.0.0.1:8001/dist/",
   "machines": [
     {
@@ -28,9 +28,9 @@
   ],
   "credentials": [
     {
-      "provider": "Google Drive key register",
-      "state": "located-incomplete",
-      "detail": "ArcGIS item and client IDs confirmed; all accessible stack copies omit the full secret"
+      "provider": "Esri ArcGIS developer service",
+      "state": "configured-local-only",
+      "detail": "Complete EDU credential is stored in operating-system Secret Service; fixed allow-listed gateway routes passed authenticated style and geocoding checks without exposing the credential"
     },
     {
       "provider": "Simulator APIs",
@@ -43,7 +43,7 @@
     "Browser screenshot capture times out despite successful DOM and control-state inspection",
     "Controlled WebGL view reports 10 FPS under current heavy host CPU load; clean-load performance is unaccepted",
     "Historical water and the legacy energy screening scenarios are active, but fresh grid solves, climate, RAVEN, and coupled 4D modules remain open",
-    "ArcGIS portal requires University SSO and the Drive API-key stack contains only a truncated key",
+    "Esri public release remains gated by provider terms, quota, allowed origins, and attribution even though the local-only authenticated overlay passes",
     "The new 63-table offline-lake handoff contains synthetic scientific and grid values and is quarantined pending source-backed reconstruction",
     "Palimpsest NVIDIA driver/library mismatch",
     "Queen availability must be refreshed before preservation transfer",
@@ -544,6 +544,30 @@
       "state": "passed",
       "summary": "Full Snake Plain dam and sovereignty checkpoint",
       "detail": "Preserved 647 USACE NID records across 119W-111W and 42N-46N, including 55 hydroelectric-purpose candidates, in offline pack v11. All 37 TypeScript tests, five gateway tests, receipts, hashes, registry checks, production build, and the 48-file 8184145-byte secret scan passed. Browser and future Unreal clients are documented as replaceable renderers; protected data and authority remain local."
+    },
+    {
+      "at": "2026-09-14T21:26:32Z",
+      "state": "active",
+      "summary": "Build the directed Snake River receiving-system graph",
+      "detail": "USGS NLDI resolves the Snake River at Weiser outlet to COMID 24193082 and returns 50486 upstream flowline IDs. Acquiring the official EPA NHDPlusV2 Pacific Northwest attribute archive next so every accepted dam can retain a directed path rather than a bounding-box inference."
+    },
+    {
+      "at": "2026-09-14T21:30:12Z",
+      "state": "failed",
+      "summary": "Two dam points returned no indexed NLDI catchment",
+      "detail": "The first 647-dam position pass resolved 645 points and received two provider HTTP 404 responses. The responses were preserved and the transform was changed to retain an explicit unresolved-no-indexed-catchment state instead of dropping or inventing a COMID."
+    },
+    {
+      "at": "2026-09-14T21:35:48Z",
+      "state": "passed",
+      "summary": "Directed Snake-at-Weiser dam graph checkpoint",
+      "detail": "Preserved five USGS/EPA receiving-system objects and all 647 NLDI dam-position responses. The 50486-COMID upstream set and 50938 in-set edges route every upstream member to outlet COMID 24193082. Classified 348 dams connected, 297 outside, and two unresolved; 42 of 55 hydroelectric-purpose dams are connected. Offline pack v12 and full validation passed 37 TypeScript tests, five gateway tests, source and path hashes, production build, and the 51-file 8206250-byte secret scan."
+    },
+    {
+      "at": "2026-09-14T21:36:43Z",
+      "state": "passed",
+      "summary": "Visible directed-dam browser playtest",
+      "detail": "The live Energy scene displays 348 / 647 connected / mapped dams and 42 / 55 connected / hydro-purpose. The Evidence drawer states the 297 outside and two unresolved records and explicitly rejects Treasure Valley delivery, generator-capacity, or electrical-interconnection inference. Browser warning and error logs are empty. Unreal Editor and its launcher are not yet present in the checked executable and install locations, so web/offline development continues without waiting."
     }
   ]
 }

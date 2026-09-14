@@ -51,6 +51,7 @@ def main() -> int:
         "app/public/data/offline-pack-manifest-v9.json",
         "app/public/data/offline-pack-manifest-v10.json",
         "app/public/data/offline-pack-manifest-v11.json",
+        "app/public/data/offline-pack-manifest-v12.json",
         "app/public/data/grid-screening-model.json",
         "receipts/usgs-groundwater-field-measurements-20260914.json",
         "receipts/usgs-monitoring-locations-20260914.json",
@@ -58,12 +59,17 @@ def main() -> int:
         "receipts/usgs-3dep-snake-plain-20260914.json",
         "receipts/usace-nid-regional-dams-20260914.json",
         "receipts/usace-nid-snake-plain-20260914.json",
+        "receipts/usgs-nldi-snake-weiser-20260914.json",
+        "receipts/usgs-nldi-dam-comids-20260914.json",
         "receipts/idwr-espam22-model-20260914.json",
         "receipts/idwr-espam22-grid-20260914.json",
         "app/public/data/idwr-espam22-heads-manifest-v1.json",
         "app/public/data/idwr-espam22-heads-q10-v1.bin",
         "app/public/data/usace-nid-snake-plain-dams-manifest-v2.json",
         "app/public/data/usace-nid-snake-plain-dams-f32-v2.bin",
+        "data/tables/usace-nid-snake-plain-dams-v3.json",
+        "app/public/data/usace-nid-snake-plain-dams-manifest-v3.json",
+        "app/public/data/usace-nid-snake-plain-dams-f32-v3.bin",
     ]
     for name in required_files:
         require((ROOT / name).is_file(), f"{name} exists")
@@ -138,7 +144,7 @@ def main() -> int:
     )
 
     offline_pack = json.loads(
-        (ROOT / "app/public/data/offline-pack-manifest-v11.json").read_text(
+        (ROOT / "app/public/data/offline-pack-manifest-v12.json").read_text(
             encoding="utf-8"
         )
     )
@@ -148,7 +154,7 @@ def main() -> int:
     )
     require(
         offline_pack["artifact_count"] == len(offline_pack["artifacts"]) == 21,
-        "offline earth pack v11 has twenty-one manifested artifacts",
+        "offline earth pack v12 has twenty-one manifested artifacts",
     )
     verified_bytes = 0
     for artifact in offline_pack["artifacts"]:
@@ -568,6 +574,123 @@ def main() -> int:
         == 7_764
         and sha256(plain_dam_binary) == plain_dam_manifest["binary"]["sha256"],
         "full-scene dam point binary matches its byte count and hash",
+    )
+
+    network_receipt_path = ROOT / "receipts/usgs-nldi-snake-weiser-20260914.json"
+    network_receipt = json.loads(network_receipt_path.read_text(encoding="utf-8"))
+    require(
+        network_receipt["status"] == "original-provider-objects-verified"
+        and network_receipt["target_receiving_system"]["nwis_site_id"]
+        == "USGS-13269000"
+        and network_receipt["target_receiving_system"]["outlet_comid"]
+        == 24_193_082
+        and network_receipt["upstream_flowline_count"]
+        == network_receipt["unique_upstream_comid_count"]
+        == 50_486,
+        "Snake-at-Weiser receiving-system receipt has exact outlet and upstream scope",
+    )
+    for source_object in network_receipt["objects"]:
+        source_path = Path(source_object["local_path"])
+        require(
+            source_path.is_file()
+            and source_path.stat().st_size == source_object["bytes"]
+            and sha256(source_path) == source_object["sha256"],
+            f"Snake receiving-system source matches receipt: {source_object['role']}",
+        )
+
+    dam_comid_receipt_path = ROOT / "receipts/usgs-nldi-dam-comids-20260914.json"
+    dam_comid_receipt = json.loads(
+        dam_comid_receipt_path.read_text(encoding="utf-8")
+    )
+    require(
+        dam_comid_receipt["status"] == "original-api-responses-verified"
+        and dam_comid_receipt["expected_dam_count"]
+        == dam_comid_receipt["processed_dam_count"]
+        == len(dam_comid_receipt["records"])
+        == 647
+        and dam_comid_receipt["resolved_comid_count"] == 645
+        and dam_comid_receipt["unresolved_count"] == 2,
+        "all full-scene dams retain an NLDI position response and explicit resolution state",
+    )
+    outlet_object = next(
+        source_object
+        for source_object in network_receipt["objects"]
+        if source_object["role"] == "outlet"
+    )
+    dam_comid_root = Path(outlet_object["local_path"]).parent / "dam-comid-responses"
+    require(
+        all(
+            (dam_comid_root / dam_record["source_file"]).is_file()
+            and (dam_comid_root / dam_record["source_file"]).stat().st_size
+            == dam_record["bytes"]
+            and sha256(dam_comid_root / dam_record["source_file"])
+            == dam_record["sha256"]
+            for dam_record in dam_comid_receipt["records"]
+        ),
+        "all 647 NLDI dam-position source responses match their byte and hash receipts",
+    )
+
+    directed_table_path = ROOT / "data/tables/usace-nid-snake-plain-dams-v3.json"
+    directed_table = json.loads(directed_table_path.read_text(encoding="utf-8"))
+    connected_paths = [
+        record["watershed_path"]
+        for record in directed_table["records"]
+        if record["watershed_path"]["classification"]
+        == "upstream-connected-to-snake-at-weiser"
+    ]
+    require(
+        directed_table["dam_count"] == len(directed_table["records"]) == 647
+        and directed_table["classification_counts"]
+        == {
+            "nearby-not-upstream-of-outlet": 297,
+            "unresolved-no-indexed-catchment": 2,
+            "upstream-connected-to-snake-at-weiser": 348,
+        }
+        and directed_table["connected_hydroelectric_purpose_count"] == 42
+        and directed_table["network"]["nldi_upstream_comid_count"] == 50_486
+        and directed_table["network"]["comids_with_verified_path_to_outlet"]
+        == 50_486,
+        "directed dam table classifies all 647 records without inventing missing paths",
+    )
+    require(
+        all(
+            path["path_comids"]
+            and path["path_comids"][0] == path["start_comid"]
+            and path["path_comids"][-1] == 24_193_082
+            and path["path_edge_count"] == len(path["path_comids"]) - 1
+            and hashlib.sha256(
+                ",".join(str(value) for value in path["path_comids"]).encode(
+                    "ascii"
+                )
+            ).hexdigest()
+            == path["path_sha256"]
+            for path in connected_paths
+        ),
+        "every connected dam retains a complete hashed COMID path to the outlet",
+    )
+    directed_manifest = json.loads(
+        (
+            ROOT / "app/public/data/usace-nid-snake-plain-dams-manifest-v3.json"
+        ).read_text(encoding="utf-8")
+    )
+    directed_binary = ROOT / "app/public/data/usace-nid-snake-plain-dams-f32-v3.bin"
+    require(
+        directed_manifest["connected_dam_count"] == 348
+        and directed_manifest["connected_hydroelectric_purpose_count"] == 42
+        and directed_manifest["outside_dam_count"] == 297
+        and directed_manifest["unresolved_dam_count"] == 2
+        and directed_manifest["normalized_table_sha256"]
+        == sha256(directed_table_path)
+        and directed_manifest["network_receipt_sha256"]
+        == sha256(network_receipt_path),
+        "browser dam manifest retains exact directed-network evidence counts",
+    )
+    require(
+        directed_binary.stat().st_size
+        == directed_manifest["binary"]["bytes"]
+        == 10_352
+        and sha256(directed_binary) == directed_manifest["binary"]["sha256"],
+        "directed dam browser binary matches its byte count and hash",
     )
 
     bottoms_manifest = json.loads(

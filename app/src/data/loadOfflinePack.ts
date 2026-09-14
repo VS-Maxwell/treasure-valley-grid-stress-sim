@@ -1,7 +1,7 @@
 import type { OfflinePackManifest } from "./offlinePack";
 
 const OFFLINE_PACK_URL = new URL(
-  "../../public/data/offline-pack-manifest-v11.json",
+  "../../public/data/offline-pack-manifest-v12.json",
   import.meta.url,
 ).href;
 
@@ -22,7 +22,7 @@ export function validateOfflinePack(candidate: unknown): OfflinePackManifest {
   const manifest = candidate as Partial<OfflinePackManifest>;
   if (
     manifest.schema_version !== 1 ||
-    manifest.id !== "treasure-valley-offline-earth-pack-v11" ||
+    manifest.id !== "treasure-valley-offline-earth-pack-v12" ||
     manifest.source_doi !== "10.5066/P9U6OOPH" ||
     manifest.network_required !== false
   )

@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "app/public/data/offline-pack-manifest-v11.json"
+OUTPUT = ROOT / "app/public/data/offline-pack-manifest-v12.json"
 ARTIFACTS = (
     ("tvgwfm-grid", "app/public/data/tvgwfm-grid.json", "application/json", "ingested"),
     (
@@ -67,16 +67,16 @@ ARTIFACTS = (
         "observed",
     ),
     (
-        "usace-nid-snake-plain-dams-manifest-v2",
-        "app/public/data/usace-nid-snake-plain-dams-manifest-v2.json",
+        "usace-nid-snake-plain-dams-manifest-v3",
+        "app/public/data/usace-nid-snake-plain-dams-manifest-v3.json",
         "application/json",
-        "observed",
+        "ingested",
     ),
     (
-        "usace-nid-snake-plain-dams-f32-v2",
-        "app/public/data/usace-nid-snake-plain-dams-f32-v2.bin",
+        "usace-nid-snake-plain-dams-f32-v3",
+        "app/public/data/usace-nid-snake-plain-dams-f32-v3.bin",
         "application/octet-stream",
-        "observed",
+        "ingested",
     ),
     (
         "tvgwfm-bottoms-manifest",
@@ -161,8 +161,8 @@ def main() -> int:
         )
     payload = {
         "schema_version": 1,
-        "id": "treasure-valley-offline-earth-pack-v11",
-        "created_at": "2026-09-14T21:25:00Z",
+        "id": "treasure-valley-offline-earth-pack-v12",
+        "created_at": "2026-09-14T21:32:00Z",
         "source_doi": "10.5066/P9U6OOPH",
         "network_required": False,
         "artifact_count": len(artifacts),
