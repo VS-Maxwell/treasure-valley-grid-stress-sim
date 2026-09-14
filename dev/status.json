@@ -1,10 +1,10 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-14T19:43:59Z",
-  "phase": "Phase 2 - Historical water data plane",
-  "task": "Acquire screen evidence or preserve layer-assignment block; begin terrain baseline",
+  "updated_at": "2026-09-14T20:20:07Z",
+  "phase": "Phase 3 - Terrain and 3D assets",
+  "task": "Checkpoint aquifer-bottom pack v6; continue watershed and energy topology",
   "state": "passed",
-  "progress_percent": 48,
+  "progress_percent": 55,
   "preview_url": "http://127.0.0.1:8001/dist/",
   "machines": [
     {
@@ -119,7 +119,9 @@
     "app/public/data/usgs-groundwater-sites-f32.bin",
     "app/src/data/loadMeasuredGroundwaterSites.ts",
     "app/public/data/offline-pack-manifest-v3.json",
-    "app/src/data/measuredGroundwaterSites.test.ts"
+    "app/src/data/measuredGroundwaterSites.test.ts",
+    "tools/acquire_usgs_3dep_terrain.py",
+    "app/public/data/offline-pack-manifest-v6.json"
   ],
   "events": [
     {
@@ -343,6 +345,36 @@
       "state": "passed",
       "summary": "Mapped observed groundwater markers are live",
       "detail": "A fresh v3 browser tab loaded 2849 NAVD88 markers from a 34188-byte interleaved float32 pack. Water year 2000 Compare exposes the marker count and observed distribution; browser errors and warnings are empty. Twenty-four tests plus registry, build, dist, release, and direct-entry gates pass."
+    },
+    {
+      "at": "2026-09-14T19:45:31Z",
+      "state": "active",
+      "summary": "Acquiring official USGS 3DEP terrain baseline",
+      "detail": "The National Map products API identifies six newest 1-arc-second GeoTIFF tiles covering the model footprint. Downloading only those tiles to T drive with source-query, byte-count, SHA-256, raster-format, NAD83, NAVD88, and public-domain receipts."
+    },
+    {
+      "at": "2026-09-14T20:18:27Z",
+      "state": "failed",
+      "summary": "Drive Esri credential is incomplete",
+      "detail": "The connected API directory confirms an active ArcGIS developer item, but the stored value is truncated and explicitly says the full key is in email. No partial credential was copied or used."
+    },
+    {
+      "at": "2026-09-14T20:18:27Z",
+      "state": "passed",
+      "summary": "Six TVGWFM bottom surfaces integrated",
+      "detail": "Packed 24960 float32 bottom elevations plus 24960 IDOMAIN flags from the verified DIS member; six translucent source-model surfaces load optionally and offline pack v6 contains 15 hashed artifacts."
+    },
+    {
+      "at": "2026-09-14T20:19:17Z",
+      "state": "passed",
+      "summary": "Aquifer-bottom build passed all gates",
+      "detail": "Strict TypeScript, ESLint, 28 unit tests, registry re-hashing, Vite production build and 28-file distribution scan pass. Dist is 5404144 bytes with no source or obvious secret leakage."
+    },
+    {
+      "at": "2026-09-14T20:20:07Z",
+      "state": "passed",
+      "summary": "Visible aquifer-bottom playtest passed",
+      "detail": "Water scene shows six bottom surfaces; Evidence states all six 64 by 65 TVGWFM model-bottom arrays are active and distinct from core or borehole observations. Browser console has no errors or warnings."
     }
   ]
 }

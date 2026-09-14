@@ -36,11 +36,21 @@ Updated: 2026-09-14
 - [ ] Acquire well-screen evidence before assigning observed wells to model layers or computing validation residuals.
 - [x] Convert eligible latest depths to NAVD88 water-level altitude, map 2,849 wells to active cells, and ship a 34,188-byte interleaved marker pack.
 - [x] Render mapped observed wells only in the explicit Water → Compare state.
+- [x] Acquire and independently hash six USGS 3DEP 1-arc-second GeoTIFF tiles totaling 316,921,023 bytes on the T drive.
+- [x] Build a 15,251-vertex observed terrain mesh across 118°W–115°W and 43°N–45°N and retain reconstructed terrain only outside that boundary.
+- [x] Acquire and normalize 193 current USACE NID regional dam records, retaining one missing NIDID and three shared-NIDID records under distinct Corps OBJECTIDs.
+- [x] Render all 193 regional dams in water/nexus/risk and distinguish 11 hydroelectric-purpose dams in Energy without claiming watershed or grid connectivity.
+- [x] Define the normalized historical tables, charts, and relationship matrices needed for an API-independent runtime.
+- [ ] Build and validate the directed upstream watershed graph that selects every dam feeding the target regional water system.
+- [ ] Match hydroelectric dams to EIA generators and expand all active/planned/retired regional energy projects by technology and status.
+- [ ] Promote the 94-bus/156-branch screening graph into the interactive solver and improve voltage/selection rendering without fabricating missing topology.
+- [x] Extract and render all six published TVGWFM bottom arrays as source-native model geometry with a 24,960-cell IDOMAIN pack.
+- [ ] Add borehole/core constraints under separate evidence labels; do not reinterpret model bottoms as observations.
 
 ## Later phases
 
 - [ ] Phase 2 historical data plane and offline packs.
-- [ ] Phase 3 terrain, provider layers, 3D assets, time, and cinematic.
+- [ ] Phase 3 terrain, provider layers, 3D assets, time, and cinematic. Regional 3DEP and first NID dam increment are active; expanded watershed terrain, imagery and cinematic remain.
 - [ ] Phase 4 energy and grid science.
 - [ ] Phase 5 water, agriculture, and aquifer science.
 - [ ] Phase 6 climate ensembles and compound scenarios.
@@ -54,7 +64,8 @@ Updated: 2026-09-14
 - [ ] Fresh Firefox-specific stability validation for the direct-root build.
 - [ ] Browser screenshot interface times out.
 - [ ] Palimpsest RTX 5060 Ti GPU disabled until driver/library telemetry works.
-- [ ] Google Drive checkpoint connectivity needs a successful bounded recheck.
+- [x] Google Drive API register connectivity rechecked without exposing credentials; its Esri row contains only a truncated prefix and states that the full key is in email.
+- [ ] Obtain the complete Esri API key from an authorized local/email source before activating the secure local proxy; no truncated credential will be used.
 - [ ] Queen must be confirmed live before preservation transfer.
 - [ ] Scientific datasets, authority decisions, and expert acceptance remain phase gates.
 

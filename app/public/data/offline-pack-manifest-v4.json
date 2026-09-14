@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "id": "treasure-valley-offline-earth-pack-v4",
+  "created_at": "2026-09-14T20:00:00Z",
+  "source_doi": "10.5066/P9U6OOPH",
+  "network_required": false,
+  "artifact_count": 10,
+  "total_bytes": 1249488,
+  "artifacts": [
+    {
+      "id": "tvgwfm-grid",
+      "path": "data/tvgwfm-grid.json",
+      "bytes": 58571,
+      "sha256": "aa31d7d82b1bdd1c39a04736dfecba2c7dc5bee52f082f9ff07e3155f65961d1",
+      "media_type": "application/json",
+      "truth_state": "ingested"
+    },
+    {
+      "id": "tvgwfm-baseline-summary",
+      "path": "data/tvgwfm-baseline-summary.json",
+      "bytes": 838,
+      "sha256": "59db59bd47e9f0236851918af872ffa11310cd3c8f8e265ba7fe10eaf0e83e6b",
+      "media_type": "application/json",
+      "truth_state": "modeled-screening"
+    },
+    {
+      "id": "tvgwfm-heads-manifest",
+      "path": "data/tvgwfm-heads-manifest.json",
+      "bytes": 14367,
+      "sha256": "46a969180d295972225d9ac4a06f335333107664c255b78c41243ecad9e890f7",
+      "media_type": "application/json",
+      "truth_state": "modeled-screening"
+    },
+    {
+      "id": "tvgwfm-heads-q10",
+      "path": "data/tvgwfm-heads-q10.bin",
+      "bytes": 798720,
+      "sha256": "9cae1bee118059857dfbe1bf15d63aa990367e6c3b1e7ee64a66098602287ea3",
+      "media_type": "application/octet-stream",
+      "truth_state": "modeled-screening"
+    },
+    {
+      "id": "tvgwfm-timeseries",
+      "path": "data/tvgwfm-timeseries.json",
+      "bytes": 271003,
+      "sha256": "766667906767d95b25199c67151df6b12f609fb9c65d7f5d6f0baee5e377586c",
+      "media_type": "application/json",
+      "truth_state": "modeled-screening"
+    },
+    {
+      "id": "usgs-groundwater-annual",
+      "path": "data/usgs-groundwater-annual.json",
+      "bytes": 7844,
+      "sha256": "a56073637f80811576cebedaeaefc99b37f6566b522c772c09ea0d1751d2b131",
+      "media_type": "application/json",
+      "truth_state": "observed"
+    },
+    {
+      "id": "usgs-groundwater-sites-manifest",
+      "path": "data/usgs-groundwater-sites-manifest.json",
+      "bytes": 1212,
+      "sha256": "79ecd4fdf2bb0ffc8bc66dfafb01be7c3403fe51326ca4bcc77a277f29082bcd",
+      "media_type": "application/json",
+      "truth_state": "observed"
+    },
+    {
+      "id": "usgs-groundwater-sites-f32",
+      "path": "data/usgs-groundwater-sites-f32.bin",
+      "bytes": 34188,
+      "sha256": "9e64d1fed5b76f3270140e8892330f2844ad1c7cc00f228527a59c592322c70b",
+      "media_type": "application/octet-stream",
+      "truth_state": "observed"
+    },
+    {
+      "id": "usgs-3dep-regional-terrain-manifest",
+      "path": "data/usgs-3dep-regional-terrain-manifest.json",
+      "bytes": 1741,
+      "sha256": "ff621852a8f8a73687787b9cb498a19355abd430fcf155fcb34e0f42baf41413",
+      "media_type": "application/json",
+      "truth_state": "observed"
+    },
+    {
+      "id": "usgs-3dep-regional-terrain-f32",
+      "path": "data/usgs-3dep-regional-terrain-f32.bin",
+      "bytes": 61004,
+      "sha256": "b3c8775f94edbc32ab206db00386c87542eeff62561ce93a5ad9818963175d22",
+      "media_type": "application/octet-stream",
+      "truth_state": "observed"
+    }
+  ],
+  "validation_boundary": "Hashes are verified during build and release validation. Browser loading checks structure and dimensions; it does not independently re-hash files."
+}

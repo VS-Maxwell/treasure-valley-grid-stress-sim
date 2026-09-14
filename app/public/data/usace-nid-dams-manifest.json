@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "id": "usace-nid-regional-dam-points-v1",
+  "truth_state": "observed",
+  "source_receipt": "receipts/usace-nid-regional-dams-20260914.json",
+  "source_receipt_sha256": "1369dda47c96ac932acd74b8f4f3331968700e8e1fb181aca8e7544d8de38165",
+  "normalized_table": "data/tables/usace-nid-regional-dams.json",
+  "normalized_table_sha256": "a613c4c86ce9ee27994a39d266a5cf992ac1288bdb51ea6969f2f027169dcf9e",
+  "bbox_epsg_4326": [
+    -118.0,
+    43.0,
+    -115.0,
+    45.0
+  ],
+  "dam_count": 193,
+  "hydroelectric_purpose_count": 11,
+  "connectivity_state": "unresolved-pending-upstream-watershed-graph",
+  "binary": {
+    "file": "usace-nid-dams-f32.bin",
+    "bytes": 2316,
+    "sha256": "798ad72c23d2a52b5436e6fbb044a8b10f9e4936953ff26a3d5bc572de8f631b",
+    "encoding": "little-endian-float32",
+    "stride": 3,
+    "order": "longitude-latitude-hydroelectric-purpose-flag"
+  },
+  "limitations": [
+    "The regional bounding-box inventory does not prove that a dam feeds the Treasure Valley.",
+    "NID is informational and is not a real-time emergency-response source.",
+    "Hydroelectric purpose does not by itself establish generator capacity or grid connection."
+  ]
+}

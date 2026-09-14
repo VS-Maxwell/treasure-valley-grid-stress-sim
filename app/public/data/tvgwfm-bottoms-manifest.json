@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "id": "usgs-tvgwfm-layer-bottoms-v1",
+  "truth_state": "ingested",
+  "provider": "U.S. Geological Survey",
+  "doi": "10.5066/P9U6OOPH",
+  "source_archive": {
+    "file": "model.zip",
+    "sha256": "bdefb11eaf7b75ab63dc0b23b0de4f65fe9d68798c0ff229420322bf8abb0dd6",
+    "member": "model/mf6-tv_hist.dis"
+  },
+  "layout": {
+    "layers": 6,
+    "rows": 64,
+    "columns": 65,
+    "cell_count": 4160,
+    "order": "layer-row-column",
+    "length_unit": "feet",
+    "vertical_datum": "NAVD88"
+  },
+  "bottoms_binary": {
+    "file": "tvgwfm-bottoms-f32.bin",
+    "bytes": 99840,
+    "sha256": "36a36e01329fd2ca4ab3db09793d8bf967be107702a51b355671e101dd1ae0b0",
+    "encoding": "little-endian-float32"
+  },
+  "idomain_binary": {
+    "file": "tvgwfm-idomain-i8.bin",
+    "bytes": 24960,
+    "sha256": "48f49943a1dc7d7b62f9271dc2d5dd2358eee9c4fa40c7cf317dbe9ecf258d23",
+    "encoding": "signed-int8",
+    "values": {
+      "-1": "constant-head",
+      "0": "inactive",
+      "1": "active"
+    }
+  },
+  "layer_statistics": [
+    {
+      "layer": 1,
+      "active_cells": 1861,
+      "minimum_bottom_feet": 2050.000694,
+      "maximum_bottom_feet": 3233.587213,
+      "mean_bottom_feet": 2453.88648
+    },
+    {
+      "layer": 2,
+      "active_cells": 1861,
+      "minimum_bottom_feet": 2050.000694,
+      "maximum_bottom_feet": 2555.0,
+      "mean_bottom_feet": 2415.751568
+    },
+    {
+      "layer": 3,
+      "active_cells": 1861,
+      "minimum_bottom_feet": 2050.000694,
+      "maximum_bottom_feet": 2365.0,
+      "mean_bottom_feet": 2324.51536
+    },
+    {
+      "layer": 4,
+      "active_cells": 1861,
+      "minimum_bottom_feet": 2050.000694,
+      "maximum_bottom_feet": 2349.798785,
+      "mean_bottom_feet": 2132.375705
+    },
+    {
+      "layer": 5,
+      "active_cells": 1861,
+      "minimum_bottom_feet": 1088.111198,
+      "maximum_bottom_feet": 2349.798785,
+      "mean_bottom_feet": 1837.111069
+    },
+    {
+      "layer": 6,
+      "active_cells": 1861,
+      "minimum_bottom_feet": 688.111198,
+      "maximum_bottom_feet": 1799.47065,
+      "mean_bottom_feet": 1322.337451
+    }
+  ],
+  "limitations": [
+    "These are model-layer bottoms, not direct borehole or core observations.",
+    "The geometry is authoritative to the published TVGWFM discretization and does not extend to ESPAM.",
+    "The renderer applies a documented vertical exaggeration for legibility."
+  ]
+}

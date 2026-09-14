@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "id": "usace-nid-regional-dams-v1",
+  "created_at": "2026-09-14T20:02:13Z",
+  "provider": "U.S. Army Corps of Engineers National Inventory of Dams",
+  "service_url": "https://geospatial.sec.usace.army.mil/dls/rest/services/NID/National_Inventory_of_Dams_Public_Service/FeatureServer/0",
+  "query_url": "https://geospatial.sec.usace.army.mil/dls/rest/services/NID/National_Inventory_of_Dams_Public_Service/FeatureServer/0/query?where=1%3D1&geometry=-118.0%2C43.0%2C-115.0%2C45.0&geometryType=esriGeometryEnvelope&inSR=4269&spatialRel=esriSpatialRelIntersects&outFields=OBJECTID%2CNIDID%2CDATA_UPDATED%2CNAME%2COTHER_NAMES%2CPRIMARY_OWNER_TYPE%2CLATITUDE%2CLONGITUDE%2CSTATE%2CCOUNTYSTATE%2CRIVER_OR_STREAM%2CPRIMARY_PURPOSE%2CPURPOSES%2CPRIMARY_DAM_TYPE%2CDAM_TYPES%2CCORE_TYPES%2CFOUNDATIONS%2CDAM_HEIGHT%2CNID_STORAGE%2CMAX_STORAGE%2CNORMAL_STORAGE%2CYEAR_COMPLETED%2CSURFACE_AREA%2CDRAINAGE_AREA%2CMAX_DISCHARGE%2CHAZARD_POTENTIAL%2CCONDITION_ASSESSMENT%2COPERATIONAL_STATUS%2CFED_AGENCY_OWNERS%2CWEBSITE_URL&returnGeometry=true&outSR=4326&f=geojson",
+  "bbox_epsg_4326": [
+    -118.0,
+    43.0,
+    -115.0,
+    45.0
+  ],
+  "local_root": "/run/media/madame-butterfly/Toshiba/Treasure_Valley_Model/data/raw/usace/nid_regional_20260914",
+  "source_file": "nid-regional-118w-115w-43n-45n.geojson",
+  "bytes": 173719,
+  "sha256": "53d2190fa42c584b718bbcaed0d2cd387c2a6182b34cec6cbdaed52f78fb5568",
+  "feature_count": 193,
+  "unique_provider_record_count": 193,
+  "unique_nidid_count": 189,
+  "duplicate_nidid_record_count": 3,
+  "missing_nidid_count": 1,
+  "hydroelectric_purpose_count": 11,
+  "format_validation": "GeoJSON-FeatureCollection-pass",
+  "status": "original-api-response-verified",
+  "limitations": [
+    "The regional bounding-box inventory does not prove that a dam feeds the Treasure Valley.",
+    "NID is informational and is not a real-time emergency-response source.",
+    "Hydroelectric purpose does not by itself establish generator capacity or grid connection."
+  ]
+}

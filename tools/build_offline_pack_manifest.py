@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "app/public/data/offline-pack-manifest-v3.json"
+OUTPUT = ROOT / "app/public/data/offline-pack-manifest-v6.json"
 ARTIFACTS = (
     ("tvgwfm-grid", "app/public/data/tvgwfm-grid.json", "application/json", "ingested"),
     (
@@ -54,6 +54,48 @@ ARTIFACTS = (
         "application/octet-stream",
         "observed",
     ),
+    (
+        "usgs-3dep-regional-terrain-manifest",
+        "app/public/data/usgs-3dep-regional-terrain-manifest.json",
+        "application/json",
+        "observed",
+    ),
+    (
+        "usgs-3dep-regional-terrain-f32",
+        "app/public/data/usgs-3dep-regional-terrain-f32.bin",
+        "application/octet-stream",
+        "observed",
+    ),
+    (
+        "usace-nid-regional-dams-manifest",
+        "app/public/data/usace-nid-dams-manifest.json",
+        "application/json",
+        "observed",
+    ),
+    (
+        "usace-nid-regional-dams-f32",
+        "app/public/data/usace-nid-dams-f32.bin",
+        "application/octet-stream",
+        "observed",
+    ),
+    (
+        "tvgwfm-bottoms-manifest",
+        "app/public/data/tvgwfm-bottoms-manifest.json",
+        "application/json",
+        "ingested",
+    ),
+    (
+        "tvgwfm-bottoms-f32",
+        "app/public/data/tvgwfm-bottoms-f32.bin",
+        "application/octet-stream",
+        "ingested",
+    ),
+    (
+        "tvgwfm-idomain-i8",
+        "app/public/data/tvgwfm-idomain-i8.bin",
+        "application/octet-stream",
+        "ingested",
+    ),
 )
 
 
@@ -83,8 +125,8 @@ def main() -> int:
         )
     payload = {
         "schema_version": 1,
-        "id": "treasure-valley-historical-water-pack-v3",
-        "created_at": "2026-09-14T19:45:00Z",
+        "id": "treasure-valley-offline-earth-pack-v6",
+        "created_at": "2026-09-14T20:30:00Z",
         "source_doi": "10.5066/P9U6OOPH",
         "network_required": False,
         "artifact_count": len(artifacts),

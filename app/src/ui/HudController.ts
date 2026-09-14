@@ -5,6 +5,9 @@ import { nearestBudgetRow } from "../data/loadTvgwfmTimeseries";
 import { nearestMeasuredYear } from "../data/loadMeasuredGroundwater";
 import type { MeasuredGroundwater } from "../data/measuredGroundwater";
 import type { OfflinePackManifest } from "../data/offlinePack";
+import type { RegionalTerrain } from "../data/regionalTerrain";
+import type { RegionalDams } from "../data/regionalDams";
+import type { TvgwfmBottoms } from "../data/tvgwfmBottoms";
 import type { TvgwfmHeads } from "../data/tvgwfmHeads";
 import type { TvgwfmTimeseries } from "../data/tvgwfmTimeseries";
 import type { RendererMetrics } from "../render/RendererAdapter";
@@ -44,6 +47,12 @@ export class HudController {
   readonly #tvgwfmTimeseries: TvgwfmTimeseries;
   readonly #measuredGroundwater: MeasuredGroundwater;
   readonly #offlinePack: OfflinePackManifest;
+  readonly #regionalTerrain: RegionalTerrain | null;
+  readonly #terrainLoadError: string | null;
+  readonly #regionalDams: RegionalDams | null;
+  readonly #damLoadError: string | null;
+  readonly #tvgwfmBottoms: TvgwfmBottoms | null;
+  readonly #bottomLoadError: string | null;
   readonly #actions: HudActions;
   readonly #app = required<HTMLElement>("#app");
   readonly #loading = required<HTMLElement>("#loading");
@@ -75,6 +84,12 @@ export class HudController {
     tvgwfmTimeseries: TvgwfmTimeseries,
     measuredGroundwater: MeasuredGroundwater,
     offlinePack: OfflinePackManifest,
+    regionalTerrain: RegionalTerrain | null,
+    terrainLoadError: string | null,
+    regionalDams: RegionalDams | null,
+    damLoadError: string | null,
+    tvgwfmBottoms: TvgwfmBottoms | null,
+    bottomLoadError: string | null,
     actions: HudActions,
   ) {
     this.#store = store;
@@ -83,6 +98,12 @@ export class HudController {
     this.#tvgwfmTimeseries = tvgwfmTimeseries;
     this.#measuredGroundwater = measuredGroundwater;
     this.#offlinePack = offlinePack;
+    this.#regionalTerrain = regionalTerrain;
+    this.#terrainLoadError = terrainLoadError;
+    this.#regionalDams = regionalDams;
+    this.#damLoadError = damLoadError;
+    this.#tvgwfmBottoms = tvgwfmBottoms;
+    this.#bottomLoadError = bottomLoadError;
     this.#actions = actions;
   }
 
@@ -187,6 +208,27 @@ export class HudController {
       metrics = [
         ...metrics,
         { value: "2,849", label: "mapped observed wells" },
+      ];
+    if (scene === "water" && this.#tvgwfmBottoms)
+      metrics = [
+        ...metrics,
+        {
+          value: String(this.#tvgwfmBottoms.manifest.layout.layers),
+          label: "bottom surfaces",
+        },
+      ];
+    if (scene === "energy" && this.#regionalDams)
+      metrics = [
+        ...metrics,
+        {
+          value: this.#regionalDams.manifest.dam_count.toLocaleString(),
+          label: "regional dam records",
+        },
+        {
+          value:
+            this.#regionalDams.manifest.hydroelectric_purpose_count.toLocaleString(),
+          label: "hydroelectric-purpose dams",
+        },
       ];
     this.#contextMetrics.replaceChildren(
       ...metrics.map((metric) => {
@@ -347,8 +389,9 @@ export class HudController {
       return;
     }
     this.#drawerEyebrow.textContent = "EVIDENCE · CURRENT BUILD";
-    this.#drawerTitle.textContent =
-      "Receipt-backed geometry, reconstructed surface";
+    this.#drawerTitle.textContent = this.#regionalTerrain
+      ? "Receipt-backed geometry and regional USGS terrain"
+      : "Receipt-backed geometry, reconstructed surface";
     this.#drawerContent.replaceChildren(
       this.#heading("Grid source"),
       this.#paragraph(this.#grid.source),
@@ -359,7 +402,21 @@ export class HudController {
       ),
       this.#heading("Terrain truth state"),
       this.#paragraph(
-        "The broad terrain remains a reconstructed visual preview. The blue Treasure Valley footprint is an ingested transform of the CC0 USGS TVGWFM grid: 6 layers, 64 rows, 65 columns, and 4,055 active top cells.",
+        this.#regionalTerrain
+          ? `Observed USGS 3DEP terrain is active across the six-tile regional baseline from 118°W to 115°W and 43°N to 45°N: ${this.#regionalTerrain.manifest.mesh.vertex_count.toLocaleString()} browser vertices, ${this.#regionalTerrain.manifest.statistics.minimum_meters.toLocaleString()}–${this.#regionalTerrain.manifest.statistics.maximum_meters.toLocaleString()} meters NAVD88. The dim outer surface is explicitly reconstructed context beyond that verified area.`
+          : `The broad terrain remains a reconstructed visual preview. USGS 3DEP failed to load${this.#terrainLoadError ? `: ${this.#terrainLoadError}` : "."}`,
+      ),
+      this.#heading("Aquifer topology"),
+      this.#paragraph(
+        this.#tvgwfmBottoms
+          ? `All ${this.#tvgwfmBottoms.manifest.layout.layers} published TVGWFM model-bottom arrays are loaded as source-native ${this.#tvgwfmBottoms.manifest.layout.rows} × ${this.#tvgwfmBottoms.manifest.layout.columns} surfaces in feet ${this.#tvgwfmBottoms.manifest.layout.vertical_datum}. These are model discretization geometry, not core or borehole observations; field evidence will test and interpret them without being silently substituted.`
+          : `The six TVGWFM model-bottom surfaces are unavailable${this.#bottomLoadError ? `: ${this.#bottomLoadError}` : "."}`,
+      ),
+      this.#heading("Dam and hydropower inventory"),
+      this.#paragraph(
+        this.#regionalDams
+          ? `${this.#regionalDams.manifest.dam_count.toLocaleString()} current USACE NID records are loaded in the six-tile region; ${this.#regionalDams.manifest.hydroelectric_purpose_count.toLocaleString()} list hydroelectric generation among their purposes. All remain connectivity-unresolved until the upstream watershed graph is receipted; generation capacity and electrical links require EIA matching.`
+          : `The USACE dam layer is unavailable${this.#damLoadError ? `: ${this.#damLoadError}` : "."}`,
       ),
       this.#heading("USGS water-model source"),
       this.#paragraph(

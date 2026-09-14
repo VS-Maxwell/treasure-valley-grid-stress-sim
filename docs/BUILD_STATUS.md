@@ -14,7 +14,7 @@ Updated: 2026-09-14
 
 ## Validation state
 
-- Overall simulator: **INCOMPLETE / ACTIVE BUILD** — the current default now enters the modular 3D cockpit directly; terrain, coupled science, climate, RAVEN, local AI, and desktop packaging still have open gates.
+- Overall simulator: **INCOMPLETE / ACTIVE BUILD** — the current default enters the modular 3D cockpit directly; a verified regional terrain/dam increment is active, while coupled science, full upstream coverage, climate, RAVEN, local AI, and desktop packaging still have open gates.
 - Firefox stability: **UNDER INVESTIGATION** — Firefox produced a confirmed `SIGSEGV` in `libxul.so` after an earlier renderer grew into tens of gigabytes. The lightweight Canvas path passes structural checks and is visible, but it has not yet completed the required sustained clean-tab stability gate.
 - Direct-entry simulator: **PASSED** — `/` redirects immediately into the built cockpit at `/dist/`; there is no intro gate or iframe. The bounded Canvas grid remains available as an automatic or explicit degraded renderer.
 - Visible grid builder: **REPAIR CANDIDATE** — 244 embedded map corridors are progressively revealed through 32 bounded Canvas redraw states. The earlier implementation repeatedly serialized the multi-megabyte GeoJSON source and was removed; sustained browser validation is still pending.
@@ -37,13 +37,13 @@ Updated: 2026-09-14
 
 - Vite 8 + TypeScript 6 scaffold: **PASSED**.
 - Renderer-independent state and JSON contracts: **PASSED** — seven scenes, time, comparison, climate scenario, drawers, and seven explicit truth states.
-- Three.js cockpit: **PASSED FUNCTIONAL PLAYTEST** — exact 244-corridor pack, 94 instanced substations, 14 instanced plants, reconstructed terrain, aquifer preview, explicit camera controls, and 9 draw calls in the tested scene.
+- Three.js cockpit: **PASSED FUNCTIONAL PLAYTEST** — exact 244-corridor pack, 94 instanced substations, 14 instanced plants, observed regional terrain, six source-model aquifer bottoms, explicit camera controls, and bounded rendering in the tested scene.
 - User verbs: **PASSED** — Explore, Follow, Compare, Stress, Evidence, and Ask all changed the shared state through visible controls.
 - Timeline: **PASSED** — exact 2026 start, play/pause, deep-time wrap, and time-dependent truth labeling.
 - Responsive layout: **PASSED STRUCTURAL PLAYTEST** — 390 × 844 retained seven scene tabs and six primary actions while collapsing secondary narrative.
 - Deterministic Canvas mode: **PASSED** — `?renderer=canvas` booted the same state and 244-corridor pack without WebGL.
 - Natural WebGL context-loss test: **OPEN** — handler is implemented; browser automation cannot yet force and visually receipt the transition.
-- Automated toolchain: **PASSED** — format, lint, strict typing, 13 unit tests, source/registry checks, production build, and distribution scan.
+- Automated toolchain: **PASSED** — format, lint, strict typing, 28 unit tests, source/registry checks, production build, and distribution scan.
 - Distribution: **PASSED WITH SIZE WARNING** — 8 files and 3,961,886 bytes; Three.js is lazy-loaded but its 573 KB minified engine chunk exceeds Vite's 500 KB advisory threshold.
 - Browser performance: **NOT ACCEPTED** — controlled browser reported 10 FPS while unrelated CPU inference consumed substantial host resources; repeat under a clean or bounded load before promotion.
 - Drive connectivity: **PASSED** — bounded `rclone about gdrive:` returned quota data without reading file names or secrets; the shared client-ID retirement warning remains.
@@ -63,5 +63,18 @@ Updated: 2026-09-14
 - Well metadata: **ORIGINAL API PAGES VERIFIED** — all 3,168 measured locations have provider elevations; 2,920 use the model's NAVD88 vertical datum and 248 use NGVD29. Thirty-two original monitoring-location GeoJSON pages totaling 6,905,294 bytes are preserved and re-hashed. NGVD29 records remain excluded until an explicit vertical transformation is implemented.
 - Mapped well markers: **OBSERVED SCREENING LAYER ACTIVE** — 2,849 NAVD88 wells covering 19,117 numeric readings map to active TVGWFM cells. The browser loads a 34,188-byte float32 point pack and renders the markers only under Water → Compare. The layer does not assign well screens to model layers and does not claim validation residuals.
 - Eastern Snake Plain: **SOURCE LOCATED, NOT ACQUIRED** — IDWR publishes ESPAM model files separately. The simulator will keep ESPAM and TVGWFM as distinct calibrated domains joined only through a documented coupling seam.
+
+## Phase 3 regional terrain and dam increment
+
+- USGS 3DEP originals: **ORIGINAL BYTES AND FORMAT VERIFIED** — six newest 1-arc-second GeoTIFF tiles from the National Map products query total 316,921,023 bytes. All six provider byte counts, local SHA-256 hashes, float32 TIFF decoding, NAD83 horizontal metadata and NAVD88-meter vertical contract pass. Originals remain on the T drive and are excluded from the browser bundle.
+- Regional terrain mesh: **OBSERVED SURFACE ACTIVE** — 15,251 float32 elevations sampled from the six verified tiles cover 118°W–115°W and 43°N–45°N. Source values span 519.753–3,120.670 meters NAVD88; the renderer applies a documented visual scale while preserving source meters in the pack. Reconstructed terrain is now only dim outer context beyond the verified region.
+- Aquifer geometry: **SIX SOURCE SURFACES ACTIVE** — the published TVGWFM DIS source's six 64 × 65 bottom arrays and IDOMAIN values are packed in layer-row-column order and rendered as translucent subsurface surfaces. The 24,960 bottom values retain feet NAVD88 and every layer retains 1,861 active cells. These are model discretization geometry, not borehole/core observations; independent field evidence remains a separate constraint and validation layer.
+- USACE regional dams: **ORIGINAL RESPONSE AND NORMALIZED TABLE VERIFIED** — 193 NID records fall inside the six-tile region and 11 list hydroelectric generation among their purposes. One record without NIDID and three additional records sharing an NIDID are retained under distinct Corps OBJECTIDs. The app renders all dams in water-facing scenes and the 11 hydroelectric-purpose candidates in Energy.
+- Dam connectivity boundary: **UNRESOLVED** — bounding-box inclusion does not prove that a dam feeds Treasure Valley. A directed USGS hydrography/catchment graph must support each upstream classification before the simulator labels it supply-connected.
+- Dam-energy boundary: **UNMATCHED** — NID purpose does not establish generator capacity or electrical connection. EIA plant/generator matching and topology evidence remain required.
+- Historical/offline design: **SPECIFIED** — `docs/HISTORICAL_TABLE_PLAN.md` defines the source, terrain, geology, aquifer, water, dam, energy, climate, pollutant, scenario, risk, archive, education and AI tables plus the required charts and relationship matrices. Live APIs are acquisition/refresh paths, not required historical-runtime dependencies.
+- Offline earth pack v6: **HASHED AND ACTIVE** — 15 local artifacts totaling 1,380,208 source bytes include water-model history, measured-well markers, regional terrain, regional dam points, six aquifer-bottom arrays and IDOMAIN. Immutable earlier manifests remain preserved.
+- Esri credential discovery: **REGISTER LOCATED, COMPLETE KEY NOT PRESENT** — the connected Drive API directory confirms an active U of Idaho ArcGIS developer item and privileges, but the stored key field is deliberately truncated and says the full key is in email. The simulator will not use that prefix or place a credential in browser JavaScript; activation remains blocked until a complete authorized value is available to the local proxy/desktop secret store.
+- Distribution budget: **PHASE 3 CEILING** — retained browser source maps keep programming inspectable. The development distribution ceiling is 6 MiB; raw GeoTIFF and original dam responses are not copied to `dist/`.
 
 Open blockers remain visible until resolved.

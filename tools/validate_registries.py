@@ -43,8 +43,13 @@ def main() -> int:
         "app/public/data/offline-pack-manifest.json",
         "app/public/data/offline-pack-manifest-v2.json",
         "app/public/data/offline-pack-manifest-v3.json",
+        "app/public/data/offline-pack-manifest-v4.json",
+        "app/public/data/offline-pack-manifest-v5.json",
+        "app/public/data/offline-pack-manifest-v6.json",
         "receipts/usgs-groundwater-field-measurements-20260914.json",
         "receipts/usgs-monitoring-locations-20260914.json",
+        "receipts/usgs-3dep-terrain-20260914.json",
+        "receipts/usace-nid-regional-dams-20260914.json",
     ]
     for name in required_files:
         require((ROOT / name).is_file(), f"{name} exists")
@@ -119,7 +124,7 @@ def main() -> int:
     )
 
     offline_pack = json.loads(
-        (ROOT / "app/public/data/offline-pack-manifest-v3.json").read_text(
+        (ROOT / "app/public/data/offline-pack-manifest-v6.json").read_text(
             encoding="utf-8"
         )
     )
@@ -128,8 +133,8 @@ def main() -> int:
         "historical water pack has no runtime network dependency",
     )
     require(
-        offline_pack["artifact_count"] == len(offline_pack["artifacts"]) == 8,
-        "historical water pack has eight manifested artifacts",
+        offline_pack["artifact_count"] == len(offline_pack["artifacts"]) == 15,
+        "offline earth pack has fifteen manifested artifacts",
     )
     verified_bytes = 0
     for artifact in offline_pack["artifacts"]:
@@ -214,6 +219,161 @@ def main() -> int:
         and location_rows == location_receipt["returned_location_count"]
         and len(location_receipt["pages"]) == location_receipt["page_count"] == 32,
         "USGS monitoring-location page hashes and totals balance",
+    )
+
+    terrain_receipt = json.loads(
+        (ROOT / "receipts/usgs-3dep-terrain-20260914.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    require(
+        terrain_receipt["status"] == "original-bytes-and-format-verified"
+        and terrain_receipt["horizontal_datum"] == "NAD83"
+        and terrain_receipt["vertical_datum"] == "NAVD88"
+        and terrain_receipt["elevation_unit"] == "meters",
+        "USGS 3DEP receipt records format and datum verification",
+    )
+    expected_terrain_hashes = {
+        "n44w116": "7e7d2690ed1855a4fc25953b3b24bb818d77443070253d7563bdd3565a28fe4c",
+        "n44w117": "8541835a7f27956e40603945997398688b3911c92e86b1b324a68de9c26181f5",
+        "n44w118": "30810efe49936116e994c4feb11691174d733c635310155fc8efeb60e6754906",
+        "n45w116": "d5df76542ad0aa72f17ad503552b7334b2cd0f28311a817284d5bb99e9c9dae6",
+        "n45w117": "c5c826e779453eaa6bfd4f42c22bd300579595cee39713ad06fa0b25f3178fbc",
+        "n45w118": "d16a3537e9f21f7a005e0d71b83ea38d7293a9b7fc1017d1a157c9cc5882cc70",
+    }
+    terrain_root = Path(terrain_receipt["local_root"])
+    terrain_bytes = 0
+    require(
+        {item["tile"] for item in terrain_receipt["files"]}
+        == set(expected_terrain_hashes),
+        "USGS 3DEP receipt contains the exact six-tile regional baseline",
+    )
+    for item in terrain_receipt["files"]:
+        path = terrain_root / item["file"]
+        require(
+            path.is_file()
+            and path.stat().st_size == item["bytes"]
+            and sha256(path) == item["sha256"] == expected_terrain_hashes[item["tile"]],
+            f"USGS 3DEP source tile matches receipt: {item['tile']}",
+        )
+        terrain_bytes += path.stat().st_size
+    require(
+        terrain_bytes == terrain_receipt["total_bytes"] == 316_921_023,
+        "USGS 3DEP source byte total balances",
+    )
+
+    terrain_manifest = json.loads(
+        (
+            ROOT / "app/public/data/usgs-3dep-regional-terrain-manifest.json"
+        ).read_text(encoding="utf-8")
+    )
+    terrain_binary = ROOT / "app/public/data/usgs-3dep-regional-terrain-f32.bin"
+    require(
+        terrain_manifest["mesh"]["vertex_count"] == 15_251
+        and terrain_manifest["mesh"]["rows"] == 101
+        and terrain_manifest["mesh"]["columns"] == 151
+        and terrain_manifest["mesh"]["bounds_wgs84"]
+        == {"west": -118.0, "east": -115.0, "south": 43.0, "north": 45.0},
+        "regional terrain mesh dimensions and geographic bounds match",
+    )
+    require(
+        terrain_binary.stat().st_size == terrain_manifest["binary"]["bytes"] == 61_004
+        and sha256(terrain_binary) == terrain_manifest["binary"]["sha256"],
+        "regional terrain binary hash and byte count match",
+    )
+
+    dam_receipt = json.loads(
+        (ROOT / "receipts/usace-nid-regional-dams-20260914.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    dam_source = Path(dam_receipt["local_root"]) / dam_receipt["source_file"]
+    require(
+        dam_receipt["status"] == "original-api-response-verified"
+        and dam_receipt["feature_count"]
+        == dam_receipt["unique_provider_record_count"]
+        == 193
+        and dam_receipt["hydroelectric_purpose_count"] == 11,
+        "USACE NID regional source counts and status match",
+    )
+    require(
+        dam_receipt["unique_nidid_count"] == 189
+        and dam_receipt["duplicate_nidid_record_count"] == 3
+        and dam_receipt["missing_nidid_count"] == 1,
+        "USACE NID shared and missing identifier cases are retained",
+    )
+    require(
+        dam_source.is_file()
+        and dam_source.stat().st_size == dam_receipt["bytes"] == 173_719
+        and sha256(dam_source) == dam_receipt["sha256"],
+        "USACE NID original GeoJSON bytes match the receipt",
+    )
+    dam_manifest = json.loads(
+        (ROOT / "app/public/data/usace-nid-dams-manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    dam_binary = ROOT / "app/public/data/usace-nid-dams-f32.bin"
+    require(
+        dam_manifest["dam_count"] == 193
+        and dam_manifest["hydroelectric_purpose_count"] == 11
+        and dam_manifest["connectivity_state"]
+        == "unresolved-pending-upstream-watershed-graph",
+        "regional dam layer retains its connectivity boundary",
+    )
+    require(
+        dam_binary.stat().st_size == dam_manifest["binary"]["bytes"] == 2_316
+        and sha256(dam_binary) == dam_manifest["binary"]["sha256"],
+        "regional dam point binary hash and byte count match",
+    )
+
+    bottoms_manifest = json.loads(
+        (ROOT / "app/public/data/tvgwfm-bottoms-manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    bottoms_binary = ROOT / "app/public/data/tvgwfm-bottoms-f32.bin"
+    idomain_binary = ROOT / "app/public/data/tvgwfm-idomain-i8.bin"
+    require(
+        bottoms_manifest["truth_state"] == "ingested"
+        and bottoms_manifest["source_archive"]["sha256"]
+        == "bdefb11eaf7b75ab63dc0b23b0de4f65fe9d68798c0ff229420322bf8abb0dd6"
+        and bottoms_manifest["source_archive"]["member"]
+        == "model/mf6-tv_hist.dis",
+        "TVGWFM layer bottoms retain their exact source archive and member",
+    )
+    layout = bottoms_manifest["layout"]
+    require(
+        layout["layers"] == 6
+        and layout["rows"] == 64
+        and layout["columns"] == 65
+        and layout["cell_count"] == 4_160
+        and layout["order"] == "layer-row-column"
+        and layout["length_unit"] == "feet"
+        and layout["vertical_datum"] == "NAVD88",
+        "TVGWFM bottom-surface dimensions, order, unit and datum match",
+    )
+    require(
+        len(bottoms_manifest["layer_statistics"]) == 6
+        and [item["active_cells"] for item in bottoms_manifest["layer_statistics"]]
+        == [1_861] * 6,
+        "TVGWFM bottom manifest retains six active-layer statistics",
+    )
+    require(
+        bottoms_binary.stat().st_size
+        == bottoms_manifest["bottoms_binary"]["bytes"]
+        == 99_840
+        and sha256(bottoms_binary)
+        == bottoms_manifest["bottoms_binary"]["sha256"],
+        "TVGWFM bottom float32 binary hash and byte count match",
+    )
+    require(
+        idomain_binary.stat().st_size
+        == bottoms_manifest["idomain_binary"]["bytes"]
+        == 24_960
+        and sha256(idomain_binary)
+        == bottoms_manifest["idomain_binary"]["sha256"],
+        "TVGWFM IDOMAIN int8 binary hash and byte count match",
     )
 
     policy = (ROOT / "RESTRICTED_DATA_POLICY.md").read_text(encoding="utf-8")

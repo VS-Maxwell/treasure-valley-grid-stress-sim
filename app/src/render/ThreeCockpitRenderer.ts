@@ -7,11 +7,19 @@ import {
   previewElevation,
   projectPosition,
 } from "../data/geo";
+import type { GeoBounds, WorldPoint } from "../data/geo";
 import { lineParts, type GridCore } from "../data/gridTypes";
 import type { TvgwfmGrid } from "../data/tvgwfmTypes";
 import { nearestHeadSlice } from "../data/loadTvgwfmHeads";
 import type { TvgwfmHeads } from "../data/tvgwfmHeads";
 import type { MeasuredGroundwaterSites } from "../data/measuredGroundwaterSites";
+import type { RegionalDams } from "../data/regionalDams";
+import type { TvgwfmBottoms } from "../data/tvgwfmBottoms";
+import {
+  terrainWorldHeight,
+  terrainWorldHeightAt,
+  type RegionalTerrain,
+} from "../data/regionalTerrain";
 import type { RendererAdapter, RendererCallbacks } from "./RendererAdapter";
 
 const TERRAIN_WIDTH = 230;
@@ -37,9 +45,13 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   readonly kind = "three-webgl" as const;
   readonly #container: HTMLElement;
   readonly #grid: GridCore;
+  readonly #gridBounds: GeoBounds;
   readonly #tvgwfm: TvgwfmGrid;
   readonly #tvgwfmHeads: TvgwfmHeads;
   readonly #measuredGroundwaterSites: MeasuredGroundwaterSites;
+  readonly #regionalTerrain: RegionalTerrain | null;
+  readonly #regionalDams: RegionalDams | null;
+  readonly #tvgwfmBottoms: TvgwfmBottoms | null;
   readonly #callbacks: RendererCallbacks;
   readonly #scene = new THREE.Scene();
   readonly #camera = new THREE.PerspectiveCamera(47, 1, 0.1, 1200);
@@ -48,12 +60,20 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   readonly #timer = new THREE.Timer();
   readonly #gridMaterials = new Map<VoltageClass, THREE.LineBasicMaterial>();
   readonly #terrainMaterial: THREE.MeshStandardMaterial;
+  readonly #contextTerrainMaterial: THREE.MeshStandardMaterial;
   readonly #waterMaterial: THREE.MeshPhysicalMaterial;
   readonly #headMeshes: THREE.Mesh<
     THREE.BufferGeometry,
     THREE.MeshStandardMaterial
   >[] = [];
+  readonly #headGroundY: number[] = [];
+  readonly #aquiferBottomMeshes: THREE.Mesh<
+    THREE.BufferGeometry,
+    THREE.MeshStandardMaterial
+  >[] = [];
   #measuredWellPoints: THREE.Points | null = null;
+  #damPoints: THREE.Points | null = null;
+  #hydroDamPoints: THREE.Points | null = null;
   readonly #sun = new THREE.DirectionalLight(0xfff0d1, 3.2);
   #frameHandle = 0;
   #frameCount = 0;
@@ -70,13 +90,20 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     tvgwfm: TvgwfmGrid,
     tvgwfmHeads: TvgwfmHeads,
     measuredGroundwaterSites: MeasuredGroundwaterSites,
+    regionalTerrain: RegionalTerrain | null,
+    regionalDams: RegionalDams | null,
+    tvgwfmBottoms: TvgwfmBottoms | null,
     callbacks: RendererCallbacks,
   ) {
     this.#container = container;
     this.#grid = grid;
+    this.#gridBounds = measureGridBounds(grid);
     this.#tvgwfm = tvgwfm;
     this.#tvgwfmHeads = tvgwfmHeads;
     this.#measuredGroundwaterSites = measuredGroundwaterSites;
+    this.#regionalTerrain = regionalTerrain;
+    this.#regionalDams = regionalDams;
+    this.#tvgwfmBottoms = tvgwfmBottoms;
     this.#callbacks = callbacks;
     this.#renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -111,6 +138,12 @@ export class ThreeCockpitRenderer implements RendererAdapter {
       vertexColors: true,
       roughness: 0.94,
       metalness: 0.02,
+      side: THREE.DoubleSide,
+    });
+    this.#contextTerrainMaterial = new THREE.MeshStandardMaterial({
+      vertexColors: true,
+      roughness: 1,
+      metalness: 0,
       side: THREE.DoubleSide,
     });
     this.#waterMaterial = new THREE.MeshPhysicalMaterial({
@@ -165,9 +198,34 @@ export class ThreeCockpitRenderer implements RendererAdapter {
       mesh.material.opacity =
         state.scene === "water" ? 0.5 - index * 0.045 : 0.2;
     });
+    const showBottoms =
+      state.scene === "water" ||
+      state.scene === "nexus" ||
+      state.scene === "record";
+    this.#aquiferBottomMeshes.forEach((mesh, index) => {
+      mesh.visible = showBottoms;
+      mesh.material.opacity =
+        state.scene === "water"
+          ? 0.26 - index * 0.018
+          : state.scene === "record"
+            ? 0.2
+            : 0.12;
+      mesh.material.wireframe = state.scene === "record";
+    });
     if (this.#measuredWellPoints)
       this.#measuredWellPoints.visible =
         state.scene === "water" && state.compare;
+    if (this.#damPoints)
+      this.#damPoints.visible =
+        state.scene === "water" ||
+        state.scene === "nexus" ||
+        state.scene === "risk";
+    if (this.#hydroDamPoints)
+      this.#hydroDamPoints.visible =
+        state.scene === "energy" ||
+        state.scene === "water" ||
+        state.scene === "nexus" ||
+        state.scene === "risk";
     this.#updateHeadSurfaces(state.year);
     this.#terrainMaterial.wireframe = state.scene === "record";
     const future = Math.max(0, (state.year - 2026) / 74);
@@ -246,7 +304,8 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     for (let index = 0; index < positions.count; index += 1) {
       const x = positions.getX(index);
       const z = positions.getZ(index);
-      const elevation = previewElevation(x, z);
+      const elevation =
+        previewElevation(x, z) - (this.#regionalTerrain ? 7 : 0);
       positions.setY(index, elevation);
       const normalized = THREE.MathUtils.clamp((elevation + 5) / 19, 0, 1);
       const color =
@@ -260,13 +319,24 @@ export class ThreeCockpitRenderer implements RendererAdapter {
       new THREE.Float32BufferAttribute(colors, 3),
     );
     terrainGeometry.computeVertexNormals();
-    const terrain = new THREE.Mesh(terrainGeometry, this.#terrainMaterial);
-    terrain.name = "reconstructed-preview-terrain";
+    const terrain = new THREE.Mesh(
+      terrainGeometry,
+      this.#regionalTerrain
+        ? this.#contextTerrainMaterial
+        : this.#terrainMaterial,
+    );
+    terrain.name = this.#regionalTerrain
+      ? "reconstructed-context-outside-3dep"
+      : "reconstructed-preview-terrain";
     this.#scene.add(terrain);
 
+    this.#addRegionalTerrainSurface();
+
     this.#addTvgwfmSurface();
+    this.#addAquiferBottomSurfaces();
     this.#addTvgwfmHeadSurfaces();
     this.#addMeasuredGroundwaterSites();
+    this.#addRegionalDams();
 
     this.#addGridLines();
     this.#addSubstations();
@@ -274,18 +344,78 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#addAtmosphereMarkers();
   }
 
+  #projectPosition(position: readonly [number, number]): WorldPoint {
+    const point = projectPosition(position, this.#gridBounds);
+    const terrainY = this.#regionalTerrain
+      ? terrainWorldHeightAt(this.#regionalTerrain, position)
+      : null;
+    return terrainY === null ? point : { ...point, y: terrainY + 0.65 };
+  }
+
+  #addRegionalTerrainSurface(): void {
+    if (!this.#regionalTerrain) return;
+    const terrain = this.#regionalTerrain;
+    const { rows, columns, bounds_wgs84: bounds } = terrain.manifest.mesh;
+    const vertices: number[] = [];
+    const colors: number[] = [];
+    const indices: number[] = [];
+    const low = new THREE.Color(0x21483b);
+    const mid = new THREE.Color(0x627254);
+    const high = new THREE.Color(0xb6aa8b);
+    for (let row = 0; row < rows; row += 1) {
+      const v = row / (rows - 1);
+      const latitude = THREE.MathUtils.lerp(bounds.north, bounds.south, v);
+      for (let column = 0; column < columns; column += 1) {
+        const u = column / (columns - 1);
+        const longitude = THREE.MathUtils.lerp(bounds.west, bounds.east, u);
+        const point = projectPosition([longitude, latitude], this.#gridBounds);
+        const elevation = terrain.elevations[row * columns + column]!;
+        const worldY = terrainWorldHeight(terrain, elevation);
+        vertices.push(point.x, worldY, point.z);
+        const normalized = THREE.MathUtils.clamp(
+          (elevation - terrain.manifest.statistics.minimum_meters) /
+            (terrain.manifest.statistics.maximum_meters -
+              terrain.manifest.statistics.minimum_meters),
+          0,
+          1,
+        );
+        const color =
+          normalized < 0.55
+            ? low.clone().lerp(mid, normalized / 0.55)
+            : mid.clone().lerp(high, (normalized - 0.55) / 0.45);
+        colors.push(color.r, color.g, color.b);
+      }
+    }
+    for (let row = 0; row < rows - 1; row += 1) {
+      for (let column = 0; column < columns - 1; column += 1) {
+        const a = row * columns + column;
+        const b = a + 1;
+        const c = a + columns;
+        const d = c + 1;
+        indices.push(a, c, b, b, c, d);
+      }
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(vertices, 3),
+    );
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+    const surface = new THREE.Mesh(geometry, this.#terrainMaterial);
+    surface.name = "usgs-3dep-regional-terrain-observed";
+    this.#scene.add(surface);
+  }
+
   #addMeasuredGroundwaterSites(): void {
-    const bounds = measureGridBounds(this.#grid);
     const values = this.#measuredGroundwaterSites.values;
     const positions: number[] = [];
     const colors: number[] = [];
     const low = new THREE.Color(0x3ee8ff);
     const high = new THREE.Color(0xffd166);
     for (let index = 0; index < values.length; index += 3) {
-      const point = projectPosition(
-        [values[index]!, values[index + 1]!],
-        bounds,
-      );
+      const point = this.#projectPosition([values[index]!, values[index + 1]!]);
       positions.push(point.x, point.y + 2.1, point.z);
       const altitude = values[index + 2]!;
       const mix = THREE.MathUtils.clamp((altitude - 2050) / 1300, 0, 1);
@@ -312,9 +442,60 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#scene.add(this.#measuredWellPoints);
   }
 
+  #addRegionalDams(): void {
+    if (!this.#regionalDams) return;
+    const allPositions: number[] = [];
+    const hydroPositions: number[] = [];
+    const values = this.#regionalDams.values;
+    for (let index = 0; index < values.length; index += 3) {
+      const point = this.#projectPosition([values[index]!, values[index + 1]!]);
+      allPositions.push(point.x, point.y + 1.05, point.z);
+      if (values[index + 2] === 1)
+        hydroPositions.push(point.x, point.y + 1.45, point.z);
+    }
+    const allGeometry = new THREE.BufferGeometry();
+    allGeometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(allPositions, 3),
+    );
+    this.#damPoints = new THREE.Points(
+      allGeometry,
+      new THREE.PointsMaterial({
+        color: 0x5bdcff,
+        size: 0.72,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: 0.76,
+        depthWrite: false,
+      }),
+    );
+    this.#damPoints.name = "usace-nid-regional-dams-193";
+    this.#damPoints.visible = false;
+    this.#scene.add(this.#damPoints);
+
+    const hydroGeometry = new THREE.BufferGeometry();
+    hydroGeometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(hydroPositions, 3),
+    );
+    this.#hydroDamPoints = new THREE.Points(
+      hydroGeometry,
+      new THREE.PointsMaterial({
+        color: 0xffd166,
+        size: 1.8,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: 0.96,
+        depthWrite: false,
+      }),
+    );
+    this.#hydroDamPoints.name = "usace-nid-hydroelectric-purpose-dams-11";
+    this.#hydroDamPoints.visible = false;
+    this.#scene.add(this.#hydroDamPoints);
+  }
+
   #addTvgwfmSurface(): void {
     const model = this.#tvgwfm.grid;
-    const bounds = measureGridBounds(this.#grid);
     const corners = model.corners_wgs84;
     const vertices: number[] = [];
     const indices: number[] = [];
@@ -337,7 +518,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
         const u = column / (model.columns - 1);
         const longitude = mix(left[0], right[0], u);
         const latitude = mix(left[1], right[1], u);
-        const point = projectPosition([longitude, latitude], bounds);
+        const point = this.#projectPosition([longitude, latitude]);
         const elevation = elevations[row * model.columns + column] ?? 0;
         const relief =
           elevation > 0
@@ -382,6 +563,90 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#scene.add(surface);
   }
 
+  #addAquiferBottomSurfaces(): void {
+    if (!this.#tvgwfmBottoms) return;
+    const pack = this.#tvgwfmBottoms;
+    const { rows, columns, layers, cell_count: cells } = pack.manifest.layout;
+    const corners = this.#tvgwfm.grid.corners_wgs84;
+    const colors = [0x45d8ff, 0x45bdf5, 0x4d9dea, 0x557dd7, 0x685fc0, 0x7d4aa8];
+    const mix = (start: number, end: number, amount: number): number =>
+      start + (end - start) * amount;
+
+    for (let layer = 0; layer < layers; layer += 1) {
+      const vertices: number[] = [];
+      const indices: number[] = [];
+      const offset = layer * cells;
+      for (let row = 0; row < rows; row += 1) {
+        const v = row / (rows - 1);
+        const left: readonly [number, number] = [
+          mix(corners.upper_left[0], corners.lower_left[0], v),
+          mix(corners.upper_left[1], corners.lower_left[1], v),
+        ];
+        const right: readonly [number, number] = [
+          mix(corners.upper_right[0], corners.lower_right[0], v),
+          mix(corners.upper_right[1], corners.lower_right[1], v),
+        ];
+        for (let column = 0; column < columns; column += 1) {
+          const u = column / (columns - 1);
+          const position: readonly [number, number] = [
+            mix(left[0], right[0], u),
+            mix(left[1], right[1], u),
+          ];
+          const point = projectPosition(position, this.#gridBounds);
+          const bottomFeet = pack.bottoms[offset + row * columns + column]!;
+          const worldY = this.#regionalTerrain
+            ? terrainWorldHeight(this.#regionalTerrain, bottomFeet * 0.3048)
+            : point.y - 1.5 - layer * 1.2;
+          vertices.push(point.x, worldY, point.z);
+        }
+      }
+      const active = (row: number, column: number): boolean =>
+        pack.idomain[offset + row * columns + column] !== 0;
+      for (let row = 0; row < rows - 1; row += 1) {
+        for (let column = 0; column < columns - 1; column += 1) {
+          const a = row * columns + column;
+          const b = a + 1;
+          const c = a + columns;
+          const d = c + 1;
+          if (
+            active(row, column) &&
+            active(row + 1, column) &&
+            active(row, column + 1)
+          )
+            indices.push(a, c, b);
+          if (
+            active(row, column + 1) &&
+            active(row + 1, column) &&
+            active(row + 1, column + 1)
+          )
+            indices.push(b, c, d);
+        }
+      }
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(vertices, 3),
+      );
+      geometry.setIndex(indices);
+      geometry.computeVertexNormals();
+      const material = new THREE.MeshStandardMaterial({
+        color: colors[layer]!,
+        emissive: colors[layer]!,
+        emissiveIntensity: 0.12,
+        roughness: 0.58,
+        metalness: 0.04,
+        transparent: true,
+        opacity: 0.26 - layer * 0.018,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.name = `tvgwfm-aquifer-bottom-layer-${layer + 1}`;
+      this.#aquiferBottomMeshes.push(mesh);
+      this.#scene.add(mesh);
+    }
+  }
+
   #addTvgwfmHeadSurfaces(): void {
     const {
       rows,
@@ -389,7 +654,6 @@ export class ThreeCockpitRenderer implements RendererAdapter {
       layers,
       inactive_value: inactive,
     } = this.#tvgwfmHeads.manifest.layout;
-    const bounds = measureGridBounds(this.#grid);
     const corners = this.#tvgwfm.grid.corners_wgs84;
     const cells = rows * columns;
     const mix = (start: number, end: number, amount: number): number =>
@@ -411,10 +675,11 @@ export class ThreeCockpitRenderer implements RendererAdapter {
         ];
         for (let column = 0; column < columns; column += 1) {
           const u = column / (columns - 1);
-          const point = projectPosition(
-            [mix(left[0], right[0], u), mix(left[1], right[1], u)],
-            bounds,
-          );
+          const point = this.#projectPosition([
+            mix(left[0], right[0], u),
+            mix(left[1], right[1], u),
+          ]);
+          if (layer === 0) this.#headGroundY.push(point.y);
           const packed =
             this.#tvgwfmHeads.values[firstLayerOffset + row * columns + column];
           vertices.push(
@@ -493,7 +758,8 @@ export class ThreeCockpitRenderer implements RendererAdapter {
             ? -200
             : this.#headWorldY(
                 packed!,
-                previewElevation(positions.getX(cell), positions.getZ(cell)),
+                this.#headGroundY[cell] ??
+                  previewElevation(positions.getX(cell), positions.getZ(cell)),
                 layer,
               ),
         );
@@ -512,7 +778,6 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   }
 
   #addGridLines(): void {
-    const bounds = measureGridBounds(this.#grid);
     const groups = new Map<keyof typeof VOLTAGE_COLORS, number[]>();
     Object.keys(VOLTAGE_COLORS).forEach((key) =>
       groups.set(key as keyof typeof VOLTAGE_COLORS, []),
@@ -523,8 +788,8 @@ export class ThreeCockpitRenderer implements RendererAdapter {
       )!;
       for (const line of lineParts(feature.geometry)) {
         for (let index = 1; index < line.length; index += 1) {
-          const start = projectPosition(line[index - 1]!, bounds);
-          const end = projectPosition(line[index]!, bounds);
+          const start = this.#projectPosition(line[index - 1]!);
+          const end = this.#projectPosition(line[index]!);
           target.push(start.x, start.y, start.z, end.x, end.y, end.z);
         }
       }
@@ -548,7 +813,6 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   }
 
   #addSubstations(): void {
-    const bounds = measureGridBounds(this.#grid);
     const geometry = new THREE.SphereGeometry(0.72, 8, 6);
     const material = new THREE.MeshStandardMaterial({
       color: 0xe7faff,
@@ -562,7 +826,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     );
     const transform = new THREE.Object3D();
     this.#grid.subs.features.forEach((feature, index) => {
-      const point = projectPosition(feature.geometry.coordinates, bounds);
+      const point = this.#projectPosition(feature.geometry.coordinates);
       transform.position.set(point.x, point.y + 0.5, point.z);
       const scale = THREE.MathUtils.clamp(
         feature.properties.max_voltage_kv / 230,
@@ -579,7 +843,6 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   }
 
   #addPlants(): void {
-    const bounds = measureGridBounds(this.#grid);
     const geometry = new THREE.ConeGeometry(0.8, 2.8, 7);
     const material = new THREE.MeshStandardMaterial({
       color: 0xffd57a,
@@ -593,7 +856,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     );
     const transform = new THREE.Object3D();
     this.#grid.plants.features.forEach((feature, index) => {
-      const point = projectPosition(feature.geometry.coordinates, bounds);
+      const point = this.#projectPosition(feature.geometry.coordinates);
       transform.position.set(point.x, point.y + 1.3, point.z);
       const scale = THREE.MathUtils.clamp(
         Math.sqrt(feature.properties.capacity_mw || 1) / 20,

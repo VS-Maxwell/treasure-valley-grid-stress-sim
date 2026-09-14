@@ -33,7 +33,7 @@ export const SCENE_CONTENT: Record<SceneId, SceneContent> = {
   energy: {
     eyebrow: "ENERGY · PRESENT SYSTEM",
     title: "Follow electricity across the valley",
-    copy: "Exact extracted corridor geometry is draped over a reconstructed preview surface. Select a system to see what is connected and what remains unknown.",
+    copy: "Exact extracted corridor geometry and regional USACE dam records are draped over observed USGS 3DEP terrain. Hydroelectric purpose is visible now; generator capacity and grid linkage remain pending EIA matching.",
     metrics: [
       { value: "244", label: "visible corridors" },
       { value: "94 / 156", label: "screening buses / lines" },

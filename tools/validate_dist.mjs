@@ -37,9 +37,12 @@ if (names.some((name) => name.endsWith(".ts") && !name.endsWith(".d.ts")))
 
 let totalBytes = 0;
 for (const file of files) totalBytes += (await stat(file)).size;
-if (totalBytes > 5 * 1024 * 1024)
+// Phase 3 retains browser source maps so the user can inspect the programming
+// while terrain and data layers are integrated. Raw provider data remain out.
+const phaseThreeDevelopmentBudget = 6 * 1024 * 1024;
+if (totalBytes > phaseThreeDevelopmentBudget)
   failures.push(
-    `dist exceeds the 5 MiB walking-skeleton budget: ${totalBytes} bytes`,
+    `dist exceeds the 6 MiB Phase 3 development budget: ${totalBytes} bytes`,
   );
 
 const textFiles = files.filter((file) =>

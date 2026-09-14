@@ -5,6 +5,9 @@ import { loadGridCore } from "./data/loadGridCore";
 import { loadMeasuredGroundwater } from "./data/loadMeasuredGroundwater";
 import { loadMeasuredGroundwaterSites } from "./data/loadMeasuredGroundwaterSites";
 import { loadOfflinePack } from "./data/loadOfflinePack";
+import { loadRegionalTerrain } from "./data/loadRegionalTerrain";
+import { loadRegionalDams } from "./data/loadRegionalDams";
+import { loadTvgwfmBottoms } from "./data/loadTvgwfmBottoms";
 import { loadTvgwfmGrid } from "./data/loadTvgwfmGrid";
 import { loadTvgwfmHeads } from "./data/loadTvgwfmHeads";
 import { loadTvgwfmTimeseries } from "./data/loadTvgwfmTimeseries";
@@ -40,6 +43,9 @@ async function boot(): Promise<void> {
     measuredGroundwater,
     measuredGroundwaterSites,
     offlinePack,
+    terrainLoad,
+    damLoad,
+    bottomLoad,
   ] = await Promise.all([
     loadGridCore(),
     loadTvgwfmGrid(),
@@ -48,7 +54,36 @@ async function boot(): Promise<void> {
     loadMeasuredGroundwater(),
     loadMeasuredGroundwaterSites(),
     loadOfflinePack(),
+    loadRegionalTerrain()
+      .then((terrain) => ({ terrain, error: null }))
+      .catch((error: unknown) => ({
+        terrain: null,
+        error:
+          error instanceof Error ? error.message : "Unknown terrain load error",
+      })),
+    loadRegionalDams()
+      .then((dams) => ({ dams, error: null }))
+      .catch((error: unknown) => ({
+        dams: null,
+        error:
+          error instanceof Error ? error.message : "Unknown dam load error",
+      })),
+    loadTvgwfmBottoms()
+      .then((bottoms) => ({ bottoms, error: null }))
+      .catch((error: unknown) => ({
+        bottoms: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown aquifer-bottom load error",
+      })),
   ]);
+  if (terrainLoad.error)
+    console.error("USGS regional terrain unavailable", terrainLoad.error);
+  if (damLoad.error)
+    console.error("USACE regional dam inventory unavailable", damLoad.error);
+  if (bottomLoad.error)
+    console.error("TVGWFM aquifer bottoms unavailable", bottomLoad.error);
   diagnostics.setDataReceipt(
     grid.source_sha256,
     grid.trans.features.length,
@@ -85,6 +120,12 @@ async function boot(): Promise<void> {
     tvgwfmTimeseries,
     measuredGroundwater,
     offlinePack,
+    terrainLoad.terrain,
+    terrainLoad.error,
+    damLoad.dams,
+    damLoad.error,
+    bottomLoad.bottoms,
+    bottomLoad.error,
     actions,
   );
   hud.connect();
@@ -147,6 +188,9 @@ async function boot(): Promise<void> {
         tvgwfm,
         tvgwfmHeads,
         measuredGroundwaterSites,
+        terrainLoad.terrain,
+        damLoad.dams,
+        bottomLoad.bottoms,
         {
           onContextLost: () =>
             activateFallback(
