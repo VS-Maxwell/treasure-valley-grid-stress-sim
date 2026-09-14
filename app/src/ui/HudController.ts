@@ -1,6 +1,7 @@
 import { SCENE_CONTENT } from "../simulation/sceneContent";
 import { ENERGY_SCENARIOS } from "../data/energyScreening";
 import type { EnergyScreeningModel } from "../data/energyScreening";
+import type { EiaHydropower } from "../data/eiaHydropower";
 import type { EspamGrid } from "../data/espamGrid";
 import type { EspamHeads } from "../data/espamHeads";
 import { nearestEspamHeadSlice } from "../data/loadEspamHeads";
@@ -57,6 +58,8 @@ export class HudController {
   readonly #terrainLoadError: string | null;
   readonly #regionalDams: RegionalDams | null;
   readonly #damLoadError: string | null;
+  readonly #eiaHydropower: EiaHydropower | null;
+  readonly #hydropowerLoadError: string | null;
   readonly #tvgwfmBottoms: TvgwfmBottoms | null;
   readonly #bottomLoadError: string | null;
   readonly #espamGrid: EspamGrid | null;
@@ -103,6 +106,8 @@ export class HudController {
     terrainLoadError: string | null,
     regionalDams: RegionalDams | null,
     damLoadError: string | null,
+    eiaHydropower: EiaHydropower | null,
+    hydropowerLoadError: string | null,
     tvgwfmBottoms: TvgwfmBottoms | null,
     bottomLoadError: string | null,
     espamGrid: EspamGrid | null,
@@ -122,6 +127,8 @@ export class HudController {
     this.#terrainLoadError = terrainLoadError;
     this.#regionalDams = regionalDams;
     this.#damLoadError = damLoadError;
+    this.#eiaHydropower = eiaHydropower;
+    this.#hydropowerLoadError = hydropowerLoadError;
     this.#tvgwfmBottoms = tvgwfmBottoms;
     this.#bottomLoadError = bottomLoadError;
     this.#espamGrid = espamGrid;
@@ -294,6 +301,18 @@ export class HudController {
         {
           value: `${this.#regionalDams.manifest.connected_hydroelectric_purpose_count.toLocaleString()} / ${this.#regionalDams.manifest.hydroelectric_purpose_count.toLocaleString()}`,
           label: "connected / hydro-purpose",
+        },
+      ];
+    if (scene === "energy" && this.#eiaHydropower)
+      metrics = [
+        ...metrics,
+        {
+          value: this.#eiaHydropower.manifest.plant_count.toLocaleString(),
+          label: "EIA hydro plants",
+        },
+        {
+          value: this.#eiaHydropower.manifest.generator_count.toLocaleString(),
+          label: "EIA hydro generators",
         },
       ];
     this.#contextMetrics.replaceChildren(
@@ -562,8 +581,14 @@ export class HudController {
       this.#heading("Dam and hydropower inventory"),
       this.#paragraph(
         this.#regionalDams
-          ? `${this.#regionalDams.manifest.dam_count.toLocaleString()} current USACE NID records are loaded across the full 119°W–111°W, 42°N–46°N scene. An official NLDI/NHDPlusV2 directed graph resolves ${this.#regionalDams.manifest.connected_dam_count.toLocaleString()} dams upstream of ${this.#regionalDams.manifest.target_outlet.name}; ${this.#regionalDams.manifest.outside_dam_count.toLocaleString()} are outside that receiving system and ${this.#regionalDams.manifest.unresolved_dam_count.toLocaleString()} remain unresolved. Of ${this.#regionalDams.manifest.hydroelectric_purpose_count.toLocaleString()} hydroelectric-purpose dams, ${this.#regionalDams.manifest.connected_hydroelectric_purpose_count.toLocaleString()} have a verified hydrologic path. This does not prove Treasure Valley water delivery, generator capacity, or electrical interconnection; EIA matching remains separate.`
+          ? `${this.#regionalDams.manifest.dam_count.toLocaleString()} current USACE NID records are loaded across the full 119°W–111°W, 42°N–46°N scene. An official NLDI/NHDPlusV2 directed graph resolves ${this.#regionalDams.manifest.connected_dam_count.toLocaleString()} dams upstream of ${this.#regionalDams.manifest.target_outlet.name}; ${this.#regionalDams.manifest.outside_dam_count.toLocaleString()} are outside that receiving system and ${this.#regionalDams.manifest.unresolved_dam_count.toLocaleString()} remain unresolved. Of ${this.#regionalDams.manifest.hydroelectric_purpose_count.toLocaleString()} hydroelectric-purpose dams, ${this.#regionalDams.manifest.connected_hydroelectric_purpose_count.toLocaleString()} have a verified hydrologic path. This does not prove Treasure Valley water delivery or electrical interconnection.`
           : `The USACE dam layer is unavailable${this.#damLoadError ? `: ${this.#damLoadError}` : "."}`,
+      ),
+      this.#heading("EIA hydropower inventory"),
+      this.#paragraph(
+        this.#eiaHydropower
+          ? `The final 2025 Form EIA-860 contributes ${this.#eiaHydropower.manifest.plant_count} regional hydropower plants and ${this.#eiaHydropower.manifest.generator_count} hydro generator records totaling ${this.#eiaHydropower.manifest.reported_nameplate_capacity_mw.toLocaleString()} MW of reported nameplate capacity. The gold plant points are independent EIA records. Distance and normalized-name evidence produced 41 strong candidates, 11 broader candidates, and 3 unmatched hydro-purpose dams, but every dam-to-plant identity remains pending human review and no bus or branch connection is inferred.`
+          : `The EIA hydropower layer is unavailable${this.#hydropowerLoadError ? `: ${this.#hydropowerLoadError}` : "."}`,
       ),
       this.#heading("USGS water-model source"),
       this.#paragraph(

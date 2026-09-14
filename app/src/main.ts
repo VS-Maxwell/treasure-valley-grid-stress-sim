@@ -1,6 +1,7 @@
 import "./styles.css";
 
 import { RuntimeDiagnostics } from "./diagnostics/RuntimeDiagnostics";
+import { loadEiaHydropower } from "./data/loadEiaHydropower";
 import { loadEnergyScreening } from "./data/loadEnergyScreening";
 import { loadEspamGrid } from "./data/loadEspamGrid";
 import { loadEspamHeads } from "./data/loadEspamHeads";
@@ -53,6 +54,7 @@ async function boot(): Promise<void> {
     bottomLoad,
     espamLoad,
     espamHeadLoad,
+    hydropowerLoad,
     energyScreening,
   ] = await Promise.all([
     loadGridCore(),
@@ -103,6 +105,15 @@ async function boot(): Promise<void> {
             ? error.message
             : "Unknown ESPAM head load error",
       })),
+    loadEiaHydropower()
+      .then((hydropower) => ({ hydropower, error: null }))
+      .catch((error: unknown) => ({
+        hydropower: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown EIA hydropower load error",
+      })),
     loadEnergyScreening(),
   ]);
   if (terrainLoad.error)
@@ -115,6 +126,8 @@ async function boot(): Promise<void> {
     console.error("IDWR ESPAM grid unavailable", espamLoad.error);
   if (espamHeadLoad.error)
     console.error("IDWR ESPAM archived heads unavailable", espamHeadLoad.error);
+  if (hydropowerLoad.error)
+    console.error("EIA hydropower inventory unavailable", hydropowerLoad.error);
   diagnostics.setDataReceipt(
     grid.source_sha256,
     grid.trans.features.length,
@@ -155,6 +168,8 @@ async function boot(): Promise<void> {
     terrainLoad.error,
     damLoad.dams,
     damLoad.error,
+    hydropowerLoad.hydropower,
+    hydropowerLoad.error,
     bottomLoad.bottoms,
     bottomLoad.error,
     espamLoad.espam,
@@ -227,6 +242,7 @@ async function boot(): Promise<void> {
         measuredGroundwaterSites,
         terrainLoad.terrain,
         damLoad.dams,
+        hydropowerLoad.hydropower,
         bottomLoad.bottoms,
         espamLoad.espam,
         espamHeadLoad.heads,

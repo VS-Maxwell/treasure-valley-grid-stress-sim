@@ -53,6 +53,7 @@ def main() -> int:
         "app/public/data/offline-pack-manifest-v10.json",
         "app/public/data/offline-pack-manifest-v11.json",
         "app/public/data/offline-pack-manifest-v12.json",
+        "app/public/data/offline-pack-manifest-v13.json",
         "app/public/data/grid-screening-model.json",
         "receipts/usgs-groundwater-field-measurements-20260914.json",
         "receipts/usgs-monitoring-locations-20260914.json",
@@ -73,6 +74,8 @@ def main() -> int:
         "app/public/data/usace-nid-snake-plain-dams-manifest-v3.json",
         "app/public/data/usace-nid-snake-plain-dams-f32-v3.bin",
         "data/tables/eia-hydropower-snake-plain-v1.json",
+        "app/public/data/eia-hydropower-manifest-v1.json",
+        "app/public/data/eia-hydropower-f32-v1.bin",
     ]
     for name in required_files:
         require((ROOT / name).is_file(), f"{name} exists")
@@ -147,7 +150,7 @@ def main() -> int:
     )
 
     offline_pack = json.loads(
-        (ROOT / "app/public/data/offline-pack-manifest-v12.json").read_text(
+        (ROOT / "app/public/data/offline-pack-manifest-v13.json").read_text(
             encoding="utf-8"
         )
     )
@@ -156,8 +159,8 @@ def main() -> int:
         "historical earth pack has no runtime network dependency",
     )
     require(
-        offline_pack["artifact_count"] == len(offline_pack["artifacts"]) == 21,
-        "offline earth pack v12 has twenty-one manifested artifacts",
+        offline_pack["artifact_count"] == len(offline_pack["artifacts"]) == 23,
+        "offline earth pack v13 has twenty-three manifested artifacts",
     )
     verified_bytes = 0
     for artifact in offline_pack["artifacts"]:
@@ -739,6 +742,26 @@ def main() -> int:
             for link in eia_table["dam_hydropower_links"]
         ),
         "EIA hydropower table retains exact regional counts and review boundaries",
+    )
+    eia_manifest = json.loads(
+        (ROOT / "app/public/data/eia-hydropower-manifest-v1.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    eia_binary = ROOT / "app/public/data/eia-hydropower-f32-v1.bin"
+    require(
+        eia_manifest["plant_count"] == 77
+        and eia_manifest["generator_count"] == 167
+        and eia_manifest["operable_plant_count"] == 76
+        and eia_manifest["reported_nameplate_capacity_mw"] == 2_533.9
+        and eia_manifest["dam_link_review_state"] == "pending-human-review"
+        and eia_manifest["normalized_table_sha256"] == sha256(eia_table_path),
+        "EIA hydropower browser manifest retains source counts and review state",
+    )
+    require(
+        eia_binary.stat().st_size == eia_manifest["binary"]["bytes"] == 1_232
+        and sha256(eia_binary) == eia_manifest["binary"]["sha256"],
+        "EIA hydropower browser binary matches its byte and hash receipt",
     )
 
     bottoms_manifest = json.loads(

@@ -22,6 +22,7 @@ import { nearestHeadSlice } from "../data/loadTvgwfmHeads";
 import type { TvgwfmHeads } from "../data/tvgwfmHeads";
 import type { MeasuredGroundwaterSites } from "../data/measuredGroundwaterSites";
 import type { RegionalDams } from "../data/regionalDams";
+import type { EiaHydropower } from "../data/eiaHydropower";
 import type { TvgwfmBottoms } from "../data/tvgwfmBottoms";
 import {
   terrainWorldHeight,
@@ -59,6 +60,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   readonly #measuredGroundwaterSites: MeasuredGroundwaterSites;
   readonly #regionalTerrain: RegionalTerrain | null;
   readonly #regionalDams: RegionalDams | null;
+  readonly #eiaHydropower: EiaHydropower | null;
   readonly #tvgwfmBottoms: TvgwfmBottoms | null;
   readonly #espamGrid: EspamGrid | null;
   readonly #espamHeads: EspamHeads | null;
@@ -88,6 +90,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   #measuredWellPoints: THREE.Points | null = null;
   #damPoints: THREE.Points | null = null;
   #hydroDamPoints: THREE.Points | null = null;
+  #eiaHydropowerPoints: THREE.Points | null = null;
   #espamGridLines: THREE.LineSegments | null = null;
   #espamHeadSurface: THREE.Mesh<
     THREE.BufferGeometry,
@@ -114,6 +117,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     measuredGroundwaterSites: MeasuredGroundwaterSites,
     regionalTerrain: RegionalTerrain | null,
     regionalDams: RegionalDams | null,
+    eiaHydropower: EiaHydropower | null,
     tvgwfmBottoms: TvgwfmBottoms | null,
     espamGrid: EspamGrid | null,
     espamHeads: EspamHeads | null,
@@ -129,6 +133,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#measuredGroundwaterSites = measuredGroundwaterSites;
     this.#regionalTerrain = regionalTerrain;
     this.#regionalDams = regionalDams;
+    this.#eiaHydropower = eiaHydropower;
     this.#tvgwfmBottoms = tvgwfmBottoms;
     this.#espamGrid = espamGrid;
     this.#espamHeads = espamHeads;
@@ -300,6 +305,8 @@ export class ThreeCockpitRenderer implements RendererAdapter {
         state.scene === "water" ||
         state.scene === "nexus" ||
         state.scene === "risk";
+    if (this.#eiaHydropowerPoints)
+      this.#eiaHydropowerPoints.visible = state.scene === "energy";
     if (this.#espamGridLines)
       this.#espamGridLines.visible =
         state.scene === "water" ||
@@ -444,6 +451,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#addTvgwfmHeadSurfaces();
     this.#addMeasuredGroundwaterSites();
     this.#addRegionalDams();
+    this.#addEiaHydropowerPlants();
 
     this.#addGridLines();
     this.#addScreeningBranches();
@@ -779,6 +787,41 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#hydroDamPoints.name = "usace-nid-hydroelectric-purpose-dams-55";
     this.#hydroDamPoints.visible = false;
     this.#scene.add(this.#hydroDamPoints);
+  }
+
+  #addEiaHydropowerPlants(): void {
+    if (!this.#eiaHydropower) return;
+    const positions: number[] = [];
+    const colors: number[] = [];
+    const values = this.#eiaHydropower.values;
+    for (let index = 0; index < values.length; index += 4) {
+      const point = this.#projectPosition([values[index]!, values[index + 1]!]);
+      positions.push(point.x, point.y + 2.1, point.z);
+      const color = new THREE.Color(
+        values[index + 3] === 1 ? 0xfff08a : 0xb3a879,
+      );
+      colors.push(color.r, color.g, color.b);
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(positions, 3),
+    );
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    this.#eiaHydropowerPoints = new THREE.Points(
+      geometry,
+      new THREE.PointsMaterial({
+        vertexColors: true,
+        size: 2.4,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: 0.96,
+        depthWrite: false,
+      }),
+    );
+    this.#eiaHydropowerPoints.name = "eia860-final-2025-hydropower-plants-77";
+    this.#eiaHydropowerPoints.visible = false;
+    this.#scene.add(this.#eiaHydropowerPoints);
   }
 
   #addTvgwfmSurface(): void {

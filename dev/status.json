@@ -1,10 +1,10 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-14T21:40:57Z",
+  "updated_at": "2026-09-14T21:45:07Z",
   "phase": "Phase 3 - full-plain water and energy inventory",
   "task": "Match the directed hydropower candidates to reviewed EIA generator records while preserving the offline-first renderer boundary",
   "state": "active",
-  "progress_percent": 89,
+  "progress_percent": 90,
   "preview_url": "http://127.0.0.1:8001/dist/",
   "machines": [
     {
@@ -574,6 +574,12 @@
       "state": "passed",
       "summary": "Final 2025 EIA-860 hydropower acquisition checkpoint",
       "detail": "Preserved the 23622347-byte official final Form EIA-860 ZIP released September 10 2026; all thirteen archive members pass CRC checks. The full scene contains 190 plants and 335 generator records, including 77 hydropower plants and 167 hydro generator records. Distance and normalized-name evidence yields 41 strong candidates, eleven broader candidates, and three unmatched hydro-purpose dams; all 55 remain pending human identity review and no electrical topology was inferred. Registry validation passed."
+    },
+    {
+      "at": "2026-09-14T21:45:07Z",
+      "state": "passed",
+      "summary": "Offline EIA hydropower graphics checkpoint",
+      "detail": "Offline pack v13 now includes 23 hash-verified artifacts totaling 3663317 source bytes and renders 77 independent final-2025 EIA hydropower plant points in Energy. The visible UI reports 167 generator records and 2533.9 MW of reported nameplate capacity while keeping 41 strong candidates, eleven broader candidates, and three unmatched dams pending human identity review. Full validation passed 39 TypeScript tests, five gateway tests, all source and registry checks, production build, and a 54-file 8226862-byte secret scan; the visible browser has no warning or error logs."
     }
   ]
 }

@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "id": "eia860-2025-snake-plain-hydropower-points-v1",
+  "truth_state": "ingested",
+  "normalized_table": "data/tables/eia-hydropower-snake-plain-v1.json",
+  "normalized_table_sha256": "df7e87a8132844fd9d0992bb7adc8b1b3c0b8445d655a53a4f51a3f447803d9d",
+  "bbox_epsg_4326": [
+    -119.0,
+    42.0,
+    -111.0,
+    46.0
+  ],
+  "plant_count": 77,
+  "generator_count": 167,
+  "operable_plant_count": 76,
+  "reported_nameplate_capacity_mw": 2533.9,
+  "dam_candidate_counts": {
+    "strong-candidate-pending-review": 41,
+    "candidate-pending-review": 11,
+    "unmatched": 3
+  },
+  "dam_link_review_state": "pending-human-review",
+  "binary": {
+    "file": "eia-hydropower-f32-v1.bin",
+    "bytes": 1232,
+    "sha256": "43a16402e40298dbc1db6cabac90e78f895e372bffae28276697da212751e6f4",
+    "encoding": "little-endian-float32",
+    "stride": 4,
+    "order": "longitude-latitude-reported-nameplate-capacity-mw-operable-flag"
+  },
+  "limitations": [
+    "Every dam-to-plant link is pending human review; no candidate is an accepted identity crosswalk.",
+    "Nearest distance and normalized-name similarity are retained separately.",
+    "EIA-860 covers plants with at least one megawatt of combined nameplate capacity.",
+    "A hydropower plant match does not establish an electrical branch or bus connection."
+  ]
+}
