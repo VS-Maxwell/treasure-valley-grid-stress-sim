@@ -1,6 +1,6 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-14T20:32:25Z",
+  "updated_at": "2026-09-14T20:39:00Z",
   "phase": "Phase 4 - Energy and grid",
   "task": "Rebuild typed pandapower inputs and directed watershed evidence",
   "state": "active",
@@ -44,6 +44,7 @@
     "Controlled WebGL view reports 10 FPS under current heavy host CPU load; clean-load performance is unaccepted",
     "Historical water and the legacy energy screening scenarios are active, but fresh grid solves, climate, RAVEN, and coupled 4D modules remain open",
     "ArcGIS portal requires University SSO and the Drive API-key stack contains only a truncated key",
+    "The new 63-table offline-lake handoff contains synthetic scientific and grid values and is quarantined pending source-backed reconstruction",
     "Palimpsest NVIDIA driver/library mismatch",
     "Queen availability must be refreshed before preservation transfer",
     "Lemonade installer does not support this CachyOS host"
@@ -394,6 +395,12 @@
       "state": "active",
       "summary": "Phase 4 continues after energy visualization checkpoint",
       "detail": "Automated tests, registry hashes, production build, dist scan and live browser console pass. Fresh pandapower input reconstruction, individually resolved TAP identities, EIA project matching and directed watershed connectivity remain open."
+    },
+    {
+      "at": "2026-09-14T20:39:00Z",
+      "state": "failed",
+      "summary": "Offline lake completion handoff rejected as scientific evidence",
+      "detail": "Sixty-three Parquet files and 1640 rows exist, but 51 tables omit required shared evidence fields. Direct code inspection found a synthetic 12 by 16 aquifer, invented 94-bus topology and power-flow results, random risk samples, and hard-coded validation claims. The handoff remains quarantined and does not replace verified simulator packs."
     }
   ]
 }

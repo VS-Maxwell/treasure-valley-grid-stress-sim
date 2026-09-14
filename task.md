@@ -66,6 +66,7 @@ Updated: 2026-09-14
 - [ ] Palimpsest RTX 5060 Ti GPU disabled until driver/library telemetry works.
 - [x] Google Drive API register connectivity rechecked without exposing credentials; its Esri row contains only a truncated prefix and states that the full key is in email.
 - [ ] Obtain the complete Esri API key from an authorized local/email source before activating the secure local proxy; no truncated credential will be used.
+- [ ] Quarantine and rebuild the `/home/madame-butterfly/forge/treasure_valley_offline_lake/` handoff: its 63 files exist, but synthetic aquifer, grid, solver and risk rows plus missing shared lineage fields prevent scientific import.
 - [ ] Queen must be confirmed live before preservation transfer.
 - [ ] Scientific datasets, authority decisions, and expert acceptance remain phase gates.
 
