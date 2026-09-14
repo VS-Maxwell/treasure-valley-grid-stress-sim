@@ -1,10 +1,10 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-14T21:36:43Z",
+  "updated_at": "2026-09-14T21:40:57Z",
   "phase": "Phase 3 - full-plain water and energy inventory",
   "task": "Match the directed hydropower candidates to reviewed EIA generator records while preserving the offline-first renderer boundary",
   "state": "active",
-  "progress_percent": 88,
+  "progress_percent": 89,
   "preview_url": "http://127.0.0.1:8001/dist/",
   "machines": [
     {
@@ -568,6 +568,12 @@
       "state": "passed",
       "summary": "Visible directed-dam browser playtest",
       "detail": "The live Energy scene displays 348 / 647 connected / mapped dams and 42 / 55 connected / hydro-purpose. The Evidence drawer states the 297 outside and two unresolved records and explicitly rejects Treasure Valley delivery, generator-capacity, or electrical-interconnection inference. Browser warning and error logs are empty. Unreal Editor and its launcher are not yet present in the checked executable and install locations, so web/offline development continues without waiting."
+    },
+    {
+      "at": "2026-09-14T21:40:57Z",
+      "state": "passed",
+      "summary": "Final 2025 EIA-860 hydropower acquisition checkpoint",
+      "detail": "Preserved the 23622347-byte official final Form EIA-860 ZIP released September 10 2026; all thirteen archive members pass CRC checks. The full scene contains 190 plants and 335 generator records, including 77 hydropower plants and 167 hydro generator records. Distance and normalized-name evidence yields 41 strong candidates, eleven broader candidates, and three unmatched hydro-purpose dams; all 55 remain pending human identity review and no electrical topology was inferred. Registry validation passed."
     }
   ]
 }

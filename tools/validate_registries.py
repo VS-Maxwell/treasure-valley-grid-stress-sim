@@ -6,6 +6,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import zipfile
 from pathlib import Path
 
 
@@ -61,6 +62,7 @@ def main() -> int:
         "receipts/usace-nid-snake-plain-20260914.json",
         "receipts/usgs-nldi-snake-weiser-20260914.json",
         "receipts/usgs-nldi-dam-comids-20260914.json",
+        "receipts/eia860-2025-final-20260914.json",
         "receipts/idwr-espam22-model-20260914.json",
         "receipts/idwr-espam22-grid-20260914.json",
         "app/public/data/idwr-espam22-heads-manifest-v1.json",
@@ -70,6 +72,7 @@ def main() -> int:
         "data/tables/usace-nid-snake-plain-dams-v3.json",
         "app/public/data/usace-nid-snake-plain-dams-manifest-v3.json",
         "app/public/data/usace-nid-snake-plain-dams-f32-v3.bin",
+        "data/tables/eia-hydropower-snake-plain-v1.json",
     ]
     for name in required_files:
         require((ROOT / name).is_file(), f"{name} exists")
@@ -691,6 +694,51 @@ def main() -> int:
         == 10_352
         and sha256(directed_binary) == directed_manifest["binary"]["sha256"],
         "directed dam browser binary matches its byte count and hash",
+    )
+
+    eia_receipt_path = ROOT / "receipts/eia860-2025-final-20260914.json"
+    eia_receipt = json.loads(eia_receipt_path.read_text(encoding="utf-8"))
+    eia_archive = (
+        Path(eia_receipt["local_root"]) / eia_receipt["object"]["file"]
+    )
+    require(
+        eia_receipt["status"] == "original-bytes-and-zip-verified"
+        and eia_archive.is_file()
+        and eia_archive.stat().st_size
+        == eia_receipt["object"]["bytes"]
+        == 23_622_347
+        and sha256(eia_archive) == eia_receipt["object"]["sha256"],
+        "final 2025 EIA-860 archive matches its original byte and hash receipt",
+    )
+    with zipfile.ZipFile(eia_archive) as archive:
+        require(
+            len([info for info in archive.infolist() if not info.is_dir()]) == 13
+            and archive.testzip() is None,
+            "final 2025 EIA-860 archive retains thirteen CRC-valid members",
+        )
+    eia_table_path = ROOT / "data/tables/eia-hydropower-snake-plain-v1.json"
+    eia_table = json.loads(eia_table_path.read_text(encoding="utf-8"))
+    require(
+        eia_table["regional_plant_count"] == 190
+        and eia_table["regional_generator_count"] == 335
+        and eia_table["hydropower_plant_count"] == len(eia_table["plants"]) == 77
+        and eia_table["hydropower_generator_count"]
+        == len(eia_table["generators"])
+        == 167
+        and eia_table["hydroelectric_purpose_dam_count"]
+        == len(eia_table["dam_hydropower_links"])
+        == 55
+        and eia_table["candidate_state_counts"]
+        == {
+            "candidate-pending-review": 11,
+            "strong-candidate-pending-review": 41,
+            "unmatched": 3,
+        }
+        and all(
+            link["review_state"] == "pending-human-review"
+            for link in eia_table["dam_hydropower_links"]
+        ),
+        "EIA hydropower table retains exact regional counts and review boundaries",
     )
 
     bottoms_manifest = json.loads(

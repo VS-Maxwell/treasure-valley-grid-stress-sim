@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "source_id": "eia860-2025-final",
+  "provider": "U.S. Energy Information Administration",
+  "source_url": "https://www.eia.gov/electricity/data/eia860/xls/eia8602025.zip",
+  "retrieved_at": "2026-09-14T21:38:05.462306Z",
+  "status": "original-bytes-and-zip-verified",
+  "local_root": "/run/media/madame-butterfly/Toshiba/Treasure_Valley_Model/data/raw/eia/form-860-2025-final-20260914",
+  "object": {
+    "file": "eia8602025.zip",
+    "bytes": 23622347,
+    "sha256": "2b27929d26cc1da9ad6a530da1cac6718cd8496098ee560c4d47cfffd96d08ba",
+    "media_type": "application/zip"
+  },
+  "archive_member_count": 13,
+  "members": [
+    {
+      "name": "LayoutY2025.xlsx",
+      "bytes": 131619,
+      "crc32": "96facbe2"
+    },
+    {
+      "name": "1___Utility_Y2025.xlsx",
+      "bytes": 553829,
+      "crc32": "f156cef6"
+    },
+    {
+      "name": "2___Plant_Y2025.xlsx",
+      "bytes": 4629134,
+      "crc32": "20ccdc32"
+    },
+    {
+      "name": "3_1_Generator_Y2025.xlsx",
+      "bytes": 11223392,
+      "crc32": "d0c3864a"
+    },
+    {
+      "name": "3_2_Wind_Y2025.xlsx",
+      "bytes": 263379,
+      "crc32": "68a2607d"
+    },
+    {
+      "name": "3_3_Solar_Y2025.xlsx",
+      "bytes": 1766608,
+      "crc32": "1aff4765"
+    },
+    {
+      "name": "3_4_Energy_Storage_Y2025.xlsx",
+      "bytes": 457955,
+      "crc32": "b01f1f55"
+    },
+    {
+      "name": "3_5_Multifuel_Y2025.xlsx",
+      "bytes": 721271,
+      "crc32": "b8fb2039"
+    },
+    {
+      "name": "4___Owner_Y2025.xlsx",
+      "bytes": 514124,
+      "crc32": "55069161"
+    },
+    {
+      "name": "6_1_EnviroAssoc_Y2025.xlsx",
+      "bytes": 1220552,
+      "crc32": "9bf35185"
+    },
+    {
+      "name": "6_2_EnviroEquip_Y2025.xlsx",
+      "bytes": 2778996,
+      "crc32": "f47f936c"
+    },
+    {
+      "name": "EIA-860 Form.xlsx",
+      "bytes": 748899,
+      "crc32": "da578ea0"
+    },
+    {
+      "name": "EIA-860 instructions.pdf",
+      "bytes": 782653,
+      "crc32": "b5243c74"
+    }
+  ],
+  "validation": {
+    "expected_bytes": 23622347,
+    "zip_central_directory": "passed",
+    "all_member_crc32": "passed",
+    "required_workbooks": [
+      "2___Plant",
+      "3_1_Generator"
+    ]
+  },
+  "limitations": [
+    "Form EIA-860 includes plants with at least one megawatt of combined nameplate capacity.",
+    "Spatial and normalized-name proximity are candidate match evidence, not automatic dam identity acceptance.",
+    "Electrical topology requires independent connection evidence."
+  ]
+}
