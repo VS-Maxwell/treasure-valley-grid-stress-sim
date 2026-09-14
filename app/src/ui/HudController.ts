@@ -2,6 +2,8 @@ import { SCENE_CONTENT } from "../simulation/sceneContent";
 import type { GridCore } from "../data/gridTypes";
 import { nearestHeadSlice } from "../data/loadTvgwfmHeads";
 import { nearestBudgetRow } from "../data/loadTvgwfmTimeseries";
+import { nearestMeasuredYear } from "../data/loadMeasuredGroundwater";
+import type { MeasuredGroundwater } from "../data/measuredGroundwater";
 import type { OfflinePackManifest } from "../data/offlinePack";
 import type { TvgwfmHeads } from "../data/tvgwfmHeads";
 import type { TvgwfmTimeseries } from "../data/tvgwfmTimeseries";
@@ -40,6 +42,7 @@ export class HudController {
   readonly #grid: GridCore;
   readonly #tvgwfmHeads: TvgwfmHeads;
   readonly #tvgwfmTimeseries: TvgwfmTimeseries;
+  readonly #measuredGroundwater: MeasuredGroundwater;
   readonly #offlinePack: OfflinePackManifest;
   readonly #actions: HudActions;
   readonly #app = required<HTMLElement>("#app");
@@ -70,6 +73,7 @@ export class HudController {
     grid: GridCore,
     tvgwfmHeads: TvgwfmHeads,
     tvgwfmTimeseries: TvgwfmTimeseries,
+    measuredGroundwater: MeasuredGroundwater,
     offlinePack: OfflinePackManifest,
     actions: HudActions,
   ) {
@@ -77,6 +81,7 @@ export class HudController {
     this.#grid = grid;
     this.#tvgwfmHeads = tvgwfmHeads;
     this.#tvgwfmTimeseries = tvgwfmTimeseries;
+    this.#measuredGroundwater = measuredGroundwater;
     this.#offlinePack = offlinePack;
     this.#actions = actions;
   }
@@ -130,7 +135,7 @@ export class HudController {
       state.playing ? "Pause timeline" : "Play timeline",
     );
     this.#comparison.hidden = !state.compare;
-    this.#renderContext(state.scene, state.year);
+    this.#renderContext(state.scene, state.year, state.compare);
     this.#renderDrawer(state);
   }
 
@@ -159,7 +164,7 @@ export class HudController {
     this.#loading.classList.add("ready");
   }
 
-  #renderContext(scene: SceneId, year: number): void {
+  #renderContext(scene: SceneId, year: number, compare: boolean): void {
     const content = SCENE_CONTENT[scene];
     const selectedHeadSlice =
       scene === "water"
@@ -193,6 +198,8 @@ export class HudController {
     if (scene === "water") {
       this.#renderWaterChart(
         nearestBudgetRow(this.#tvgwfmTimeseries.budget.rows, year),
+        compare,
+        year,
       );
     } else if (scene === "record") {
       this.#renderOfflinePack();
@@ -222,7 +229,11 @@ export class HudController {
     this.#contextChart.hidden = false;
   }
 
-  #renderWaterChart(selectedIndex: number): void {
+  #renderWaterChart(
+    selectedIndex: number,
+    showMeasured: boolean,
+    year: number,
+  ): void {
     const rows = this.#tvgwfmTimeseries.budget.rows;
     const selected = rows[selectedIndex];
     if (!selected) return;
@@ -286,7 +297,24 @@ export class HudController {
     boundary.className = "context-chart-boundary";
     boundary.textContent =
       "Reproduced MODFLOW output · not direct field observations";
-    this.#contextChart.replaceChildren(svg, caption, boundary);
+    const content: Node[] = [svg, caption, boundary];
+    if (showMeasured) {
+      const selectedMeasured =
+        this.#measuredGroundwater.years[
+          nearestMeasuredYear(this.#measuredGroundwater, year)
+        ];
+      if (selectedMeasured) {
+        const measured = document.createElement("p");
+        measured.className = "measured-comparison";
+        measured.textContent = `${selectedMeasured.year} measured depth distribution · median ${selectedMeasured.median_depth_ft.toFixed(1)} ft below land · ${selectedMeasured.measurement_count.toLocaleString()} readings at ${selectedMeasured.monitoring_location_count.toLocaleString()} locations`;
+        const measuredBoundary = document.createElement("p");
+        measuredBoundary.className = "context-chart-boundary";
+        measuredBoundary.textContent =
+          "Observed distribution only · not datum-matched to modeled head";
+        content.push(measured, measuredBoundary);
+      }
+    }
+    this.#contextChart.replaceChildren(...content);
     this.#contextChart.hidden = false;
   }
 

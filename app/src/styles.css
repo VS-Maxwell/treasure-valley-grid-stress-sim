@@ -367,6 +367,14 @@ button {
   font-size: 9px;
   list-style: none;
 }
+.measured-comparison {
+  margin: 8px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid rgba(94, 234, 212, 0.22);
+  color: #b8fff3;
+  font-size: 10px;
+  line-height: 1.35;
+}
 
 .action-bar {
   left: 50%;

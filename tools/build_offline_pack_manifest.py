@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "app/public/data/offline-pack-manifest.json"
+OUTPUT = ROOT / "app/public/data/offline-pack-manifest-v2.json"
 ARTIFACTS = (
     ("tvgwfm-grid", "app/public/data/tvgwfm-grid.json", "application/json", "ingested"),
     (
@@ -35,6 +35,12 @@ ARTIFACTS = (
         "app/public/data/tvgwfm-timeseries.json",
         "application/json",
         "modeled-screening",
+    ),
+    (
+        "usgs-groundwater-annual",
+        "app/public/data/usgs-groundwater-annual.json",
+        "application/json",
+        "observed",
     ),
 )
 
@@ -65,8 +71,8 @@ def main() -> int:
         )
     payload = {
         "schema_version": 1,
-        "id": "treasure-valley-historical-water-pack-v1",
-        "created_at": "2026-09-14T19:25:00Z",
+        "id": "treasure-valley-historical-water-pack-v2",
+        "created_at": "2026-09-14T19:30:00Z",
         "source_doi": "10.5066/P9U6OOPH",
         "network_required": False,
         "artifact_count": len(artifacts),

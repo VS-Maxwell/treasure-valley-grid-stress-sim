@@ -28,7 +28,10 @@ Updated: 2026-09-14
 - [x] Animate the six model-head surfaces from the shared year state and disclose the nearest displayed source year.
 - [x] Extract 361 monthly water-budget rows and 33 simulated-observation series into a compact, receipt-backed chart table.
 - [x] Render the Water panel's monthly modeled inflow/outflow chart with timeline selection and explicit non-observation boundary.
-- [x] Build and validate an immutable five-artifact, 1,143,499-byte offline historical-water manifest and expose it in the Record scene.
+- [x] Build and validate an immutable six-artifact, 1,151,343-byte offline historical-water manifest and expose it in the Record scene.
+- [x] Acquire and byte-verify 19,696 official USGS discrete groundwater-depth measurements from 3,168 locations inside the model footprint for 1986–2015.
+- [ ] Define and validate the datum-aware spatial match from measured well depth to model cell/head before showing measured-versus-modeled comparisons.
+- [x] Expose annual observed depth distributions only behind the explicit Compare action, with 77 null source values and the no-datum-match boundary visible.
 
 ## Later phases
 

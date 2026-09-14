@@ -1,10 +1,10 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-14T19:21:33Z",
+  "updated_at": "2026-09-14T19:30:46Z",
   "phase": "Phase 2 - Historical water data plane",
-  "task": "Normalize source metadata and measured-data overlay contracts",
+  "task": "Specify datum-aware measured-well to model-cell matching",
   "state": "passed",
-  "progress_percent": 34,
+  "progress_percent": 41,
   "preview_url": "http://127.0.0.1:8001/dist/",
   "machines": [
     {
@@ -101,7 +101,15 @@
     "app/src/data/offlinePack.ts",
     "app/src/data/loadOfflinePack.ts",
     "app/src/data/offlinePack.test.ts",
-    "tools/validate_registries.py"
+    "tools/validate_registries.py",
+    "tools/acquire_usgs_groundwater_measurements.py",
+    "tools/pack_usgs_groundwater_measurements.py",
+    "app/public/data/usgs-groundwater-annual.json",
+    "app/src/data/loadMeasuredGroundwater.ts",
+    "app/src/data/measuredGroundwater.ts",
+    "receipts/usgs-groundwater-field-measurements-20260914.json",
+    "app/public/data/offline-pack-manifest-v2.json",
+    "app/src/data/measuredGroundwater.test.ts"
   ],
   "events": [
     {
@@ -247,6 +255,48 @@
       "state": "passed",
       "summary": "Immutable historical-water pack is visible and verified",
       "detail": "Five local artifacts totaling 1143499 bytes have build-time SHA-256 and byte receipts; 21 tests and every registry, build, dist, release, direct-entry, and live-browser gate pass. Record scene displays the inventory with no runtime network dependency; browser errors and warnings are empty."
+    },
+    {
+      "at": "2026-09-14T19:22:36Z",
+      "state": "failed",
+      "summary": "Legacy USGS groundwater-level endpoint has moved",
+      "detail": "The bounded 1986-2015 groundwater-level request returned a 301 HTML migration notice, not data. The response was kept only in temporary storage and is excluded from the project; migrating the adapter to api.waterdata.usgs.gov."
+    },
+    {
+      "at": "2026-09-14T19:23:34Z",
+      "state": "active",
+      "summary": "Acquiring bounded USGS measured groundwater history",
+      "detail": "Using the current official field-measurements OGC endpoint for parameter 72019 inside the published TVGWFM footprint and 1986-2015 baseline dates; raw pages are preserved on T drive with SHA-256 receipts and strict spatial, temporal, and parameter validation."
+    },
+    {
+      "at": "2026-09-14T19:25:42Z",
+      "state": "active",
+      "summary": "Building explicit measured-groundwater comparison",
+      "detail": "Aggregating the verified irregular parameter-72019 field readings by year, retaining counts, site counts, approval totals, depth quantiles, source hashes, and a no-datum-match boundary; the overlay will appear only under the explicit Compare action."
+    },
+    {
+      "at": "2026-09-14T19:26:37Z",
+      "state": "failed",
+      "summary": "Measured groundwater pack found provider null values",
+      "detail": "The first aggregation attempt correctly failed instead of coercing missing readings: some USGS field-measurement records have null numeric values. Updating the contract to preserve source record count and report excluded-null count separately."
+    },
+    {
+      "at": "2026-09-14T19:28:03Z",
+      "state": "failed",
+      "summary": "Measured overlay type contract failed the first compile",
+      "detail": "The initial patch placed source-wide count fields on annual rows and typed the mixed SVG/HTML node list too narrowly. Correcting the interfaces rather than weakening strict TypeScript."
+    },
+    {
+      "at": "2026-09-14T19:28:57Z",
+      "state": "failed",
+      "summary": "Live browser caught stale immutable-pack manifest",
+      "detail": "After the six-artifact build passed, the browser reused cached v1 manifest bytes and the v2 loader failed closed. Preserving v1 and publishing the changed pack under a new v2 filename and identity."
+    },
+    {
+      "at": "2026-09-14T19:30:46Z",
+      "state": "passed",
+      "summary": "Observed groundwater Compare overlay passes clean browser gate",
+      "detail": "Fresh cache-busted tab loaded immutable pack v2, Water year 2000, modeled budget chart, and observed depth distribution with explicit no-datum-match boundary. 23 tests, source-page hashes, missingness totals, registries, strict typing, build, dist, release, and browser error/warning checks pass."
     }
   ]
 }

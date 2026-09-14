@@ -12,34 +12,34 @@ const artifact = (id: string) => ({
 });
 
 describe("validateOfflinePack", () => {
-  it("accepts a complete five-artifact offline pack", () => {
-    const artifacts = [1, 2, 3, 4, 5].map((id) => artifact(String(id)));
+  it("accepts a complete six-artifact offline pack", () => {
+    const artifacts = [1, 2, 3, 4, 5, 6].map((id) => artifact(String(id)));
     expect(
       validateOfflinePack({
         schema_version: 1,
-        id: "treasure-valley-historical-water-pack-v1",
+        id: "treasure-valley-historical-water-pack-v2",
         created_at: "2026-09-14T19:25:00Z",
         source_doi: "10.5066/P9U6OOPH",
         network_required: false,
-        artifact_count: 5,
-        total_bytes: 50,
+        artifact_count: 6,
+        total_bytes: 60,
         artifacts,
         validation_boundary: "Build-time hashes.",
       }).total_bytes,
-    ).toBe(50);
+    ).toBe(60);
   });
 
   it("rejects a manifest whose byte receipt does not balance", () => {
-    const artifacts = [1, 2, 3, 4, 5].map((id) => artifact(String(id)));
+    const artifacts = [1, 2, 3, 4, 5, 6].map((id) => artifact(String(id)));
     expect(() =>
       validateOfflinePack({
         schema_version: 1,
-        id: "treasure-valley-historical-water-pack-v1",
+        id: "treasure-valley-historical-water-pack-v2",
         created_at: "2026-09-14T19:25:00Z",
         source_doi: "10.5066/P9U6OOPH",
         network_required: false,
-        artifact_count: 5,
-        total_bytes: 49,
+        artifact_count: 6,
+        total_bytes: 59,
         artifacts,
         validation_boundary: "Build-time hashes.",
       }),

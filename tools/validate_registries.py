@@ -41,6 +41,8 @@ def main() -> int:
         "receipts/usgs-tvgwfm-core-20260914.json",
         "receipts/tvgwfm-baseline-reproduction-20260914.json",
         "app/public/data/offline-pack-manifest.json",
+        "app/public/data/offline-pack-manifest-v2.json",
+        "receipts/usgs-groundwater-field-measurements-20260914.json",
     ]
     for name in required_files:
         require((ROOT / name).is_file(), f"{name} exists")
@@ -115,7 +117,7 @@ def main() -> int:
     )
 
     offline_pack = json.loads(
-        (ROOT / "app/public/data/offline-pack-manifest.json").read_text(
+        (ROOT / "app/public/data/offline-pack-manifest-v2.json").read_text(
             encoding="utf-8"
         )
     )
@@ -124,8 +126,8 @@ def main() -> int:
         "historical water pack has no runtime network dependency",
     )
     require(
-        offline_pack["artifact_count"] == len(offline_pack["artifacts"]) == 5,
-        "historical water pack has five manifested artifacts",
+        offline_pack["artifact_count"] == len(offline_pack["artifacts"]) == 6,
+        "historical water pack has six manifested artifacts",
     )
     verified_bytes = 0
     for artifact in offline_pack["artifacts"]:
@@ -137,6 +139,37 @@ def main() -> int:
     require(
         verified_bytes == offline_pack["total_bytes"],
         "historical water pack byte total balances",
+    )
+
+    field_receipt = json.loads(
+        (
+            ROOT / "receipts/usgs-groundwater-field-measurements-20260914.json"
+        ).read_text(encoding="utf-8")
+    )
+    require(
+        field_receipt["status"] == "original-api-pages-verified",
+        "USGS field-measurement receipt records verified original API pages",
+    )
+    require(
+        field_receipt["parameter_code"] == "72019"
+        and field_receipt["bbox_epsg_4326"]
+        == [-117.1163, 43.1762, -115.8097, 44.1081],
+        "USGS field measurements retain parameter and spatial bounds",
+    )
+    field_root = Path(field_receipt["local_root"])
+    field_bytes = 0
+    field_features = 0
+    for page in field_receipt["pages"]:
+        path = field_root / page["file"]
+        require(path.is_file(), f"field-measurement page exists: {page['page']}")
+        require(path.stat().st_size == page["bytes"], f"field-measurement page byte count matches: {page['page']}")
+        require(sha256(path) == page["sha256"], f"field-measurement page SHA-256 matches: {page['page']}")
+        field_bytes += path.stat().st_size
+        field_features += page["feature_count"]
+    require(
+        field_bytes == field_receipt["total_bytes"]
+        and field_features == field_receipt["measurement_count"],
+        "USGS field-measurement page totals balance",
     )
 
     policy = (ROOT / "RESTRICTED_DATA_POLICY.md").read_text(encoding="utf-8")

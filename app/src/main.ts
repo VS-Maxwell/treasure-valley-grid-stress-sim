@@ -2,6 +2,7 @@ import "./styles.css";
 
 import { RuntimeDiagnostics } from "./diagnostics/RuntimeDiagnostics";
 import { loadGridCore } from "./data/loadGridCore";
+import { loadMeasuredGroundwater } from "./data/loadMeasuredGroundwater";
 import { loadOfflinePack } from "./data/loadOfflinePack";
 import { loadTvgwfmGrid } from "./data/loadTvgwfmGrid";
 import { loadTvgwfmHeads } from "./data/loadTvgwfmHeads";
@@ -30,14 +31,21 @@ function required<T extends HTMLElement>(selector: string): T {
 async function boot(): Promise<void> {
   const diagnostics = new RuntimeDiagnostics();
   window.TV_SIM_DIAGNOSTICS = () => diagnostics.snapshot();
-  const [grid, tvgwfm, tvgwfmHeads, tvgwfmTimeseries, offlinePack] =
-    await Promise.all([
-      loadGridCore(),
-      loadTvgwfmGrid(),
-      loadTvgwfmHeads(),
-      loadTvgwfmTimeseries(),
-      loadOfflinePack(),
-    ]);
+  const [
+    grid,
+    tvgwfm,
+    tvgwfmHeads,
+    tvgwfmTimeseries,
+    measuredGroundwater,
+    offlinePack,
+  ] = await Promise.all([
+    loadGridCore(),
+    loadTvgwfmGrid(),
+    loadTvgwfmHeads(),
+    loadTvgwfmTimeseries(),
+    loadMeasuredGroundwater(),
+    loadOfflinePack(),
+  ]);
   diagnostics.setDataReceipt(
     grid.source_sha256,
     grid.trans.features.length,
@@ -72,6 +80,7 @@ async function boot(): Promise<void> {
     grid,
     tvgwfmHeads,
     tvgwfmTimeseries,
+    measuredGroundwater,
     offlinePack,
     actions,
   );
