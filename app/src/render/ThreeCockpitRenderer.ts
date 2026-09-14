@@ -23,6 +23,7 @@ import type { TvgwfmHeads } from "../data/tvgwfmHeads";
 import type { MeasuredGroundwaterSites } from "../data/measuredGroundwaterSites";
 import type { RegionalDams } from "../data/regionalDams";
 import type { EiaHydropower } from "../data/eiaHydropower";
+import type { EiaRegionalEnergy } from "../data/eiaRegionalEnergy";
 import type { TvgwfmBottoms } from "../data/tvgwfmBottoms";
 import {
   terrainWorldHeight,
@@ -40,6 +41,19 @@ const VOLTAGE_COLORS = {
   high: 0xff9148,
   bulk: 0xff4658,
 } as const;
+
+const EIA_TECHNOLOGY_COLORS = [
+  0xffe082, // hydropower
+  0xffc928, // solar
+  0x62d9ff, // wind
+  0xec72ff, // storage
+  0xff8a4c, // natural gas
+  0xff5d5d, // geothermal
+  0x70d779, // biomass
+  0xa8784d, // petroleum
+  0xa78bfa, // nuclear
+  0xb7c2cc, // other
+] as const;
 
 type VoltageClass = keyof typeof VOLTAGE_COLORS;
 
@@ -61,6 +75,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   readonly #regionalTerrain: RegionalTerrain | null;
   readonly #regionalDams: RegionalDams | null;
   readonly #eiaHydropower: EiaHydropower | null;
+  readonly #eiaRegionalEnergy: EiaRegionalEnergy | null;
   readonly #tvgwfmBottoms: TvgwfmBottoms | null;
   readonly #espamGrid: EspamGrid | null;
   readonly #espamHeads: EspamHeads | null;
@@ -91,6 +106,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   #damPoints: THREE.Points | null = null;
   #hydroDamPoints: THREE.Points | null = null;
   #eiaHydropowerPoints: THREE.Points | null = null;
+  #eiaRegionalEnergyPoints: THREE.Points | null = null;
   #espamGridLines: THREE.LineSegments | null = null;
   #espamHeadSurface: THREE.Mesh<
     THREE.BufferGeometry,
@@ -118,6 +134,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     regionalTerrain: RegionalTerrain | null,
     regionalDams: RegionalDams | null,
     eiaHydropower: EiaHydropower | null,
+    eiaRegionalEnergy: EiaRegionalEnergy | null,
     tvgwfmBottoms: TvgwfmBottoms | null,
     espamGrid: EspamGrid | null,
     espamHeads: EspamHeads | null,
@@ -134,6 +151,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#regionalTerrain = regionalTerrain;
     this.#regionalDams = regionalDams;
     this.#eiaHydropower = eiaHydropower;
+    this.#eiaRegionalEnergy = eiaRegionalEnergy;
     this.#tvgwfmBottoms = tvgwfmBottoms;
     this.#espamGrid = espamGrid;
     this.#espamHeads = espamHeads;
@@ -306,7 +324,10 @@ export class ThreeCockpitRenderer implements RendererAdapter {
         state.scene === "nexus" ||
         state.scene === "risk";
     if (this.#eiaHydropowerPoints)
-      this.#eiaHydropowerPoints.visible = state.scene === "energy";
+      this.#eiaHydropowerPoints.visible =
+        state.scene === "energy" && !this.#eiaRegionalEnergyPoints;
+    if (this.#eiaRegionalEnergyPoints)
+      this.#eiaRegionalEnergyPoints.visible = state.scene === "energy";
     if (this.#espamGridLines)
       this.#espamGridLines.visible =
         state.scene === "water" ||
@@ -452,6 +473,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#addMeasuredGroundwaterSites();
     this.#addRegionalDams();
     this.#addEiaHydropowerPlants();
+    this.#addEiaRegionalEnergyGenerators();
 
     this.#addGridLines();
     this.#addScreeningBranches();
@@ -822,6 +844,49 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#eiaHydropowerPoints.name = "eia860-final-2025-hydropower-plants-77";
     this.#eiaHydropowerPoints.visible = false;
     this.#scene.add(this.#eiaHydropowerPoints);
+  }
+
+  #addEiaRegionalEnergyGenerators(): void {
+    if (!this.#eiaRegionalEnergy) return;
+    const positions: number[] = [];
+    const colors: number[] = [];
+    const values = this.#eiaRegionalEnergy.values;
+    for (let index = 0; index < values.length; index += 5) {
+      const point = this.#projectPosition([values[index]!, values[index + 1]!]);
+      const technologyCode = Math.round(values[index + 3]!);
+      const lifecycleCode = Math.round(values[index + 4]!);
+      const elevation =
+        lifecycleCode === 1 ? 3.1 : lifecycleCode === 0 ? 2.1 : 1.25;
+      positions.push(point.x, point.y + elevation, point.z);
+      const base = new THREE.Color(
+        EIA_TECHNOLOGY_COLORS[technologyCode] ?? 0xb7c2cc,
+      );
+      if (lifecycleCode === 1) base.lerp(new THREE.Color(0xffffff), 0.28);
+      else if (lifecycleCode >= 2)
+        base.lerp(new THREE.Color(0x52606c), lifecycleCode === 2 ? 0.48 : 0.7);
+      colors.push(base.r, base.g, base.b);
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(positions, 3),
+    );
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    this.#eiaRegionalEnergyPoints = new THREE.Points(
+      geometry,
+      new THREE.PointsMaterial({
+        vertexColors: true,
+        size: 2.3,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: 0.94,
+        depthWrite: false,
+      }),
+    );
+    this.#eiaRegionalEnergyPoints.name =
+      "eia860-final-2025-regional-generators-335";
+    this.#eiaRegionalEnergyPoints.visible = false;
+    this.#scene.add(this.#eiaRegionalEnergyPoints);
   }
 
   #addTvgwfmSurface(): void {

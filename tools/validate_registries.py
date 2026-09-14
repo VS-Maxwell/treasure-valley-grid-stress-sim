@@ -54,6 +54,7 @@ def main() -> int:
         "app/public/data/offline-pack-manifest-v11.json",
         "app/public/data/offline-pack-manifest-v12.json",
         "app/public/data/offline-pack-manifest-v13.json",
+        "app/public/data/offline-pack-manifest-v14.json",
         "app/public/data/grid-screening-model.json",
         "receipts/usgs-groundwater-field-measurements-20260914.json",
         "receipts/usgs-monitoring-locations-20260914.json",
@@ -76,6 +77,9 @@ def main() -> int:
         "data/tables/eia-hydropower-snake-plain-v1.json",
         "app/public/data/eia-hydropower-manifest-v1.json",
         "app/public/data/eia-hydropower-f32-v1.bin",
+        "data/tables/eia-regional-energy-snake-plain-v1.json",
+        "app/public/data/eia-regional-energy-manifest-v1.json",
+        "app/public/data/eia-regional-energy-f32-v1.bin",
     ]
     for name in required_files:
         require((ROOT / name).is_file(), f"{name} exists")
@@ -150,7 +154,7 @@ def main() -> int:
     )
 
     offline_pack = json.loads(
-        (ROOT / "app/public/data/offline-pack-manifest-v13.json").read_text(
+        (ROOT / "app/public/data/offline-pack-manifest-v14.json").read_text(
             encoding="utf-8"
         )
     )
@@ -159,8 +163,8 @@ def main() -> int:
         "historical earth pack has no runtime network dependency",
     )
     require(
-        offline_pack["artifact_count"] == len(offline_pack["artifacts"]) == 23,
-        "offline earth pack v13 has twenty-three manifested artifacts",
+        offline_pack["artifact_count"] == len(offline_pack["artifacts"]) == 25,
+        "offline earth pack v14 has twenty-five manifested artifacts",
     )
     verified_bytes = 0
     for artifact in offline_pack["artifacts"]:
@@ -762,6 +766,59 @@ def main() -> int:
         eia_binary.stat().st_size == eia_manifest["binary"]["bytes"] == 1_232
         and sha256(eia_binary) == eia_manifest["binary"]["sha256"],
         "EIA hydropower browser binary matches its byte and hash receipt",
+    )
+    regional_energy_table_path = (
+        ROOT / "data/tables/eia-regional-energy-snake-plain-v1.json"
+    )
+    regional_energy_table = json.loads(
+        regional_energy_table_path.read_text(encoding="utf-8")
+    )
+    require(
+        regional_energy_table["plant_count"]
+        == regional_energy_table["plants_with_generators"]
+        == len(regional_energy_table["plants"])
+        == 190
+        and regional_energy_table["generator_count"]
+        == len(regional_energy_table["generators"])
+        == 335
+        and regional_energy_table["generator_lifecycle_counts"]
+        == {
+            "operable": 287,
+            "proposed": 18,
+            "retired": 14,
+            "canceled": 15,
+            "indefinitely-postponed": 1,
+        }
+        and sum(regional_energy_table["generator_technology_counts"].values())
+        == 335,
+        "EIA regional energy table retains every plant and generator lifecycle",
+    )
+    regional_energy_manifest = json.loads(
+        (
+            ROOT / "app/public/data/eia-regional-energy-manifest-v1.json"
+        ).read_text(encoding="utf-8")
+    )
+    regional_energy_binary = (
+        ROOT / "app/public/data/eia-regional-energy-f32-v1.bin"
+    )
+    require(
+        regional_energy_manifest["plant_count"] == 190
+        and regional_energy_manifest["generator_count"] == 335
+        and regional_energy_manifest["generator_lifecycle_counts"]
+        == regional_energy_table["generator_lifecycle_counts"]
+        and regional_energy_manifest["generator_technology_counts"]
+        == regional_energy_table["generator_technology_counts"]
+        and regional_energy_manifest["normalized_table_sha256"]
+        == sha256(regional_energy_table_path),
+        "EIA regional energy browser manifest retains lifecycle and technology counts",
+    )
+    require(
+        regional_energy_binary.stat().st_size
+        == regional_energy_manifest["binary"]["bytes"]
+        == 6_700
+        and sha256(regional_energy_binary)
+        == regional_energy_manifest["binary"]["sha256"],
+        "EIA regional energy browser binary matches its byte and hash receipt",
     )
 
     bottoms_manifest = json.loads(

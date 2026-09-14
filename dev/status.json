@@ -1,10 +1,10 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-14T21:45:07Z",
-  "phase": "Phase 3 - full-plain water and energy inventory",
-  "task": "Match the directed hydropower candidates to reviewed EIA generator records while preserving the offline-first renderer boundary",
+  "updated_at": "2026-09-14T21:54:37Z",
+  "phase": "Phase 4 - full-plain energy lifecycle inventory",
+  "task": "Reconstruct a typed fresh solve for the 94-bus screening graph without fabricating unresolved TAP identities",
   "state": "active",
-  "progress_percent": 90,
+  "progress_percent": 91,
   "preview_url": "http://127.0.0.1:8001/dist/",
   "machines": [
     {
@@ -580,6 +580,24 @@
       "state": "passed",
       "summary": "Offline EIA hydropower graphics checkpoint",
       "detail": "Offline pack v13 now includes 23 hash-verified artifacts totaling 3663317 source bytes and renders 77 independent final-2025 EIA hydropower plant points in Energy. The visible UI reports 167 generator records and 2533.9 MW of reported nameplate capacity while keeping 41 strong candidates, eleven broader candidates, and three unmatched dams pending human identity review. Full validation passed 39 TypeScript tests, five gateway tests, all source and registry checks, production build, and a 54-file 8226862-byte secret scan; the visible browser has no warning or error logs."
+    },
+    {
+      "at": "2026-09-14T21:46:40Z",
+      "state": "active",
+      "summary": "Full EIA regional energy lifecycle graphics",
+      "detail": "Expanding the preserved final-2025 Form EIA-860 archive from the hydropower subset to every generator in the 119W-111W by 42N-46N scene. Operable, proposed, retired, and canceled records will remain distinct; technology symbols will be renderer-only, and no plant-to-dam or plant-to-grid identity will be inferred."
+    },
+    {
+      "at": "2026-09-14T21:51:31Z",
+      "state": "failed",
+      "summary": "Forwarded Vitest flag again reached Python unittest",
+      "detail": "Strict TypeScript typecheck and all 41 Vitest tests passed, but the extra --run flag was forwarded by the combined npm wrapper to Python unittest and rejected. No project data changed; the normal npm test command is the corrective validation."
+    },
+    {
+      "at": "2026-09-14T21:54:37Z",
+      "state": "passed",
+      "summary": "Complete EIA regional lifecycle graphics checkpoint",
+      "detail": "Offline pack v14 contains 25 hash-verified artifacts totaling 3672183 source bytes and renders all 335 final-2025 EIA generator records at 190 plants using ten technology classes. Lifecycle remains explicit: 287 operable, 18 proposed, 14 retired, 15 canceled, and one indefinitely postponed. Full validation passed 41 TypeScript tests, five gateway tests, all source and registry checks, production build, and a 57-file 8258529-byte secret scan. The live Energy scene and Evidence drawer show the new counts, Esri attribution remains visible, and browser warnings/errors are empty; screenshot capture remains unavailable."
     }
   ]
 }

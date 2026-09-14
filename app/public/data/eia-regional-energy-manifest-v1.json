@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "id": "eia860-2025-snake-plain-regional-energy-points-v1",
+  "truth_state": "ingested",
+  "normalized_table": "data/tables/eia-regional-energy-snake-plain-v1.json",
+  "normalized_table_sha256": "850a5b61be6d2a77f670824dfef5adf49783d13bca2ba35c025338fce8132b65",
+  "bbox_epsg_4326": [
+    -119.0,
+    42.0,
+    -111.0,
+    46.0
+  ],
+  "plant_count": 190,
+  "plants_with_generators": 190,
+  "generator_count": 335,
+  "generator_lifecycle_counts": {
+    "operable": 287,
+    "proposed": 18,
+    "retired": 14,
+    "canceled": 15,
+    "indefinitely-postponed": 1
+  },
+  "generator_technology_counts": {
+    "hydropower": 167,
+    "solar": 36,
+    "wind": 48,
+    "storage": 14,
+    "natural-gas": 32,
+    "geothermal": 6,
+    "biomass": 17,
+    "petroleum": 2,
+    "nuclear": 12,
+    "other": 1
+  },
+  "reported_nameplate_capacity_mw_by_lifecycle": {
+    "operable": 6316.2,
+    "proposed": 1703.9,
+    "retired": 39.3,
+    "canceled": 1000.0,
+    "indefinitely-postponed": 12.5
+  },
+  "technology_codes": {
+    "hydropower": 0,
+    "solar": 1,
+    "wind": 2,
+    "storage": 3,
+    "natural-gas": 4,
+    "geothermal": 5,
+    "biomass": 6,
+    "petroleum": 7,
+    "nuclear": 8,
+    "other": 9
+  },
+  "lifecycle_codes": {
+    "operable": 0,
+    "proposed": 1,
+    "retired": 2,
+    "canceled": 3,
+    "indefinitely-postponed": 4
+  },
+  "binary": {
+    "file": "eia-regional-energy-f32-v1.bin",
+    "bytes": 6700,
+    "sha256": "6c3785d65876dc2e15a342dfd710fc64c0e49fd8af6646a2aeac369fcf7e876b",
+    "encoding": "little-endian-float32",
+    "stride": 5,
+    "order": "longitude-latitude-reported-nameplate-capacity-mw-technology-code-lifecycle-code"
+  },
+  "limitations": [
+    "Plant and generator locations are reported EIA records inside the explicit scene bounds.",
+    "Lifecycle is derived from the official EIA workbook sheet and retained status code; canceled and indefinitely postponed records are not called planned or active.",
+    "Reported nameplate capacity is not a claim of current output, dispatch, availability, or grid interconnection.",
+    "No EIA plant is linked to a NID dam, model bus, or branch by this transform."
+  ]
+}

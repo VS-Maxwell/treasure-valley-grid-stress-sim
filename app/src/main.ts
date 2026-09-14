@@ -2,6 +2,7 @@ import "./styles.css";
 
 import { RuntimeDiagnostics } from "./diagnostics/RuntimeDiagnostics";
 import { loadEiaHydropower } from "./data/loadEiaHydropower";
+import { loadEiaRegionalEnergy } from "./data/loadEiaRegionalEnergy";
 import { loadEnergyScreening } from "./data/loadEnergyScreening";
 import { loadEspamGrid } from "./data/loadEspamGrid";
 import { loadEspamHeads } from "./data/loadEspamHeads";
@@ -55,6 +56,7 @@ async function boot(): Promise<void> {
     espamLoad,
     espamHeadLoad,
     hydropowerLoad,
+    regionalEnergyLoad,
     energyScreening,
   ] = await Promise.all([
     loadGridCore(),
@@ -114,6 +116,15 @@ async function boot(): Promise<void> {
             ? error.message
             : "Unknown EIA hydropower load error",
       })),
+    loadEiaRegionalEnergy()
+      .then((regionalEnergy) => ({ regionalEnergy, error: null }))
+      .catch((error: unknown) => ({
+        regionalEnergy: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown EIA regional energy load error",
+      })),
     loadEnergyScreening(),
   ]);
   if (terrainLoad.error)
@@ -128,6 +139,11 @@ async function boot(): Promise<void> {
     console.error("IDWR ESPAM archived heads unavailable", espamHeadLoad.error);
   if (hydropowerLoad.error)
     console.error("EIA hydropower inventory unavailable", hydropowerLoad.error);
+  if (regionalEnergyLoad.error)
+    console.error(
+      "EIA regional energy inventory unavailable",
+      regionalEnergyLoad.error,
+    );
   diagnostics.setDataReceipt(
     grid.source_sha256,
     grid.trans.features.length,
@@ -170,6 +186,8 @@ async function boot(): Promise<void> {
     damLoad.error,
     hydropowerLoad.hydropower,
     hydropowerLoad.error,
+    regionalEnergyLoad.regionalEnergy,
+    regionalEnergyLoad.error,
     bottomLoad.bottoms,
     bottomLoad.error,
     espamLoad.espam,
@@ -243,6 +261,7 @@ async function boot(): Promise<void> {
         terrainLoad.terrain,
         damLoad.dams,
         hydropowerLoad.hydropower,
+        regionalEnergyLoad.regionalEnergy,
         bottomLoad.bottoms,
         espamLoad.espam,
         espamHeadLoad.heads,

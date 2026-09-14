@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "app/public/data/offline-pack-manifest-v13.json"
+OUTPUT = ROOT / "app/public/data/offline-pack-manifest-v14.json"
 ARTIFACTS = (
     ("tvgwfm-grid", "app/public/data/tvgwfm-grid.json", "application/json", "ingested"),
     (
@@ -144,6 +144,18 @@ ARTIFACTS = (
         "application/octet-stream",
         "ingested",
     ),
+    (
+        "eia860-2025-regional-energy-manifest-v1",
+        "app/public/data/eia-regional-energy-manifest-v1.json",
+        "application/json",
+        "ingested",
+    ),
+    (
+        "eia860-2025-regional-energy-f32-v1",
+        "app/public/data/eia-regional-energy-f32-v1.bin",
+        "application/octet-stream",
+        "ingested",
+    ),
 )
 
 
@@ -173,8 +185,8 @@ def main() -> int:
         )
     payload = {
         "schema_version": 1,
-        "id": "treasure-valley-offline-earth-pack-v13",
-        "created_at": "2026-09-14T21:32:00Z",
+        "id": "treasure-valley-offline-earth-pack-v14",
+        "created_at": "2026-09-14T21:46:40Z",
         "source_doi": "10.5066/P9U6OOPH",
         "network_required": False,
         "artifact_count": len(artifacts),

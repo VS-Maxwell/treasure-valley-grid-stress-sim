@@ -90,7 +90,7 @@ All dams that feed the region are selected by watershed connectivity, not a boun
 | `grid_project` | one row per project/version | Wind, solar, hydro, storage, transmission or substation project; proposed/queued/active/retired/canceled kept distinct |
 | `power_flow_result` | run/time/bus-or-branch | Voltage angle/magnitude, MW/Mvar flow, loading and solver receipt |
 
-The visible map may show all receipted projects, but the solver uses only buses and branches with adequate topology and electrical parameters. The current 94-bus/156-branch screening graph is the next interactive target; proximity alone cannot create a new electrical connection.
+The final 2025 EIA-860 archive currently contributes all 190 plants and 335 generator records in the full Snake Plain scene. Lifecycle is kept explicit: 287 operable, 18 proposed, 14 retired, 15 canceled and one indefinitely postponed; the renderer does not collapse those states into “active projects.” The visible map may show all receipted projects, but the solver uses only buses and branches with adequate topology and electrical parameters. The current 94-bus/156-branch screening graph is the next interactive target; proximity alone cannot create a new electrical connection.
 
 ## Climate, atmosphere, land and pollutants
 
