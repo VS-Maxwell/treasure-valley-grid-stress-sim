@@ -12,12 +12,24 @@ describe("SimulationStore", () => {
 
   it("clamps time and keeps truth state explicit", () => {
     const store = new SimulationStore();
+    store.selectScene("time");
     store.setYear(-20_000);
     expect(store.state.year).toBe(-15_000);
     expect(store.state.truthState).toBe("reconstructed");
     store.setYear(2080);
     expect(store.state.year).toBe(2080);
     expect(store.state.truthState).toBe("modeled-screening");
+  });
+
+  it("labels active representations instead of treating every past year as observed", () => {
+    const store = new SimulationStore();
+    store.selectScene("water");
+    store.setYear(2000);
+    expect(store.state.truthState).toBe("modeled-screening");
+    store.selectScene("risk");
+    expect(store.state.truthState).toBe("blocked-missing");
+    store.selectScene("energy");
+    expect(store.state.truthState).toBe("ingested");
   });
 
   it("builds the heat and drought comparison state through Stress", () => {

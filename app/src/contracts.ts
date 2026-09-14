@@ -69,7 +69,7 @@ export const INITIAL_STATE: SimulationState = {
   compare: false,
   drawer: "closed",
   climateScenario: "baseline",
-  truthState: "modeled-screening",
+  truthState: "ingested",
 };
 
 export function clampYear(year: number): number {
@@ -80,6 +80,22 @@ export function truthStateForYear(year: number): TruthState {
   if (year < 1800) return "reconstructed";
   if (year > 2026) return "modeled-screening";
   return "observed";
+}
+
+export function truthStateForView(scene: SceneId, year: number): TruthState {
+  switch (scene) {
+    case "time":
+      return truthStateForYear(year);
+    case "energy":
+    case "record":
+      return "ingested";
+    case "water":
+    case "nexus":
+      return "modeled-screening";
+    case "risk":
+    case "learning":
+      return "blocked-missing";
+  }
 }
 
 export function isSceneId(value: string): value is SceneId {

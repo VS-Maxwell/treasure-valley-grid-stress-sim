@@ -9,6 +9,8 @@ import {
 } from "../data/geo";
 import { lineParts, type GridCore } from "../data/gridTypes";
 import type { TvgwfmGrid } from "../data/tvgwfmTypes";
+import { nearestHeadSlice } from "../data/loadTvgwfmHeads";
+import type { TvgwfmHeads } from "../data/tvgwfmHeads";
 import type { RendererAdapter, RendererCallbacks } from "./RendererAdapter";
 
 const TERRAIN_WIDTH = 230;
@@ -35,6 +37,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   readonly #container: HTMLElement;
   readonly #grid: GridCore;
   readonly #tvgwfm: TvgwfmGrid;
+  readonly #tvgwfmHeads: TvgwfmHeads;
   readonly #callbacks: RendererCallbacks;
   readonly #scene = new THREE.Scene();
   readonly #camera = new THREE.PerspectiveCamera(47, 1, 0.1, 1200);
@@ -44,12 +47,17 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   readonly #gridMaterials = new Map<VoltageClass, THREE.LineBasicMaterial>();
   readonly #terrainMaterial: THREE.MeshStandardMaterial;
   readonly #waterMaterial: THREE.MeshPhysicalMaterial;
+  readonly #headMeshes: THREE.Mesh<
+    THREE.BufferGeometry,
+    THREE.MeshStandardMaterial
+  >[] = [];
   readonly #sun = new THREE.DirectionalLight(0xfff0d1, 3.2);
   #frameHandle = 0;
   #frameCount = 0;
   #metricSeconds = 0;
   #lastRenderTime = 0;
   #settleFrames = 0;
+  #headSliceIndex = -1;
   #running = false;
   #resizeObserver: ResizeObserver | null = null;
 
@@ -57,11 +65,13 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     container: HTMLElement,
     grid: GridCore,
     tvgwfm: TvgwfmGrid,
+    tvgwfmHeads: TvgwfmHeads,
     callbacks: RendererCallbacks,
   ) {
     this.#container = container;
     this.#grid = grid;
     this.#tvgwfm = tvgwfm;
+    this.#tvgwfmHeads = tvgwfmHeads;
     this.#callbacks = callbacks;
     this.#renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -144,6 +154,13 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     });
     this.#waterMaterial.opacity =
       state.scene === "water" ? 0.82 : state.scene === "nexus" ? 0.5 : 0.16;
+    const showHeads = state.scene === "water" || state.scene === "nexus";
+    this.#headMeshes.forEach((mesh, index) => {
+      mesh.visible = showHeads;
+      mesh.material.opacity =
+        state.scene === "water" ? 0.5 - index * 0.045 : 0.2;
+    });
+    this.#updateHeadSurfaces(state.year);
     this.#terrainMaterial.wireframe = state.scene === "record";
     const future = Math.max(0, (state.year - 2026) / 74);
     this.#scene.background = new THREE.Color().setRGB(
@@ -240,6 +257,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#scene.add(terrain);
 
     this.#addTvgwfmSurface();
+    this.#addTvgwfmHeadSurfaces();
 
     this.#addGridLines();
     this.#addSubstations();
@@ -315,6 +333,135 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     const surface = new THREE.Mesh(geometry, this.#waterMaterial);
     surface.name = "usgs-tvgwfm-ingested-top-surface";
     this.#scene.add(surface);
+  }
+
+  #addTvgwfmHeadSurfaces(): void {
+    const {
+      rows,
+      columns,
+      layers,
+      inactive_value: inactive,
+    } = this.#tvgwfmHeads.manifest.layout;
+    const bounds = measureGridBounds(this.#grid);
+    const corners = this.#tvgwfm.grid.corners_wgs84;
+    const cells = rows * columns;
+    const mix = (start: number, end: number, amount: number): number =>
+      start + (end - start) * amount;
+
+    for (let layer = 0; layer < layers; layer += 1) {
+      const vertices: number[] = [];
+      const indices: number[] = [];
+      const firstLayerOffset = layer * cells;
+      for (let row = 0; row < rows; row += 1) {
+        const v = row / (rows - 1);
+        const left: readonly [number, number] = [
+          mix(corners.upper_left[0], corners.lower_left[0], v),
+          mix(corners.upper_left[1], corners.lower_left[1], v),
+        ];
+        const right: readonly [number, number] = [
+          mix(corners.upper_right[0], corners.lower_right[0], v),
+          mix(corners.upper_right[1], corners.lower_right[1], v),
+        ];
+        for (let column = 0; column < columns; column += 1) {
+          const u = column / (columns - 1);
+          const point = projectPosition(
+            [mix(left[0], right[0], u), mix(left[1], right[1], u)],
+            bounds,
+          );
+          const packed =
+            this.#tvgwfmHeads.values[firstLayerOffset + row * columns + column];
+          vertices.push(
+            point.x,
+            packed === inactive
+              ? -200
+              : this.#headWorldY(packed!, point.y, layer),
+            point.z,
+          );
+        }
+      }
+      const active = (row: number, column: number): boolean =>
+        this.#tvgwfmHeads.values[firstLayerOffset + row * columns + column] !==
+        inactive;
+      for (let row = 0; row < rows - 1; row += 1) {
+        for (let column = 0; column < columns - 1; column += 1) {
+          const a = row * columns + column;
+          const b = a + 1;
+          const c = a + columns;
+          const d = c + 1;
+          if (
+            active(row, column) &&
+            active(row, column + 1) &&
+            active(row + 1, column)
+          )
+            indices.push(a, c, b);
+          if (
+            active(row, column + 1) &&
+            active(row + 1, column) &&
+            active(row + 1, column + 1)
+          )
+            indices.push(b, c, d);
+        }
+      }
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(vertices, 3),
+      );
+      geometry.setIndex(indices);
+      geometry.computeVertexNormals();
+      const material = new THREE.MeshStandardMaterial({
+        color: new THREE.Color().setHSL(0.54 + layer * 0.018, 0.78, 0.57),
+        emissive: new THREE.Color().setHSL(0.56, 0.62, 0.12),
+        emissiveIntensity: 0.5,
+        transparent: true,
+        opacity: 0.5 - layer * 0.045,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.name = `tvgwfm-head-layer-${layer + 1}`;
+      this.#headMeshes.push(mesh);
+      this.#scene.add(mesh);
+    }
+  }
+
+  #updateHeadSurfaces(year: number): void {
+    const manifest = this.#tvgwfmHeads.manifest;
+    const slice = nearestHeadSlice(manifest, year);
+    if (slice === this.#headSliceIndex) return;
+    this.#headSliceIndex = slice;
+    const { rows, columns, layers, inactive_value: inactive } = manifest.layout;
+    const cells = rows * columns;
+    for (let layer = 0; layer < layers; layer += 1) {
+      const positions = this.#headMeshes[layer]?.geometry.getAttribute(
+        "position",
+      ) as THREE.BufferAttribute | undefined;
+      if (!positions) continue;
+      const offset = (slice * layers + layer) * cells;
+      for (let cell = 0; cell < cells; cell += 1) {
+        const packed = this.#tvgwfmHeads.values[offset + cell];
+        positions.setY(
+          cell,
+          packed === inactive
+            ? -200
+            : this.#headWorldY(
+                packed!,
+                previewElevation(positions.getX(cell), positions.getZ(cell)),
+                layer,
+              ),
+        );
+      }
+      positions.needsUpdate = true;
+      this.#headMeshes[layer]!.geometry.computeVertexNormals();
+    }
+  }
+
+  #headWorldY(packed: number, groundY: number, layer: number): number {
+    const layout = this.#tvgwfmHeads.manifest.layout;
+    const headFeet = layout.offset_feet + packed * layout.scale_feet;
+    // A documented vertical exaggeration keeps six regional head surfaces
+    // legible in the cockpit; source values remain unchanged in the data pack.
+    return groundY + (headFeet - 2_400) / 180 - layer * 0.82 + 2.3;
   }
 
   #addGridLines(): void {

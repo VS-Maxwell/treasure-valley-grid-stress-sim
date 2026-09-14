@@ -24,7 +24,9 @@ Updated: 2026-09-14
 - [x] Extract the official 6-layer, 64×65 model grid and 4,055 active top cells into a browser-safe pack.
 - [x] Render the ingested USGS model footprint inside the Water and Nexus scenes with an explicit non-validation label.
 - [x] Reproduce all 361 USGS MODFLOW stress periods and compare heads, observation outputs, and water-budget closure against the archived baseline.
-- [ ] Produce browser-safe time slices from the reproduced heads and budgets without shipping the 72 MB binary output.
+- [x] Produce 16 browser-safe six-layer head snapshots from 1986–2015 without shipping the 72 MB binary output.
+- [x] Animate the six model-head surfaces from the shared year state and disclose the nearest displayed source year.
+- [ ] Extract compact water-budget and observation time-series tables for chart panels.
 
 ## Later phases
 

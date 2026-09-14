@@ -1,5 +1,7 @@
 import { SCENE_CONTENT } from "../simulation/sceneContent";
 import type { GridCore } from "../data/gridTypes";
+import { nearestHeadSlice } from "../data/loadTvgwfmHeads";
+import type { TvgwfmHeads } from "../data/tvgwfmHeads";
 import type { RendererMetrics } from "../render/RendererAdapter";
 import type { SceneId, SimulationState } from "../contracts";
 import type { SimulationStore } from "../simulation/SimulationStore";
@@ -33,6 +35,7 @@ function timeKind(year: number): string {
 export class HudController {
   readonly #store: SimulationStore;
   readonly #grid: GridCore;
+  readonly #tvgwfmHeads: TvgwfmHeads;
   readonly #actions: HudActions;
   readonly #app = required<HTMLElement>("#app");
   readonly #loading = required<HTMLElement>("#loading");
@@ -56,9 +59,15 @@ export class HudController {
   readonly #comparison = required<HTMLElement>("#comparison");
   readonly #fatal = required<HTMLElement>("#fatal");
 
-  constructor(store: SimulationStore, grid: GridCore, actions: HudActions) {
+  constructor(
+    store: SimulationStore,
+    grid: GridCore,
+    tvgwfmHeads: TvgwfmHeads,
+    actions: HudActions,
+  ) {
     this.#store = store;
     this.#grid = grid;
+    this.#tvgwfmHeads = tvgwfmHeads;
     this.#actions = actions;
   }
 
@@ -111,7 +120,7 @@ export class HudController {
       state.playing ? "Pause timeline" : "Play timeline",
     );
     this.#comparison.hidden = !state.compare;
-    this.#renderContext(state.scene);
+    this.#renderContext(state.scene, state.year);
     this.#renderDrawer(state);
   }
 
@@ -140,13 +149,27 @@ export class HudController {
     this.#loading.classList.add("ready");
   }
 
-  #renderContext(scene: SceneId): void {
+  #renderContext(scene: SceneId, year: number): void {
     const content = SCENE_CONTENT[scene];
+    const selectedHeadSlice =
+      scene === "water"
+        ? this.#tvgwfmHeads.manifest.slices[
+            nearestHeadSlice(this.#tvgwfmHeads.manifest, year)
+          ]
+        : undefined;
     this.#contextEyebrow.textContent = content.eyebrow;
     this.#contextTitle.textContent = content.title;
-    this.#contextCopy.textContent = content.copy;
+    this.#contextCopy.textContent = selectedHeadSlice
+      ? `${content.copy} Displayed head slice: ${selectedHeadSlice.year}.`
+      : content.copy;
+    const metrics = selectedHeadSlice
+      ? [
+          ...content.metrics,
+          { value: String(selectedHeadSlice.year), label: "head slice" },
+        ]
+      : content.metrics;
     this.#contextMetrics.replaceChildren(
-      ...content.metrics.map((metric) => {
+      ...metrics.map((metric) => {
         const card = document.createElement("div");
         card.className = "metric";
         const value = document.createElement("b");

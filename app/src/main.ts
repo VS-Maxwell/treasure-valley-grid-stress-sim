@@ -3,6 +3,7 @@ import "./styles.css";
 import { RuntimeDiagnostics } from "./diagnostics/RuntimeDiagnostics";
 import { loadGridCore } from "./data/loadGridCore";
 import { loadTvgwfmGrid } from "./data/loadTvgwfmGrid";
+import { loadTvgwfmHeads } from "./data/loadTvgwfmHeads";
 import { InputController } from "./input/InputController";
 import { CanvasFallbackRenderer } from "./render/CanvasFallbackRenderer";
 import type {
@@ -27,7 +28,11 @@ function required<T extends HTMLElement>(selector: string): T {
 async function boot(): Promise<void> {
   const diagnostics = new RuntimeDiagnostics();
   window.TV_SIM_DIAGNOSTICS = () => diagnostics.snapshot();
-  const [grid, tvgwfm] = await Promise.all([loadGridCore(), loadTvgwfmGrid()]);
+  const [grid, tvgwfm, tvgwfmHeads] = await Promise.all([
+    loadGridCore(),
+    loadTvgwfmGrid(),
+    loadTvgwfmHeads(),
+  ]);
   diagnostics.setDataReceipt(
     grid.source_sha256,
     grid.trans.features.length,
@@ -57,7 +62,7 @@ async function boot(): Promise<void> {
     ask: (): void => store.openDrawer("ask"),
   };
 
-  const hud = new HudController(store, grid, actions);
+  const hud = new HudController(store, grid, tvgwfmHeads, actions);
   hud.connect();
 
   const recordMetrics = (metrics: RendererMetrics): void => {
@@ -116,6 +121,7 @@ async function boot(): Promise<void> {
         required("#playfield"),
         grid,
         tvgwfm,
+        tvgwfmHeads,
         {
           onContextLost: () =>
             activateFallback(

@@ -3,6 +3,7 @@ import {
   clampYear,
   isSceneId,
   truthStateForYear,
+  truthStateForView,
   type SceneId,
   type SimulationState,
 } from "../contracts";
@@ -31,6 +32,7 @@ export class SimulationStore {
     this.#commit({
       scene,
       drawer: scene === "record" ? "evidence" : this.#state.drawer,
+      truthState: truthStateForView(scene, this.#state.year),
     });
   }
 
@@ -44,7 +46,7 @@ export class SimulationStore {
     const boundedYear = clampYear(year);
     this.#commit({
       year: boundedYear,
-      truthState: truthStateForYear(boundedYear),
+      truthState: truthStateForView(this.#state.scene, boundedYear),
     });
   }
 
@@ -67,14 +69,20 @@ export class SimulationStore {
   }
 
   explore(): void {
-    this.#commit({ scene: "time", drawer: "closed" });
+    this.#commit({
+      scene: "time",
+      drawer: "closed",
+      truthState: truthStateForYear(this.#state.year),
+    });
   }
 
   follow(): void {
     const path: SceneId[] = ["energy", "water", "nexus", "risk"];
     const current = path.indexOf(this.#state.scene);
+    const scene = path[(current + 1 + path.length) % path.length] ?? "energy";
     this.#commit({
-      scene: path[(current + 1 + path.length) % path.length] ?? "energy",
+      scene,
+      truthState: truthStateForView(scene, this.#state.year),
     });
   }
 

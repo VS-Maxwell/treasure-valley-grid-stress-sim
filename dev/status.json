@@ -1,10 +1,10 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-14T19:03:57Z",
+  "updated_at": "2026-09-14T19:10:46Z",
   "phase": "Phase 2 - Historical water data plane",
-  "task": "Generate compact time-slice tables from reproduced MODFLOW heads and budgets",
+  "task": "Extract compact water-budget and observation chart tables",
   "state": "passed",
-  "progress_percent": 25,
+  "progress_percent": 28,
   "preview_url": "http://127.0.0.1:8001/dist/",
   "machines": [
     {
@@ -81,7 +81,13 @@
     "app/src/diagnostics/RuntimeDiagnostics.ts",
     "receipts/tvgwfm-baseline-reproduction-20260914.json",
     "app/public/data/tvgwfm-grid.json",
-    "app/public/data/tvgwfm-baseline-summary.json"
+    "app/public/data/tvgwfm-baseline-summary.json",
+    "app/public/data/tvgwfm-heads-manifest.json",
+    "app/public/data/tvgwfm-heads-q10.bin",
+    "tools/pack_tvgwfm_heads.py",
+    "app/src/data/loadTvgwfmHeads.ts",
+    "app/src/data/tvgwfmHeads.ts",
+    "app/src/data/tvgwfmHeads.test.ts"
   ],
   "events": [
     {
@@ -197,6 +203,12 @@
       "state": "passed",
       "summary": "Direct simulator and USGS baseline gates passed",
       "detail": "Root opens the cockpit directly; 3D rendering now idles between bounded interaction bursts; Canvas fallback remains; 361-period MODFLOW 6.1.1 baseline terminated normally and matches archived outputs within recorded tolerances."
+    },
+    {
+      "at": "2026-09-14T19:10:46Z",
+      "state": "passed",
+      "summary": "Historical groundwater time slices are live",
+      "detail": "The game shell now loads a precomputed 798720-byte table with 399360 values across six layers and 16 snapshots representing 1986-2015. Timeline year 2000 selected and displayed the 2000 head slice with MODELED-SCREENING truth state; browser console has no warnings or errors."
     }
   ]
 }
