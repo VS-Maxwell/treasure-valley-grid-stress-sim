@@ -29,7 +29,7 @@ describe("SimulationStore", () => {
     store.selectScene("risk");
     expect(store.state.truthState).toBe("blocked-missing");
     store.selectScene("energy");
-    expect(store.state.truthState).toBe("ingested");
+    expect(store.state.truthState).toBe("modeled-screening");
   });
 
   it("builds the heat and drought comparison state through Stress", () => {

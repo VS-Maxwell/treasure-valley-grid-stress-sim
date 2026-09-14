@@ -73,7 +73,7 @@ export const INITIAL_STATE: SimulationState = {
   drawer: "closed",
   climateScenario: "baseline",
   energyScenario: "base",
-  truthState: "ingested",
+  truthState: "modeled-screening",
 };
 
 export function clampYear(year: number): number {
@@ -90,9 +90,9 @@ export function truthStateForView(scene: SceneId, year: number): TruthState {
   switch (scene) {
     case "time":
       return truthStateForYear(year);
-    case "energy":
     case "record":
       return "ingested";
+    case "energy":
     case "water":
     case "nexus":
       return "modeled-screening";
