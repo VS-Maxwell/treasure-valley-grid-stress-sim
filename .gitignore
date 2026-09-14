@@ -2,6 +2,8 @@
 *.bak
 *.tmp
 .temp*
+__pycache__/
+*.py[cod]
 
 # Local environment variables — never commit credentials
 .env

@@ -1,0 +1,115 @@
+{
+  "project": "Treasure Valley 4D Earth-State Simulator",
+  "updated_at": "2026-09-14T18:11:43Z",
+  "phase": "Phase 0 — Baseline, visibility and custody",
+  "task": "Crash-safe visible grid",
+  "state": "passed",
+  "progress_percent": 11,
+  "preview_url": "http://127.0.0.1:8001/",
+  "machines": [
+    {
+      "name": "Madame-Butterfly",
+      "role": "primary build and simulation",
+      "state": "online",
+      "detail": "RTX 4090; 128 GiB RAM; T drive mounted"
+    },
+    {
+      "name": "Palimpsest",
+      "role": "school-first bounded worker",
+      "state": "blocked",
+      "detail": "RTX 5060 Ti confirmed; GPU telemetry blocked by driver/library mismatch"
+    },
+    {
+      "name": "Queen",
+      "role": "preservation and receipts",
+      "state": "unverified",
+      "detail": "Availability must be refreshed before transfer"
+    }
+  ],
+  "credentials": [
+    {
+      "provider": "Google Drive key register",
+      "state": "located-not-read",
+      "detail": "Secret values are excluded from this view"
+    },
+    {
+      "provider": "Simulator APIs",
+      "state": "not-configured",
+      "detail": "Providers will be activated individually after policy and quota checks"
+    }
+  ],
+  "blockers": [
+    "Transmission baseline verifier fails",
+    "Release validator rejects unreceipted RAVEN attribution",
+    "No controllable browser is available for screenshot QA",
+    "Palimpsest NVIDIA driver/library mismatch",
+    "Lemonade installer does not support this CachyOS host"
+  ],
+  "changed_files": [
+    "AGENTS.md",
+    "docs/MASTER_BUILD_PLAN.md",
+    "docs/BUILD_STATUS.md",
+    "dev/index.html",
+    "dev/status.json",
+    "tools/dev_status.py",
+    "tools/verify_visible_grid.py",
+    "index.html",
+    "grid-live.css",
+    "grid-live.js",
+    "live-grid.html",
+    "grid-canvas.js",
+    "data/grid-core.json",
+    "tools/extract_grid_core.py",
+    "legacy.html"
+  ],
+  "events": [
+    {
+      "at": "2026-09-14T17:30:00Z",
+      "state": "active",
+      "summary": "Visible development foundation started",
+      "detail": "Baseline failures and machine blockers are retained rather than suppressed."
+    },
+    {
+      "at": "2026-09-14T17:36:09Z",
+      "state": "active",
+      "summary": "Building visible transmission-grid controls",
+      "detail": "Adding live redraw, refresh, progress, and independent RTX 5060 Ti validation"
+    },
+    {
+      "at": "2026-09-14T17:38:34Z",
+      "state": "failed",
+      "summary": "Visible-grid validator boundary was too broad",
+      "detail": "JSON parser included the MAXLOAD JavaScript assignment after DATA; correcting the validator boundary"
+    },
+    {
+      "at": "2026-09-14T17:39:01Z",
+      "state": "passed",
+      "summary": "Visible grid builder validated",
+      "detail": "Direct map entry; 244 map corridors auto-draw; 94-bus/156-branch solver remains separately labeled; replay and no-network refresh enabled; primary Node parse passed"
+    },
+    {
+      "at": "2026-09-14T17:39:13Z",
+      "state": "passed",
+      "summary": "RTX 5060 Ti independent validation passed",
+      "detail": "Palimpsest CPU validation confirmed direct entry, 244 map corridors, automatic progressive drawing, replay, and no-network refresh; GPU remains unused pending driver repair"
+    },
+    {
+      "at": "2026-09-14T17:58:42Z",
+      "state": "failed",
+      "summary": "Browser crash reported during live grid build",
+      "detail": "Root cause isolated to repeated multi-megabyte GeoJSON setData calls on animation frames; replacing with bounded MapLibre layer-filter updates"
+    },
+    {
+      "at": "2026-09-14T18:11:21Z",
+      "state": "passed",
+      "summary": "Crash-safe live grid repaired and UI-tested",
+      "detail": "Recovered 19.8 GB from the crashed Firefox content process; default boot now uses a 397 KB local grid core and bounded Canvas renderer; UI replay reached DRAWING NETWORK then GRID READY 244/244; Refresh reached VIEW REFRESHED"
+    },
+    {
+      "at": "2026-09-14T18:11:43Z",
+      "state": "passed",
+      "summary": "Stale crash process removed and 5060 cross-check passed",
+      "detail": "Terminated only the obsolete 27 GB Firefox content process; live Canvas tab remained verified at 244/244; Palimpsest independently passed 20 structural and receipt checks with matching SHA-256"
+    }
+  ]
+}

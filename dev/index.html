@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'">
+  <title>Treasure Valley — Visible Build</title>
+  <style>
+    :root{color-scheme:dark;--bg:#05090d;--panel:#0b141dcc;--line:#1d5168;--text:#e7f7ff;--muted:#8fa9b8;--cyan:#47d7ff;--green:#71e6a1;--amber:#ffc761;--red:#ff6f7d}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 18% 0,#113147 0,transparent 32%),linear-gradient(145deg,#03070a,#08121a 60%,#060a0e);color:var(--text);font:14px/1.45 Inter,system-ui,sans-serif}
+    main{width:min(1180px,calc(100% - 32px));margin:auto;padding:28px 0 60px}header{display:flex;gap:20px;align-items:flex-start;justify-content:space-between;margin-bottom:18px}.eyebrow{color:var(--cyan);font-weight:800;letter-spacing:.16em;text-transform:uppercase;font-size:11px}h1{margin:5px 0 4px;font-size:clamp(24px,4vw,44px);line-height:1}.muted{color:var(--muted)}a{color:var(--cyan)}.state{padding:7px 11px;border:1px solid var(--line);border-radius:999px;text-transform:uppercase;font-weight:800;font-size:11px}.active{color:var(--cyan)}.passed,.online{color:var(--green)}.failed,.blocked{color:var(--red)}.unverified{color:var(--amber)}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}.card{grid-column:span 4;background:var(--panel);border:1px solid #173344;border-radius:14px;padding:16px;box-shadow:0 18px 45px #0007}.wide{grid-column:span 8}.full{grid-column:1/-1}.label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}.value{font-size:18px;font-weight:750;margin-top:4px}.bar{height:7px;background:#14222c;border-radius:99px;overflow:hidden;margin-top:12px}.bar span{display:block;height:100%;background:linear-gradient(90deg,#1e85ae,var(--cyan));width:0}.rows{display:grid;gap:8px;margin-top:10px}.row{padding:10px;border:1px solid #183647;border-radius:9px;background:#071019}.row-top{display:flex;gap:12px;justify-content:space-between}.row strong{font-size:13px}.row p{margin:3px 0 0;color:var(--muted);font-size:12px}.pill{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.events{max-height:350px;overflow:auto}.event{border-left:3px solid var(--line);padding:8px 10px;margin:9px 0;background:#071019}.event time{color:var(--muted);font-size:10px}.event p{margin:4px 0 0}.error{padding:18px;border:1px solid var(--red);color:#ffdce0;border-radius:12px}@media(max-width:800px){.card,.wide{grid-column:1/-1}header{display:block}.state{display:inline-block;margin-top:12px}}
+  </style>
+</head>
+<body>
+  <main>
+    <header><div><div class="eyebrow">Nothing hidden · evidence required</div><h1>Visible Build</h1><div class="muted" id="updated">Loading current engineering state…</div></div><div class="state active" id="state">loading</div></header>
+    <section class="grid" id="content" aria-live="polite"></section>
+  </main>
+  <script>
+    const content=document.querySelector('#content');
+    const safe=(value)=>value==null?'—':String(value);
+    const row=(title,state,detail)=>{const el=document.createElement('div');el.className='row';const top=document.createElement('div');top.className='row-top';const strong=document.createElement('strong');strong.textContent=safe(title);const pill=document.createElement('span');pill.className='pill '+safe(state);pill.textContent=safe(state);top.append(strong,pill);const p=document.createElement('p');p.textContent=safe(detail);el.append(top,p);return el};
+    const card=(title,className='card')=>{const el=document.createElement('article');el.className=className;const label=document.createElement('div');label.className='label';label.textContent=title;el.append(label);return el};
+    function render(data){
+      document.querySelector('#updated').textContent='Updated '+safe(data.updated_at)+' · '+safe(data.phase);
+      const badge=document.querySelector('#state');badge.textContent=safe(data.state);badge.className='state '+safe(data.state);
+      content.replaceChildren();
+      const task=card('Active task','card wide');const value=document.createElement('div');value.className='value';value.textContent=safe(data.task);const bar=document.createElement('div');bar.className='bar';const fill=document.createElement('span');fill.style.width=Math.max(0,Math.min(100,Number(data.progress_percent)||0))+'%';bar.append(fill);const note=document.createElement('p');note.className='muted';note.textContent=safe(data.progress_percent)+'% of the full program';task.append(value,bar,note);content.append(task);
+      const preview=card('Live application');const link=document.createElement('a');link.href=safe(data.preview_url);link.textContent='Open simulator';const p=document.createElement('p');p.className='muted';p.textContent='Local baseline; refresh after each verified increment.';preview.append(link,p);content.append(preview);
+      const machines=card('Compute and custody','card wide');const machineRows=document.createElement('div');machineRows.className='rows';(data.machines||[]).forEach(x=>machineRows.append(row(x.name,x.state,x.role+' — '+x.detail)));machines.append(machineRows);content.append(machines);
+      const credentials=card('Credential state');const credentialRows=document.createElement('div');credentialRows.className='rows';(data.credentials||[]).forEach(x=>credentialRows.append(row(x.provider,x.state,x.detail)));credentials.append(credentialRows);content.append(credentials);
+      const blockers=card('Open blockers','card wide');const blockerRows=document.createElement('div');blockerRows.className='rows';(data.blockers||[]).forEach(x=>blockerRows.append(row(x,'blocked','Must remain visible until resolved or accepted.')));blockers.append(blockerRows);content.append(blockers);
+      const files=card('Changed files');const fileRows=document.createElement('div');fileRows.className='rows';(data.changed_files||[]).forEach(x=>fileRows.append(row(x,'active','Included in the current unpushed branch.')));files.append(fileRows);content.append(files);
+      const events=card('Recent engineering events','card full');const eventRows=document.createElement('div');eventRows.className='events';(data.events||[]).slice().reverse().forEach(x=>{const el=document.createElement('div');el.className='event';const time=document.createElement('time');time.textContent=safe(x.at)+' · '+safe(x.state);const strong=document.createElement('strong');strong.textContent=safe(x.summary);strong.style.display='block';const p=document.createElement('p');p.textContent=safe(x.detail);el.append(time,strong,p);eventRows.append(el)});events.append(eventRows);content.append(events);
+    }
+    async function refresh(){try{const response=await fetch('status.json?ts='+Date.now(),{cache:'no-store'});if(!response.ok)throw new Error('HTTP '+response.status);render(await response.json())}catch(error){content.innerHTML='';const el=document.createElement('div');el.className='error';el.textContent='Status feed unavailable: '+error.message;content.append(el)}}
+    refresh();setInterval(refresh,2000);
+  </script>
+</body>
+</html>

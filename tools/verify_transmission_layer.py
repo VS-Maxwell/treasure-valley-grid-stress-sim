@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the expert transmission-modeling layer is present in index.html."""
+"""Verify the expert transmission-modeling layer in its implementation source."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-INDEX_HTML = REPO_ROOT / "index.html"
+IMPLEMENTATION_HTML = REPO_ROOT / "legacy.html"
 
 
 REQUIRED_MARKERS = {
@@ -32,7 +32,7 @@ REQUIRED_MARKERS = {
 
 
 def main() -> int:
-    html = INDEX_HTML.read_text(encoding="utf-8")
+    html = IMPLEMENTATION_HTML.read_text(encoding="utf-8")
     missing = [name for name, marker in REQUIRED_MARKERS.items() if marker not in html]
     if missing:
         print("status=failed")
@@ -41,7 +41,7 @@ def main() -> int:
         return 1
 
     print("status=ok")
-    print(f"checked={INDEX_HTML}")
+    print(f"checked={IMPLEMENTATION_HTML}")
     print(f"markers={len(REQUIRED_MARKERS)}")
     return 0
 
