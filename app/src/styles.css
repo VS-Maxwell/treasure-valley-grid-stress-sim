@@ -358,6 +358,15 @@ button {
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+.offline-pack-list {
+  display: grid;
+  gap: 3px;
+  margin: 7px 0;
+  padding: 0;
+  color: #a9bfcc;
+  font-size: 9px;
+  list-style: none;
+}
 
 .action-bar {
   left: 50%;

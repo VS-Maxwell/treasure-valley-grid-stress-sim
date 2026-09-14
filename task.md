@@ -28,6 +28,7 @@ Updated: 2026-09-14
 - [x] Animate the six model-head surfaces from the shared year state and disclose the nearest displayed source year.
 - [x] Extract 361 monthly water-budget rows and 33 simulated-observation series into a compact, receipt-backed chart table.
 - [x] Render the Water panel's monthly modeled inflow/outflow chart with timeline selection and explicit non-observation boundary.
+- [x] Build and validate an immutable five-artifact, 1,143,499-byte offline historical-water manifest and expose it in the Record scene.
 
 ## Later phases
 

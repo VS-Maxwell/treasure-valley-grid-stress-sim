@@ -40,6 +40,7 @@ def main() -> int:
         "RELEASE_STATUS.json",
         "receipts/usgs-tvgwfm-core-20260914.json",
         "receipts/tvgwfm-baseline-reproduction-20260914.json",
+        "app/public/data/offline-pack-manifest.json",
     ]
     for name in required_files:
         require((ROOT / name).is_file(), f"{name} exists")
@@ -111,6 +112,31 @@ def main() -> int:
             for result in baseline["observation_outputs"].values()
         ),
         "TVGWFM observation outputs match archived text precision",
+    )
+
+    offline_pack = json.loads(
+        (ROOT / "app/public/data/offline-pack-manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    require(
+        offline_pack["network_required"] is False,
+        "historical water pack has no runtime network dependency",
+    )
+    require(
+        offline_pack["artifact_count"] == len(offline_pack["artifacts"]) == 5,
+        "historical water pack has five manifested artifacts",
+    )
+    verified_bytes = 0
+    for artifact in offline_pack["artifacts"]:
+        path = ROOT / "app/public" / artifact["path"]
+        require(path.is_file(), f"offline artifact exists: {artifact['id']}")
+        require(path.stat().st_size == artifact["bytes"], f"offline artifact byte count matches: {artifact['id']}")
+        require(sha256(path) == artifact["sha256"], f"offline artifact SHA-256 matches: {artifact['id']}")
+        verified_bytes += path.stat().st_size
+    require(
+        verified_bytes == offline_pack["total_bytes"],
+        "historical water pack byte total balances",
     )
 
     policy = (ROOT / "RESTRICTED_DATA_POLICY.md").read_text(encoding="utf-8")

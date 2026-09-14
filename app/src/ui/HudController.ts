@@ -2,6 +2,7 @@ import { SCENE_CONTENT } from "../simulation/sceneContent";
 import type { GridCore } from "../data/gridTypes";
 import { nearestHeadSlice } from "../data/loadTvgwfmHeads";
 import { nearestBudgetRow } from "../data/loadTvgwfmTimeseries";
+import type { OfflinePackManifest } from "../data/offlinePack";
 import type { TvgwfmHeads } from "../data/tvgwfmHeads";
 import type { TvgwfmTimeseries } from "../data/tvgwfmTimeseries";
 import type { RendererMetrics } from "../render/RendererAdapter";
@@ -39,6 +40,7 @@ export class HudController {
   readonly #grid: GridCore;
   readonly #tvgwfmHeads: TvgwfmHeads;
   readonly #tvgwfmTimeseries: TvgwfmTimeseries;
+  readonly #offlinePack: OfflinePackManifest;
   readonly #actions: HudActions;
   readonly #app = required<HTMLElement>("#app");
   readonly #loading = required<HTMLElement>("#loading");
@@ -68,12 +70,14 @@ export class HudController {
     grid: GridCore,
     tvgwfmHeads: TvgwfmHeads,
     tvgwfmTimeseries: TvgwfmTimeseries,
+    offlinePack: OfflinePackManifest,
     actions: HudActions,
   ) {
     this.#store = store;
     this.#grid = grid;
     this.#tvgwfmHeads = tvgwfmHeads;
     this.#tvgwfmTimeseries = tvgwfmTimeseries;
+    this.#offlinePack = offlinePack;
     this.#actions = actions;
   }
 
@@ -190,10 +194,32 @@ export class HudController {
       this.#renderWaterChart(
         nearestBudgetRow(this.#tvgwfmTimeseries.budget.rows, year),
       );
+    } else if (scene === "record") {
+      this.#renderOfflinePack();
     } else {
       this.#contextChart.hidden = true;
       this.#contextChart.replaceChildren();
     }
+  }
+
+  #renderOfflinePack(): void {
+    const title = document.createElement("p");
+    title.className = "context-chart-caption";
+    title.textContent = `${this.#offlinePack.artifact_count} local artifacts · ${(this.#offlinePack.total_bytes / 1_000_000).toFixed(2)} MB`;
+    const list = document.createElement("ul");
+    list.className = "offline-pack-list";
+    list.replaceChildren(
+      ...this.#offlinePack.artifacts.map((artifact) => {
+        const item = document.createElement("li");
+        item.textContent = `${artifact.id} · ${(artifact.bytes / 1_000).toFixed(1)} KB`;
+        return item;
+      }),
+    );
+    const boundary = document.createElement("p");
+    boundary.className = "context-chart-boundary";
+    boundary.textContent = "No runtime network · hashes checked at build gate";
+    this.#contextChart.replaceChildren(title, list, boundary);
+    this.#contextChart.hidden = false;
   }
 
   #renderWaterChart(selectedIndex: number): void {

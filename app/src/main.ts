@@ -2,6 +2,7 @@ import "./styles.css";
 
 import { RuntimeDiagnostics } from "./diagnostics/RuntimeDiagnostics";
 import { loadGridCore } from "./data/loadGridCore";
+import { loadOfflinePack } from "./data/loadOfflinePack";
 import { loadTvgwfmGrid } from "./data/loadTvgwfmGrid";
 import { loadTvgwfmHeads } from "./data/loadTvgwfmHeads";
 import { loadTvgwfmTimeseries } from "./data/loadTvgwfmTimeseries";
@@ -29,12 +30,14 @@ function required<T extends HTMLElement>(selector: string): T {
 async function boot(): Promise<void> {
   const diagnostics = new RuntimeDiagnostics();
   window.TV_SIM_DIAGNOSTICS = () => diagnostics.snapshot();
-  const [grid, tvgwfm, tvgwfmHeads, tvgwfmTimeseries] = await Promise.all([
-    loadGridCore(),
-    loadTvgwfmGrid(),
-    loadTvgwfmHeads(),
-    loadTvgwfmTimeseries(),
-  ]);
+  const [grid, tvgwfm, tvgwfmHeads, tvgwfmTimeseries, offlinePack] =
+    await Promise.all([
+      loadGridCore(),
+      loadTvgwfmGrid(),
+      loadTvgwfmHeads(),
+      loadTvgwfmTimeseries(),
+      loadOfflinePack(),
+    ]);
   diagnostics.setDataReceipt(
     grid.source_sha256,
     grid.trans.features.length,
@@ -69,6 +72,7 @@ async function boot(): Promise<void> {
     grid,
     tvgwfmHeads,
     tvgwfmTimeseries,
+    offlinePack,
     actions,
   );
   hud.connect();

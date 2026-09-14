@@ -1,10 +1,10 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-14T19:16:56Z",
+  "updated_at": "2026-09-14T19:21:33Z",
   "phase": "Phase 2 - Historical water data plane",
-  "task": "Add measured-data overlay contracts without conflating modeled outputs",
+  "task": "Normalize source metadata and measured-data overlay contracts",
   "state": "passed",
-  "progress_percent": 31,
+  "progress_percent": 34,
   "preview_url": "http://127.0.0.1:8001/dist/",
   "machines": [
     {
@@ -95,7 +95,13 @@
     "app/src/data/tvgwfmTimeseries.ts",
     "app/src/data/tvgwfmTimeseries.test.ts",
     "app/src/styles.css",
-    "DATA_SOURCES.csv"
+    "DATA_SOURCES.csv",
+    "app/public/data/offline-pack-manifest.json",
+    "tools/build_offline_pack_manifest.py",
+    "app/src/data/offlinePack.ts",
+    "app/src/data/loadOfflinePack.ts",
+    "app/src/data/offlinePack.test.ts",
+    "tools/validate_registries.py"
   ],
   "events": [
     {
@@ -229,6 +235,18 @@
       "state": "passed",
       "summary": "Monthly groundwater table and visible budget chart validated",
       "detail": "361 monthly budget rows and 33 simulated-equivalent series are receipt-backed; Water at year 2000 displayed the selected month and head slice; 19 tests, registry validation, strict typing, production build, and live browser error/warning checks pass."
+    },
+    {
+      "at": "2026-09-14T19:19:18Z",
+      "state": "active",
+      "summary": "Building immutable offline historical pack receipt",
+      "detail": "Hashing every browser historical artifact, adding runtime pack validation, and exposing the pack status in the Record scene without adding network dependencies."
+    },
+    {
+      "at": "2026-09-14T19:21:33Z",
+      "state": "passed",
+      "summary": "Immutable historical-water pack is visible and verified",
+      "detail": "Five local artifacts totaling 1143499 bytes have build-time SHA-256 and byte receipts; 21 tests and every registry, build, dist, release, direct-entry, and live-browser gate pass. Record scene displays the inventory with no runtime network dependency; browser errors and warnings are empty."
     }
   ]
 }
