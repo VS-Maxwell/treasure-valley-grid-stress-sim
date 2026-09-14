@@ -39,10 +39,10 @@ let totalBytes = 0;
 for (const file of files) totalBytes += (await stat(file)).size;
 // Phase 3 retains browser source maps so the user can inspect the programming
 // while terrain and data layers are integrated. Raw provider data remain out.
-const phaseThreeDevelopmentBudget = 6 * 1024 * 1024;
-if (totalBytes > phaseThreeDevelopmentBudget)
+const fullPlainDevelopmentBudget = 8 * 1024 * 1024;
+if (totalBytes > fullPlainDevelopmentBudget)
   failures.push(
-    `dist exceeds the 6 MiB Phase 3 development budget: ${totalBytes} bytes`,
+    `dist exceeds the 8 MiB full-plain development budget: ${totalBytes} bytes`,
   );
 
 const textFiles = files.filter((file) =>

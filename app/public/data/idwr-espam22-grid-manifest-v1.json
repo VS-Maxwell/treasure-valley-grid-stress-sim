@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "idwr-espam22-grid-v1",
+  "truth_state": "ingested",
+  "provider": "Idaho Department of Water Resources",
+  "model": "Eastern Snake Plain Aquifer Model version 2.2",
+  "source_grid_receipt": "receipts/idwr-espam22-grid-20260914.json",
+  "source_grid_receipt_sha256": "26411c6217fca49599eb4f3166ec21bd56cb9c615095754c73333517e8b81ba5",
+  "source_model_receipt": "receipts/idwr-espam22-model-20260914.json",
+  "source_model_receipt_sha256": "e2c958adf493d03eea35d3190387d852cfe4c19e6fe4cdd50535c6b5a86966b7",
+  "layout": {
+    "layers": 1,
+    "rows": 104,
+    "columns": 209,
+    "stress_periods": 462,
+    "cell_width_feet": 5280,
+    "cell_height_feet": 5280,
+    "active_cells": 11236,
+    "row_id_range": [
+      5,
+      104
+    ],
+    "column_id_range": [
+      5,
+      204
+    ]
+  },
+  "bounds_wgs84": {
+    "west": -115.20647758,
+    "east": -111.41118434,
+    "south": 42.20984543,
+    "north": 44.44908087
+  },
+  "line_binary": {
+    "file": "idwr-espam22-grid-lines-f32-v1.bin",
+    "bytes": 719104,
+    "sha256": "7d7c7755515a13c0c4674eb47bfa1d563bf13ccfc098bbdaf3f2604915ee5c2b",
+    "encoding": "little-endian-float32",
+    "stride": 4,
+    "record_count": 44944,
+    "fields": [
+      "longitude_1",
+      "latitude_1",
+      "longitude_2",
+      "latitude_2"
+    ]
+  },
+  "cell_binary": {
+    "file": "idwr-espam22-grid-cells-f32-v1.bin",
+    "bytes": 179776,
+    "sha256": "0e8e5ef31ba0152a33d30cc87c23fdaa5b62ac6099845af9a785c5d49f14c8ca",
+    "encoding": "little-endian-float32",
+    "stride": 4,
+    "record_count": 11236,
+    "fields": [
+      "center_longitude",
+      "center_latitude",
+      "row_id",
+      "column_id"
+    ]
+  },
+  "limitations": [
+    "This pack maps the official active ESPAM 2.2 grid; it does not merge ESPAM with TVGWFM.",
+    "Repeated shared edges are retained for a deterministic cell-by-cell wireframe.",
+    "Numerical outputs remain inactive until the archived baseline is independently reproduced or explicitly labeled archived output."
+  ]
+}

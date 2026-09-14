@@ -11,7 +11,7 @@ export interface OfflinePackArtifact {
 
 export interface OfflinePackManifest {
   readonly schema_version: 1;
-  readonly id: "treasure-valley-offline-earth-pack-v7";
+  readonly id: "treasure-valley-offline-earth-pack-v10";
   readonly created_at: string;
   readonly source_doi: "10.5066/P9U6OOPH";
   readonly network_required: false;

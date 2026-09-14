@@ -1,6 +1,9 @@
 import { SCENE_CONTENT } from "../simulation/sceneContent";
 import { ENERGY_SCENARIOS } from "../data/energyScreening";
 import type { EnergyScreeningModel } from "../data/energyScreening";
+import type { EspamGrid } from "../data/espamGrid";
+import type { EspamHeads } from "../data/espamHeads";
+import { nearestEspamHeadSlice } from "../data/loadEspamHeads";
 import type { GridCore } from "../data/gridTypes";
 import { nearestHeadSlice } from "../data/loadTvgwfmHeads";
 import { nearestBudgetRow } from "../data/loadTvgwfmTimeseries";
@@ -56,6 +59,10 @@ export class HudController {
   readonly #damLoadError: string | null;
   readonly #tvgwfmBottoms: TvgwfmBottoms | null;
   readonly #bottomLoadError: string | null;
+  readonly #espamGrid: EspamGrid | null;
+  readonly #espamLoadError: string | null;
+  readonly #espamHeads: EspamHeads | null;
+  readonly #espamHeadLoadError: string | null;
   readonly #energyScreening: EnergyScreeningModel;
   readonly #actions: HudActions;
   readonly #app = required<HTMLElement>("#app");
@@ -98,6 +105,10 @@ export class HudController {
     damLoadError: string | null,
     tvgwfmBottoms: TvgwfmBottoms | null,
     bottomLoadError: string | null,
+    espamGrid: EspamGrid | null,
+    espamLoadError: string | null,
+    espamHeads: EspamHeads | null,
+    espamHeadLoadError: string | null,
     energyScreening: EnergyScreeningModel,
     actions: HudActions,
   ) {
@@ -113,6 +124,10 @@ export class HudController {
     this.#damLoadError = damLoadError;
     this.#tvgwfmBottoms = tvgwfmBottoms;
     this.#bottomLoadError = bottomLoadError;
+    this.#espamGrid = espamGrid;
+    this.#espamLoadError = espamLoadError;
+    this.#espamHeads = espamHeads;
+    this.#espamHeadLoadError = espamHeadLoadError;
     this.#energyScreening = energyScreening;
     this.#actions = actions;
   }
@@ -233,6 +248,12 @@ export class HudController {
             nearestHeadSlice(this.#tvgwfmHeads.manifest, year)
           ]
         : undefined;
+    const selectedEspamSlice =
+      scene === "water" && this.#espamHeads
+        ? this.#espamHeads.manifest.slices[
+            nearestEspamHeadSlice(this.#espamHeads.manifest, year)
+          ]
+        : undefined;
     this.#contextEyebrow.textContent = content.eyebrow;
     this.#contextTitle.textContent = content.title;
     this.#contextCopy.textContent = selectedHeadSlice
@@ -256,6 +277,12 @@ export class HudController {
           value: String(this.#tvgwfmBottoms.manifest.layout.layers),
           label: "bottom surfaces",
         },
+      ];
+    if (scene === "water" && selectedEspamSlice)
+      metrics = [
+        ...metrics,
+        { value: "11,236", label: "ESPAM active cells" },
+        { value: String(selectedEspamSlice.year), label: "ESPAM head slice" },
       ];
     if (scene === "energy" && this.#regionalDams)
       metrics = [
@@ -497,7 +524,7 @@ export class HudController {
     }
     this.#drawerEyebrow.textContent = "EVIDENCE · CURRENT BUILD";
     this.#drawerTitle.textContent = this.#regionalTerrain
-      ? "Receipt-backed geometry and regional USGS terrain"
+      ? "Receipt-backed geometry and Snake Plain USGS terrain"
       : "Receipt-backed geometry, reconstructed surface";
     this.#drawerContent.replaceChildren(
       this.#heading("Grid source"),
@@ -510,7 +537,7 @@ export class HudController {
       this.#heading("Terrain truth state"),
       this.#paragraph(
         this.#regionalTerrain
-          ? `Observed USGS 3DEP terrain is active across the six-tile regional baseline from 118°W to 115°W and 43°N to 45°N: ${this.#regionalTerrain.manifest.mesh.vertex_count.toLocaleString()} browser vertices, ${this.#regionalTerrain.manifest.statistics.minimum_meters.toLocaleString()}–${this.#regionalTerrain.manifest.statistics.maximum_meters.toLocaleString()} meters NAVD88. The dim outer surface is explicitly reconstructed context beyond that verified area.`
+          ? `Observed USGS 3DEP terrain is active across the full Snake Plain overview envelope from 119°W to 111°W and 42°N to 46°N: ${this.#regionalTerrain.manifest.mesh.vertex_count.toLocaleString()} browser vertices, ${this.#regionalTerrain.manifest.statistics.minimum_meters.toLocaleString()}–${this.#regionalTerrain.manifest.statistics.maximum_meters.toLocaleString()} meters NAVD88. This terrain context does not expand the calibrated TVGWFM aquifer domain; ESPAM and framework-only areas remain separate evidence layers.`
           : `The broad terrain remains a reconstructed visual preview. USGS 3DEP failed to load${this.#terrainLoadError ? `: ${this.#terrainLoadError}` : "."}`,
       ),
       this.#heading("Esri online overlay"),
@@ -524,6 +551,14 @@ export class HudController {
         this.#tvgwfmBottoms
           ? `All ${this.#tvgwfmBottoms.manifest.layout.layers} published TVGWFM model-bottom arrays are loaded as source-native ${this.#tvgwfmBottoms.manifest.layout.rows} × ${this.#tvgwfmBottoms.manifest.layout.columns} surfaces in feet ${this.#tvgwfmBottoms.manifest.layout.vertical_datum}. These are model discretization geometry, not core or borehole observations; field evidence will test and interpret them without being silently substituted.`
           : `The six TVGWFM model-bottom surfaces are unavailable${this.#bottomLoadError ? `: ${this.#bottomLoadError}` : "."}`,
+      ),
+      this.#heading("Eastern Snake Plain model"),
+      this.#paragraph(
+        this.#espamGrid && this.#espamHeads
+          ? `The official ESPAM 2.2 active domain is loaded independently: ${this.#espamGrid.manifest.layout.active_cells.toLocaleString()} active cells in a one-layer 104 × 209 MODFLOW-USG grid with ${this.#espamGrid.manifest.layout.stress_periods} stress periods and 5,280-foot cells. The current IDWR model-grid service is cross-checked against the preserved final-calibration archive. A timeline-driven 4D surface renders 39 archived September head slices from 1980–2018 (${this.#espamHeads.manifest.statistics.minimum_feet.toLocaleString()}–${this.#espamHeads.manifest.statistics.maximum_feet.toLocaleString()} feet). Those values are archived modeled output, not an independently reproduced run, and they are not silently merged with the six-layer TVGWFM.`
+          : this.#espamGrid
+            ? `The official ESPAM 2.2 active grid is loaded, but the archived head surface is unavailable${this.#espamHeadLoadError ? `: ${this.#espamHeadLoadError}` : "."}`
+            : `The ESPAM 2.2 active grid is unavailable${this.#espamLoadError ? `: ${this.#espamLoadError}` : "."}`,
       ),
       this.#heading("Dam and hydropower inventory"),
       this.#paragraph(

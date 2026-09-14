@@ -47,11 +47,19 @@ def main() -> int:
         "app/public/data/offline-pack-manifest-v5.json",
         "app/public/data/offline-pack-manifest-v6.json",
         "app/public/data/offline-pack-manifest-v7.json",
+        "app/public/data/offline-pack-manifest-v8.json",
+        "app/public/data/offline-pack-manifest-v9.json",
+        "app/public/data/offline-pack-manifest-v10.json",
         "app/public/data/grid-screening-model.json",
         "receipts/usgs-groundwater-field-measurements-20260914.json",
         "receipts/usgs-monitoring-locations-20260914.json",
         "receipts/usgs-3dep-terrain-20260914.json",
+        "receipts/usgs-3dep-snake-plain-20260914.json",
         "receipts/usace-nid-regional-dams-20260914.json",
+        "receipts/idwr-espam22-model-20260914.json",
+        "receipts/idwr-espam22-grid-20260914.json",
+        "app/public/data/idwr-espam22-heads-manifest-v1.json",
+        "app/public/data/idwr-espam22-heads-q10-v1.bin",
     ]
     for name in required_files:
         require((ROOT / name).is_file(), f"{name} exists")
@@ -126,17 +134,17 @@ def main() -> int:
     )
 
     offline_pack = json.loads(
-        (ROOT / "app/public/data/offline-pack-manifest-v7.json").read_text(
+        (ROOT / "app/public/data/offline-pack-manifest-v10.json").read_text(
             encoding="utf-8"
         )
     )
     require(
         offline_pack["network_required"] is False,
-        "historical water pack has no runtime network dependency",
+        "historical earth pack has no runtime network dependency",
     )
     require(
-        offline_pack["artifact_count"] == len(offline_pack["artifacts"]) == 16,
-        "offline earth pack has sixteen manifested artifacts",
+        offline_pack["artifact_count"] == len(offline_pack["artifacts"]) == 21,
+        "offline earth pack v10 has twenty-one manifested artifacts",
     )
     verified_bytes = 0
     for artifact in offline_pack["artifacts"]:
@@ -147,7 +155,7 @@ def main() -> int:
         verified_bytes += path.stat().st_size
     require(
         verified_bytes == offline_pack["total_bytes"],
-        "historical water pack byte total balances",
+        "historical earth pack byte total balances",
     )
 
     energy = json.loads(
@@ -313,6 +321,154 @@ def main() -> int:
         terrain_binary.stat().st_size == terrain_manifest["binary"]["bytes"] == 61_004
         and sha256(terrain_binary) == terrain_manifest["binary"]["sha256"],
         "regional terrain binary hash and byte count match",
+    )
+
+    plain_receipt = json.loads(
+        (ROOT / "receipts/usgs-3dep-snake-plain-20260914.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    require(
+        plain_receipt["status"] == "original-bytes-and-format-verified"
+        and plain_receipt["tile_count"] == 32
+        and plain_receipt["bbox_epsg_4326"] == [-119.0, 42.0, -111.0, 46.0],
+        "Snake Plain 3DEP receipt has the exact 32-tile full-scene envelope",
+    )
+    plain_root = Path(plain_receipt["local_root"])
+    plain_bytes = 0
+    for item in plain_receipt["files"]:
+        path = plain_root / item["file"]
+        require(
+            path.is_file()
+            and path.stat().st_size == item["bytes"]
+            and sha256(path) == item["sha256"],
+            f"Snake Plain 3DEP tile matches receipt: {item['tile']}",
+        )
+        plain_bytes += path.stat().st_size
+    require(
+        plain_bytes == plain_receipt["total_bytes"] == 1_639_886_219,
+        "Snake Plain 3DEP source byte total balances",
+    )
+    plain_manifest = json.loads(
+        (
+            ROOT / "app/public/data/usgs-3dep-snake-plain-terrain-manifest-v4.json"
+        ).read_text(encoding="utf-8")
+    )
+    plain_binary = (
+        ROOT / "app/public/data/usgs-3dep-snake-plain-terrain-f32-v4.bin"
+    )
+    require(
+        plain_manifest["mesh"]["vertex_count"] == 80_601
+        and plain_manifest["mesh"]["rows"] == 201
+        and plain_manifest["mesh"]["columns"] == 401
+        and plain_manifest["mesh"]["bounds_wgs84"]
+        == {"west": -119.0, "east": -111.0, "south": 42.0, "north": 46.0},
+        "Snake Plain terrain mesh dimensions and geographic bounds match",
+    )
+    require(
+        plain_binary.stat().st_size
+        == plain_manifest["binary"]["bytes"]
+        == 322_404
+        and sha256(plain_binary) == plain_manifest["binary"]["sha256"],
+        "Snake Plain terrain binary hash and byte count match",
+    )
+
+    espam_model = json.loads(
+        (ROOT / "receipts/idwr-espam22-model-20260914.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    require(
+        espam_model["status"] == "original-bytes-and-format-verified"
+        and espam_model["file_count"] == 3
+        and espam_model["total_bytes"] == 494_832_320,
+        "ESPAM 2.2 model archives have verified counts and status",
+    )
+    espam_model_root = Path(espam_model["local_root"])
+    for item in espam_model["files"]:
+        path = espam_model_root / item["file"]
+        require(
+            path.is_file()
+            and path.stat().st_size == item["bytes"]
+            and sha256(path) == item["sha256"],
+            f"ESPAM 2.2 archive matches receipt: {item['file']}",
+        )
+
+    espam_grid_receipt = json.loads(
+        (ROOT / "receipts/idwr-espam22-grid-20260914.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    require(
+        espam_grid_receipt["status"]
+        == "original-api-pages-and-geometry-verified"
+        and espam_grid_receipt["feature_count"]
+        == espam_grid_receipt["active_count"]
+        == 11_236
+        and espam_grid_receipt["page_count"] == 6,
+        "ESPAM 2.2 grid service returns the complete active-cell set",
+    )
+    espam_grid_root = Path(espam_grid_receipt["local_root"])
+    for page in espam_grid_receipt["pages"]:
+        path = espam_grid_root / page["file"]
+        require(
+            path.is_file()
+            and path.stat().st_size == page["bytes"]
+            and sha256(path) == page["sha256"],
+            f"ESPAM grid page matches receipt: {page['page']}",
+        )
+    espam_manifest = json.loads(
+        (ROOT / "app/public/data/idwr-espam22-grid-manifest-v1.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    espam_lines = ROOT / "app/public/data/idwr-espam22-grid-lines-f32-v1.bin"
+    espam_cells = ROOT / "app/public/data/idwr-espam22-grid-cells-f32-v1.bin"
+    require(
+        espam_manifest["layout"]
+        | {"row_id_range": [5, 104], "column_id_range": [5, 204]}
+        == espam_manifest["layout"]
+        and espam_manifest["layout"]["layers"] == 1
+        and espam_manifest["layout"]["rows"] == 104
+        and espam_manifest["layout"]["columns"] == 209
+        and espam_manifest["layout"]["stress_periods"] == 462
+        and espam_manifest["layout"]["active_cells"] == 11_236,
+        "ESPAM 2.2 browser grid retains source model dimensions",
+    )
+    require(
+        espam_lines.stat().st_size
+        == espam_manifest["line_binary"]["bytes"]
+        == 719_104
+        and sha256(espam_lines) == espam_manifest["line_binary"]["sha256"]
+        and espam_cells.stat().st_size
+        == espam_manifest["cell_binary"]["bytes"]
+        == 179_776
+        and sha256(espam_cells) == espam_manifest["cell_binary"]["sha256"],
+        "ESPAM 2.2 line and cell binaries match their hashes",
+    )
+    espam_heads_manifest = json.loads(
+        (
+            ROOT / "app/public/data/idwr-espam22-heads-manifest-v1.json"
+        ).read_text(encoding="utf-8")
+    )
+    espam_heads = ROOT / "app/public/data/idwr-espam22-heads-q10-v1.bin"
+    require(
+        espam_heads_manifest["truth_state"] == "ingested"
+        and espam_heads_manifest["representation"]
+        == "archived-modeled-output-not-independently-reproduced"
+        and espam_heads_manifest["active_cell_count"] == 11_236
+        and espam_heads_manifest["slice_count"] == 39
+        and espam_heads_manifest["source_head_record_count"] == 923
+        and espam_heads_manifest["slices"][0]["year"] == 1980
+        and espam_heads_manifest["slices"][-1]["year"] == 2018,
+        "ESPAM archived-head pack retains scope and non-reproduction boundary",
+    )
+    require(
+        espam_heads.stat().st_size
+        == espam_heads_manifest["binary"]["bytes"]
+        == 876_408
+        and sha256(espam_heads) == espam_heads_manifest["binary"]["sha256"],
+        "ESPAM archived-head binary matches its byte count and hash",
     )
 
     dam_receipt = json.loads(

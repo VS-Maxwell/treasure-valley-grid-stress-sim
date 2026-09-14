@@ -4,11 +4,11 @@ import type {
 } from "./regionalTerrain";
 
 const MANIFEST_URL = new URL(
-  "../../public/data/usgs-3dep-regional-terrain-manifest.json",
+  "../../public/data/usgs-3dep-snake-plain-terrain-manifest-v4.json",
   import.meta.url,
 ).href;
 const BINARY_URL = new URL(
-  "../../public/data/usgs-3dep-regional-terrain-f32.bin",
+  "../../public/data/usgs-3dep-snake-plain-terrain-f32-v4.bin",
   import.meta.url,
 ).href;
 
@@ -43,16 +43,20 @@ export function validateRegionalTerrainManifest(
   const manifest = candidate as Partial<RegionalTerrainManifest>;
   if (
     manifest.schema_version !== 1 ||
-    manifest.id !== "usgs-3dep-regional-terrain-v1" ||
+    manifest.id !== "usgs-3dep-snake-plain-terrain-v4" ||
     manifest.truth_state !== "observed" ||
     manifest.horizontal_datum !== "NAD83" ||
     manifest.vertical_datum !== "NAVD88" ||
     manifest.elevation_unit !== "meters" ||
-    manifest.mesh?.rows !== 101 ||
-    manifest.mesh.columns !== 151 ||
-    manifest.mesh.vertex_count !== 15_251 ||
+    manifest.mesh?.rows !== 201 ||
+    manifest.mesh.columns !== 401 ||
+    manifest.mesh.vertex_count !== 80_601 ||
+    manifest.mesh.bounds_wgs84.west !== -119 ||
+    manifest.mesh.bounds_wgs84.east !== -111 ||
+    manifest.mesh.bounds_wgs84.south !== 42 ||
+    manifest.mesh.bounds_wgs84.north !== 46 ||
     manifest.binary?.encoding !== "little-endian-float32" ||
-    manifest.binary.bytes !== 61_004 ||
+    manifest.binary.bytes !== 322_404 ||
     !/^[a-f0-9]{64}$/u.test(manifest.binary.sha256 ?? "") ||
     !/^[a-f0-9]{64}$/u.test(manifest.source_receipt_sha256 ?? "")
   )

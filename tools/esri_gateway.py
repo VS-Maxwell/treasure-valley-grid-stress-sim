@@ -39,8 +39,8 @@ PUBLIC_IMAGERY_URL = (
     "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/"
     "MapServer/export"
 )
-REGION_BOUNDS = "-118,43,-115,45"
-REGION_IMAGE_SIZE = "1280,854"
+REGION_BOUNDS = "-119,42,-111,46"
+REGION_IMAGE_SIZE = "1600,800"
 MAX_JSON_BYTES = 512_000
 MAX_IMAGE_BYTES = 3_000_000
 USER_AGENT = "TreasureValleySimulator/0.2"

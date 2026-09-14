@@ -35,6 +35,16 @@ def bilinear(start: float, end: float, amount: float) -> float:
     return start + (end - start) * amount
 
 
+def parse_bounds(value: str) -> dict[str, float]:
+    try:
+        west, south, east, north = [float(part) for part in value.split(",")]
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("bounds must be west,south,east,north") from exc
+    if west >= east or south >= north:
+        raise argparse.ArgumentTypeError("bounds must be west,south,east,north")
+    return {"west": west, "east": east, "south": south, "north": north}
+
+
 def tile_id(longitude: float, latitude: float) -> str:
     return f"n{math.ceil(latitude):02d}w{math.ceil(-longitude):03d}"
 
@@ -92,7 +102,27 @@ def main() -> int:
     parser.add_argument("--receipt", type=Path, default=DEFAULT_RECEIPT)
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--binary", type=Path, default=DEFAULT_BINARY)
+    parser.add_argument("--rows", type=int, default=ROWS)
+    parser.add_argument("--columns", type=int, default=COLUMNS)
+    parser.add_argument(
+        "--bounds",
+        type=parse_bounds,
+        default=REGIONAL_BOUNDS,
+        help="west,south,east,north mesh envelope",
+    )
+    parser.add_argument("--manifest-id", default="usgs-3dep-regional-terrain-v1")
+    parser.add_argument(
+        "--coverage-label",
+        default="the requested regional terrain envelope",
+        help="plain-language scope used in the manifest limitation",
+    )
     args = parser.parse_args()
+    args.receipt = args.receipt.resolve()
+    args.manifest = args.manifest.resolve()
+    args.binary = args.binary.resolve()
+    if args.rows < 2 or args.columns < 2:
+        raise ValueError("Terrain mesh needs at least two rows and columns")
+    bounds = args.bounds
 
     receipt = json.loads(args.receipt.read_text(encoding="utf-8"))
     source_root = Path(receipt["local_root"])
@@ -108,16 +138,16 @@ def main() -> int:
             rasters[item["tile"]] = RasterTile(path)
 
         values: list[float] = []
-        for row in range(ROWS):
-            v = row / (ROWS - 1)
-            latitude = bilinear(REGIONAL_BOUNDS["north"], REGIONAL_BOUNDS["south"], v)
-            for column in range(COLUMNS):
-                u = column / (COLUMNS - 1)
-                longitude = bilinear(REGIONAL_BOUNDS["west"], REGIONAL_BOUNDS["east"], u)
+        for row in range(args.rows):
+            v = row / (args.rows - 1)
+            latitude = bilinear(bounds["north"], bounds["south"], v)
+            for column in range(args.columns):
+                u = column / (args.columns - 1)
+                longitude = bilinear(bounds["west"], bounds["east"], u)
                 # Exact integer tile boundaries have equivalent overlap pixels;
                 # nudge only the tile lookup into the western/northern tile.
-                lookup_lon = longitude if longitude < REGIONAL_BOUNDS["east"] else longitude - 1e-9
-                lookup_lat = min(latitude + 1e-9, REGIONAL_BOUNDS["north"] - 1e-9)
+                lookup_lon = longitude if longitude < bounds["east"] else longitude - 1e-9
+                lookup_lat = min(latitude + 1e-9, bounds["north"] - 1e-9)
                 source_tile = tile_id(lookup_lon, lookup_lat)
                 if source_tile not in rasters:
                     raise ValueError(f"No receipted tile covers {longitude}, {latitude}")
@@ -134,7 +164,7 @@ def main() -> int:
     maximum = max(values)
     manifest = {
         "schema_version": 1,
-        "id": "usgs-3dep-regional-terrain-v1",
+        "id": args.manifest_id,
         "truth_state": "observed",
         "provider": "U.S. Geological Survey 3D Elevation Program",
         "product": "1 arc-second seamless DEM",
@@ -144,12 +174,12 @@ def main() -> int:
         "vertical_datum": "NAVD88",
         "elevation_unit": "meters",
         "mesh": {
-            "rows": ROWS,
-            "columns": COLUMNS,
+            "rows": args.rows,
+            "columns": args.columns,
             "vertex_count": len(values),
             "geographic_interpolation": "regular longitude-latitude grid",
             "sampling": "bilinear GeoTIFF pixel-center interpolation",
-            "bounds_wgs84": REGIONAL_BOUNDS,
+            "bounds_wgs84": bounds,
         },
         "statistics": {
             "minimum_meters": round(minimum, 3),
@@ -169,9 +199,10 @@ def main() -> int:
             "note": "The renderer preserves source values in meters and applies a documented visual scaling only to world-space height.",
         },
         "limitations": [
-            "This compact mesh covers the six-tile Treasure Valley and dam-corridor baseline, not the full Snake River Plain.",
+            f"This compact mesh covers {args.coverage_label} using {receipt['tile_count']} receipted 3DEP tiles.",
             "It is a downsampled visualization surface and is not a substitute for the original 1 arc-second rasters.",
-            "The six original GeoTIFFs remain outside the browser bundle under their acquisition receipt.",
+            f"The {receipt['tile_count']} original GeoTIFFs remain outside the browser bundle under their acquisition receipt.",
+            "Terrain coverage does not imply groundwater-model coverage; TVGWFM, ESPAM, and framework-only areas retain separate scientific boundaries.",
         ],
     }
     args.manifest.write_text(

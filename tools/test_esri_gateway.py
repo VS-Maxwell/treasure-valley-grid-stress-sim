@@ -3,6 +3,8 @@ import unittest
 from tools.esri_gateway import (
     ALLOWED_ORIGINS,
     PUBLIC_IMAGERY_URL,
+    REGION_BOUNDS,
+    REGION_IMAGE_SIZE,
     STYLE_URL,
     authorized_headers,
     cors_origin,
@@ -38,6 +40,10 @@ class EsriGatewaySecurityTests(unittest.TestCase):
         for value in ["0", "6", "many"]:
             with self.assertRaises(RuntimeError):
                 normalize_limit(value)
+
+    def test_imagery_extent_matches_full_plain_scene(self) -> None:
+        self.assertEqual(REGION_BOUNDS, "-119,42,-111,46")
+        self.assertEqual(REGION_IMAGE_SIZE, "1600,800")
 
 
 if __name__ == "__main__":

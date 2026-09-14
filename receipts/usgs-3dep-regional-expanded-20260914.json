@@ -1,0 +1,346 @@
+{
+  "schema_version": 1,
+  "id": "usgs-3dep-regional-expanded-1arcsec-v3",
+  "created_at": "2026-09-14T20:54:26Z",
+  "provider": "U.S. Geological Survey 3D Elevation Program",
+  "product": "1 arc-second seamless DEM",
+  "horizontal_datum": "NAD83",
+  "vertical_datum": "NAVD88",
+  "elevation_unit": "meters",
+  "rights": "public-domain",
+  "query_url": "https://tnmaccess.nationalmap.gov/api/v1/products?bbox=-119.0%2C42.0%2C-114.0%2C46.0&datasets=National+Elevation+Dataset+%28NED%29+1+arc-second&prodFormats=GeoTIFF&outputFormat=JSON&max=500",
+  "bbox_epsg_4326": [
+    -119.0,
+    42.0,
+    -114.0,
+    46.0
+  ],
+  "local_root": "/run/media/madame-butterfly/Toshiba/Treasure_Valley_Model/data/raw/usgs/3dep_1arcsec_regional_expanded_20260914",
+  "query_file": "tnm-products-query.json",
+  "query_sha256": "ee4f7c7a842f8929ceb1ff20935f6982432a587625b09c7e11a9bc67139d87b7",
+  "tile_count": 20,
+  "total_bytes": 1042641208,
+  "files": [
+    {
+      "tile": "n43w115",
+      "version": "20240701",
+      "publication_date": "2024-07-03",
+      "file": "USGS_1_n43w115_20240701.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n43w115/USGS_1_n43w115_20240701.tif",
+      "bytes": 47388108,
+      "sha256": "3928e6b8ba542c28d842b3da71772a29413169676a5d1bd24650f2f2fc4a80d9",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "downloaded-or-existing-verified-original"
+    },
+    {
+      "tile": "n43w116",
+      "version": "20240701",
+      "publication_date": "2024-07-03",
+      "file": "USGS_1_n43w116_20240701.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n43w116/USGS_1_n43w116_20240701.tif",
+      "bytes": 48094126,
+      "sha256": "96e11a9bfd5ba8bbd36a1a5210ef542b8b5ada9eee1c1c78e5e6981121cf53c5",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "downloaded-or-existing-verified-original"
+    },
+    {
+      "tile": "n43w117",
+      "version": "20240701",
+      "publication_date": "2024-07-03",
+      "file": "USGS_1_n43w117_20240701.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n43w117/USGS_1_n43w117_20240701.tif",
+      "bytes": 50546537,
+      "sha256": "357d9f4dde05a861486562baf15bb65278dcb701a993e98106900a084777a165",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "downloaded-or-existing-verified-original"
+    },
+    {
+      "tile": "n43w118",
+      "version": "20260202",
+      "publication_date": "2026-02-02",
+      "file": "USGS_1_n43w118_20260202.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n43w118/USGS_1_n43w118_20260202.tif",
+      "bytes": 47642973,
+      "sha256": "f73d3d48c854cbde042b3bf1652c8af7530e6609c9976e24b779ca8abaa2009e",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "downloaded-or-existing-verified-original"
+    },
+    {
+      "tile": "n43w119",
+      "version": "20260202",
+      "publication_date": "2026-02-02",
+      "file": "USGS_1_n43w119_20260202.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n43w119/USGS_1_n43w119_20260202.tif",
+      "bytes": 49222293,
+      "sha256": "a251d0098c198dd8381e341b7b076299a7c2d9198b1d699ba088218aa97c4b01",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "downloaded-or-existing-verified-original"
+    },
+    {
+      "tile": "n44w115",
+      "version": "20260407",
+      "publication_date": "2026-04-07",
+      "file": "USGS_1_n44w115_20260407.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n44w115/USGS_1_n44w115_20260407.tif",
+      "bytes": 51659905,
+      "sha256": "2fd95630230b9a85ded1cff71bf2cb7e9e775f5a8b5eddcc3bdaba1818b17fd3",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "reused-verified-original"
+    },
+    {
+      "tile": "n44w116",
+      "version": "20260520",
+      "publication_date": "2026-05-20",
+      "file": "USGS_1_n44w116_20260520.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n44w116/USGS_1_n44w116_20260520.tif",
+      "bytes": 52993749,
+      "sha256": "7e7d2690ed1855a4fc25953b3b24bb818d77443070253d7563bdd3565a28fe4c",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "reused-verified-original"
+    },
+    {
+      "tile": "n44w117",
+      "version": "20260520",
+      "publication_date": "2026-05-20",
+      "file": "USGS_1_n44w117_20260520.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n44w117/USGS_1_n44w117_20260520.tif",
+      "bytes": 50834704,
+      "sha256": "8541835a7f27956e40603945997398688b3911c92e86b1b324a68de9c26181f5",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "reused-verified-original"
+    },
+    {
+      "tile": "n44w118",
+      "version": "20260407",
+      "publication_date": "2026-04-07",
+      "file": "USGS_1_n44w118_20260407.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n44w118/USGS_1_n44w118_20260407.tif",
+      "bytes": 51693533,
+      "sha256": "30810efe49936116e994c4feb11691174d733c635310155fc8efeb60e6754906",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "reused-verified-original"
+    },
+    {
+      "tile": "n44w119",
+      "version": "20260202",
+      "publication_date": "2026-02-02",
+      "file": "USGS_1_n44w119_20260202.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n44w119/USGS_1_n44w119_20260202.tif",
+      "bytes": 48723781,
+      "sha256": "b5962f2f2ac129a1338acbd0bcca63a02909b1b135a51bfcc8e0d388839c2250",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "downloaded-or-existing-verified-original"
+    },
+    {
+      "tile": "n45w115",
+      "version": "20260407",
+      "publication_date": "2026-04-07",
+      "file": "USGS_1_n45w115_20260407.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n45w115/USGS_1_n45w115_20260407.tif",
+      "bytes": 54067102,
+      "sha256": "3ca25c760f2371a209f4021ff4208917f590c0657ebccc79c8ed379e9e1edc15",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "reused-verified-original"
+    },
+    {
+      "tile": "n45w116",
+      "version": "20260520",
+      "publication_date": "2026-05-20",
+      "file": "USGS_1_n45w116_20260520.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n45w116/USGS_1_n45w116_20260520.tif",
+      "bytes": 54507141,
+      "sha256": "d5df76542ad0aa72f17ad503552b7334b2cd0f28311a817284d5bb99e9c9dae6",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "reused-verified-original"
+    },
+    {
+      "tile": "n45w117",
+      "version": "20260520",
+      "publication_date": "2026-05-20",
+      "file": "USGS_1_n45w117_20260520.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n45w117/USGS_1_n45w117_20260520.tif",
+      "bytes": 53413908,
+      "sha256": "c5c826e779453eaa6bfd4f42c22bd300579595cee39713ad06fa0b25f3178fbc",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "reused-verified-original"
+    },
+    {
+      "tile": "n45w118",
+      "version": "20260202",
+      "publication_date": "2026-02-02",
+      "file": "USGS_1_n45w118_20260202.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n45w118/USGS_1_n45w118_20260202.tif",
+      "bytes": 53477988,
+      "sha256": "d16a3537e9f21f7a005e0d71b83ea38d7293a9b7fc1017d1a157c9cc5882cc70",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "reused-verified-original"
+    },
+    {
+      "tile": "n45w119",
+      "version": "20260202",
+      "publication_date": "2026-02-02",
+      "file": "USGS_1_n45w119_20260202.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n45w119/USGS_1_n45w119_20260202.tif",
+      "bytes": 53689196,
+      "sha256": "14b28938f238c7af98e89cf66082affdee8f9d2ebf7636e5d44fb9f0fcc6b34e",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "downloaded-or-existing-verified-original"
+    },
+    {
+      "tile": "n46w115",
+      "version": "20260116",
+      "publication_date": "2026-01-16",
+      "file": "USGS_1_n46w115_20260116.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n46w115/USGS_1_n46w115_20260116.tif",
+      "bytes": 55146575,
+      "sha256": "8ddbe5f7ae36abc12e4c4e02841ff68b53203efb95d438bb02a3f50c1d1b1f78",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "downloaded-or-existing-verified-original"
+    },
+    {
+      "tile": "n46w116",
+      "version": "20260116",
+      "publication_date": "2026-01-16",
+      "file": "USGS_1_n46w116_20260116.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n46w116/USGS_1_n46w116_20260116.tif",
+      "bytes": 55104894,
+      "sha256": "f91dc5ff0435f821b5a891527ab4cefa5919de95345205fef0c325422a7cdc9a",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "downloaded-or-existing-verified-original"
+    },
+    {
+      "tile": "n46w117",
+      "version": "20260520",
+      "publication_date": "2026-05-20",
+      "file": "USGS_1_n46w117_20260520.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n46w117/USGS_1_n46w117_20260520.tif",
+      "bytes": 56159823,
+      "sha256": "53e8d0919a4741794c7266e079aed02204511a9d1e6a72465e59fecc20e3d131",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "downloaded-or-existing-verified-original"
+    },
+    {
+      "tile": "n46w118",
+      "version": "20260116",
+      "publication_date": "2026-01-16",
+      "file": "USGS_1_n46w118_20260116.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n46w118/USGS_1_n46w118_20260116.tif",
+      "bytes": 53924520,
+      "sha256": "8ca11abda2e3b796243a1c18828198b27974ea7213c14ba6eb1ee2f05ebbb0dd",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "downloaded-or-existing-verified-original"
+    },
+    {
+      "tile": "n46w119",
+      "version": "20251229",
+      "publication_date": "2025-12-29",
+      "file": "USGS_1_n46w119_20251229.tif",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/historical/n46w119/USGS_1_n46w119_20251229.tif",
+      "bytes": 54350352,
+      "sha256": "c78938229d1f05ab94e64d18b9e94c5ab41378bb121c814478b8c95e7e314abb",
+      "dimensions": [
+        3612,
+        3612
+      ],
+      "mode": "F",
+      "format_validation": "PIL-TIFF-pass",
+      "acquisition_action": "downloaded-or-existing-verified-original"
+    }
+  ],
+  "status": "original-bytes-and-format-verified"
+}

@@ -3,7 +3,7 @@ import type { Position } from "./gridTypes";
 
 export interface RegionalTerrainManifest {
   readonly schema_version: 1;
-  readonly id: "usgs-3dep-regional-terrain-v1";
+  readonly id: "usgs-3dep-snake-plain-terrain-v4";
   readonly truth_state: "observed";
   readonly provider: string;
   readonly product: string;

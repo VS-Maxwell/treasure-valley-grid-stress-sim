@@ -51,6 +51,16 @@ FIELDS = [
 ]
 
 
+def parse_bounds(value: str) -> list[float]:
+    try:
+        bounds = [float(part) for part in value.split(",")]
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("bounds must contain four numbers") from exc
+    if len(bounds) != 4 or bounds[0] >= bounds[2] or bounds[1] >= bounds[3]:
+        raise argparse.ArgumentTypeError("bounds must be west,south,east,north")
+    return bounds
+
+
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
@@ -58,12 +68,18 @@ def sha256(data: bytes) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("output_directory", type=Path)
+    parser.add_argument("--bounds", type=parse_bounds, default=BOUNDS)
+    parser.add_argument("--receipt", type=Path)
+    parser.add_argument("--receipt-id", default="usace-nid-regional-dams-v1")
+    parser.add_argument(
+        "--source-name", default="nid-regional-118w-115w-43n-45n.geojson"
+    )
     args = parser.parse_args()
     args.output_directory.mkdir(parents=True, exist_ok=True)
     query = urllib.parse.urlencode(
         {
             "where": "1=1",
-            "geometry": ",".join(str(value) for value in BOUNDS),
+            "geometry": ",".join(str(value) for value in args.bounds),
             "geometryType": "esriGeometryEnvelope",
             "inSR": "4269",
             "spatialRel": "esriSpatialRelIntersects",
@@ -80,11 +96,13 @@ def main() -> int:
     with urllib.request.urlopen(request, timeout=180) as response:
         if response.status != 200:
             raise RuntimeError(f"NID returned HTTP {response.status}")
-        body = response.read()
+        body = response.read(10_000_001)
+    if len(body) > 10_000_000:
+        raise ValueError("NID response exceeded 10 MB")
     payload = json.loads(body)
     if payload.get("type") != "FeatureCollection" or not payload.get("features"):
         raise ValueError("NID response is not a non-empty GeoJSON FeatureCollection")
-    source_name = "nid-regional-118w-115w-43n-45n.geojson"
+    source_name = args.source_name
     source_path = args.output_directory / source_name
     source_path.write_bytes(body)
     object_ids: set[int] = set()
@@ -108,14 +126,17 @@ def main() -> int:
         if geometry.get("type") != "Point" or len(geometry.get("coordinates", [])) < 2:
             raise ValueError(f"NID feature is not a point: OBJECTID {object_id}")
         longitude, latitude = geometry["coordinates"][:2]
-        if not (BOUNDS[0] <= longitude <= BOUNDS[2] and BOUNDS[1] <= latitude <= BOUNDS[3]):
+        if not (
+            args.bounds[0] <= longitude <= args.bounds[2]
+            and args.bounds[1] <= latitude <= args.bounds[3]
+        ):
             raise ValueError(f"NID feature lies outside requested bounds: OBJECTID {object_id}")
         if "hydroelectric" in str(properties.get("PURPOSES", "")).lower():
             hydro_count += 1
 
     receipt = {
         "schema_version": 1,
-        "id": "usace-nid-regional-dams-v1",
+        "id": args.receipt_id,
         "created_at": dt.datetime.now(dt.timezone.utc)
         .replace(microsecond=0)
         .isoformat()
@@ -123,7 +144,7 @@ def main() -> int:
         "provider": "U.S. Army Corps of Engineers National Inventory of Dams",
         "service_url": SERVICE.removesuffix("/query"),
         "query_url": url,
-        "bbox_epsg_4326": BOUNDS,
+        "bbox_epsg_4326": args.bounds,
         "local_root": str(args.output_directory.resolve()),
         "source_file": source_name,
         "bytes": len(body),
@@ -142,7 +163,9 @@ def main() -> int:
             "Hydroelectric purpose does not by itself establish generator capacity or grid connection.",
         ],
     }
-    (args.output_directory / "receipt.json").write_text(
+    receipt_path = args.receipt or (args.output_directory / "receipt.json")
+    receipt_path.parent.mkdir(parents=True, exist_ok=True)
+    receipt_path.write_text(
         json.dumps(receipt, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
     print(

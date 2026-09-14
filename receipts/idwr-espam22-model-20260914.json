@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "id": "idwr-espam22-official-model-v1",
+  "created_at": "2026-09-14T21:02:44.645979+00:00",
+  "provider": "Idaho Department of Water Resources",
+  "model": "Eastern Snake Plain Aquifer Model version 2.2",
+  "source_index": "https://research.idwr.idaho.gov/files/projects/espam/browse/model_files/Version_22/",
+  "local_root": "/run/media/madame-butterfly/Toshiba/Treasure_Valley_Model/data/raw/idwr/espam22_20260914",
+  "file_count": 3,
+  "total_bytes": 494832320,
+  "files": [
+    {
+      "file": "E200723A_07.zip",
+      "source_url": "https://research.idwr.idaho.gov/files/projects/espam/browse/model_files/Version_22/FinalCalibration/E200723A_07.zip",
+      "bytes": 493453286,
+      "sha256": "ffc84faf80291eceeb7c4c91547f2a4bc7ee48a9df886d21743f69a89c1a0b9b",
+      "zip_member_count": 320,
+      "zip_uncompressed_bytes": 1560586071,
+      "format_validation": "zip-central-directory-and-member-crc-passed"
+    },
+    {
+      "file": "SpecificYield.zip",
+      "source_url": "https://research.idwr.idaho.gov/files/projects/espam/browse/model_files/Version_22/AquiferProperties/SpecificYield.zip",
+      "bytes": 642441,
+      "sha256": "89431cb5bc886e9e8dc1a555414c07f021e1fc2c131deb94f8af6ff3552553a0",
+      "zip_member_count": 7,
+      "zip_uncompressed_bytes": 3188293,
+      "format_validation": "zip-central-directory-and-member-crc-passed"
+    },
+    {
+      "file": "Transmissivity.zip",
+      "source_url": "https://research.idwr.idaho.gov/files/projects/espam/browse/model_files/Version_22/AquiferProperties/Transmissivity.zip",
+      "bytes": 736593,
+      "sha256": "609b477f21fa5da3c73974ea0811a46e5d72dee7b63f7ce3526f18aa56e5d83d",
+      "zip_member_count": 7,
+      "zip_uncompressed_bytes": 3615325,
+      "format_validation": "zip-central-directory-and-member-crc-passed"
+    }
+  ],
+  "status": "original-bytes-and-format-verified",
+  "scientific_boundary": "Acquisition and archive integrity do not establish numerical reproduction, scenario suitability, or coupling acceptance."
+}

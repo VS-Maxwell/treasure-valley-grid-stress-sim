@@ -2,6 +2,8 @@ import "./styles.css";
 
 import { RuntimeDiagnostics } from "./diagnostics/RuntimeDiagnostics";
 import { loadEnergyScreening } from "./data/loadEnergyScreening";
+import { loadEspamGrid } from "./data/loadEspamGrid";
+import { loadEspamHeads } from "./data/loadEspamHeads";
 import { loadGridCore } from "./data/loadGridCore";
 import { loadMeasuredGroundwater } from "./data/loadMeasuredGroundwater";
 import { loadMeasuredGroundwaterSites } from "./data/loadMeasuredGroundwaterSites";
@@ -49,6 +51,8 @@ async function boot(): Promise<void> {
     terrainLoad,
     damLoad,
     bottomLoad,
+    espamLoad,
+    espamHeadLoad,
     energyScreening,
   ] = await Promise.all([
     loadGridCore(),
@@ -81,6 +85,24 @@ async function boot(): Promise<void> {
             ? error.message
             : "Unknown aquifer-bottom load error",
       })),
+    loadEspamGrid()
+      .then((espam) => ({ espam, error: null }))
+      .catch((error: unknown) => ({
+        espam: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown ESPAM grid load error",
+      })),
+    loadEspamHeads()
+      .then((heads) => ({ heads, error: null }))
+      .catch((error: unknown) => ({
+        heads: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown ESPAM head load error",
+      })),
     loadEnergyScreening(),
   ]);
   if (terrainLoad.error)
@@ -89,6 +111,10 @@ async function boot(): Promise<void> {
     console.error("USACE regional dam inventory unavailable", damLoad.error);
   if (bottomLoad.error)
     console.error("TVGWFM aquifer bottoms unavailable", bottomLoad.error);
+  if (espamLoad.error)
+    console.error("IDWR ESPAM grid unavailable", espamLoad.error);
+  if (espamHeadLoad.error)
+    console.error("IDWR ESPAM archived heads unavailable", espamHeadLoad.error);
   diagnostics.setDataReceipt(
     grid.source_sha256,
     grid.trans.features.length,
@@ -131,6 +157,10 @@ async function boot(): Promise<void> {
     damLoad.error,
     bottomLoad.bottoms,
     bottomLoad.error,
+    espamLoad.espam,
+    espamLoad.error,
+    espamHeadLoad.heads,
+    espamHeadLoad.error,
     energyScreening,
     actions,
   );
@@ -198,6 +228,8 @@ async function boot(): Promise<void> {
         terrainLoad.terrain,
         damLoad.dams,
         bottomLoad.bottoms,
+        espamLoad.espam,
+        espamHeadLoad.heads,
         energyScreening,
         {
           onContextLost: () =>

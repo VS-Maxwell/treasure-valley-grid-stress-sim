@@ -44,7 +44,7 @@ No null measurement is converted to zero. Source values and display transforms r
 | `aquifer_layer_surface` | packed surface per model layer | Top/bottom geometry for rendering the six TVGWFM layers and later separate ESPAM layers |
 | `model_domain_link` | one row per domain seam | TVGWFM-to-ESPAM boundary/coupling method, variables, cadence, validation and limitations |
 
-The published TVGWFM `DIS` file already contains six explicit bottom arrays. Those are the authoritative first geometry for that model; core and borehole logs are independent evidence used to interpret or test the hydrogeologic framework. Gaps are interpolated only under an explicit method and remain labeled reconstructed.
+The published TVGWFM `DIS` file already contains six explicit bottom arrays. Those are the authoritative first geometry for that model; core and borehole logs are independent evidence used to interpret or test the hydrogeologic framework. The separately preserved ESPAM 2.2 calibration archive defines a one-layer 104 × 209 grid with 11,236 active 5,280-foot cells and 462 stress periods. The current IDWR grid service returns exactly those 11,236 active cells. Thirty-nine archived September head slices from 1980–2018 are mapped to that exact active-cell set for 4D playback; they remain labeled archived modeled output until an independent executable reproduction passes. Neither model is stretched across the other domain. Gaps are interpolated only under an explicit method and remain labeled reconstructed.
 
 ## Groundwater and surface water
 

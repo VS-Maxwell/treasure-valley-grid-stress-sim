@@ -7,6 +7,9 @@ import {
   type EnergyBranch,
   type EnergyScreeningModel,
 } from "../data/energyScreening";
+import type { EspamGrid } from "../data/espamGrid";
+import { espamHeadFeet, type EspamHeads } from "../data/espamHeads";
+import { nearestEspamHeadSlice } from "../data/loadEspamHeads";
 import {
   measureGridBounds,
   previewElevation,
@@ -57,6 +60,8 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   readonly #regionalTerrain: RegionalTerrain | null;
   readonly #regionalDams: RegionalDams | null;
   readonly #tvgwfmBottoms: TvgwfmBottoms | null;
+  readonly #espamGrid: EspamGrid | null;
+  readonly #espamHeads: EspamHeads | null;
   readonly #energyScreening: EnergyScreeningModel;
   readonly #callbacks: RendererCallbacks;
   readonly #scene = new THREE.Scene();
@@ -83,6 +88,11 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   #measuredWellPoints: THREE.Points | null = null;
   #damPoints: THREE.Points | null = null;
   #hydroDamPoints: THREE.Points | null = null;
+  #espamGridLines: THREE.LineSegments | null = null;
+  #espamHeadSurface: THREE.Mesh<
+    THREE.BufferGeometry,
+    THREE.MeshPhysicalMaterial
+  > | null = null;
   #imageryTexture: THREE.Texture | null = null;
   #imageryRequest = 0;
   readonly #sun = new THREE.DirectionalLight(0xfff0d1, 3.2);
@@ -92,6 +102,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   #lastRenderTime = 0;
   #settleFrames = 0;
   #headSliceIndex = -1;
+  #espamHeadSliceIndex = -1;
   #running = false;
   #resizeObserver: ResizeObserver | null = null;
 
@@ -104,18 +115,23 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     regionalTerrain: RegionalTerrain | null,
     regionalDams: RegionalDams | null,
     tvgwfmBottoms: TvgwfmBottoms | null,
+    espamGrid: EspamGrid | null,
+    espamHeads: EspamHeads | null,
     energyScreening: EnergyScreeningModel,
     callbacks: RendererCallbacks,
   ) {
     this.#container = container;
     this.#grid = grid;
-    this.#gridBounds = measureGridBounds(grid);
+    this.#gridBounds =
+      regionalTerrain?.manifest.mesh.bounds_wgs84 ?? measureGridBounds(grid);
     this.#tvgwfm = tvgwfm;
     this.#tvgwfmHeads = tvgwfmHeads;
     this.#measuredGroundwaterSites = measuredGroundwaterSites;
     this.#regionalTerrain = regionalTerrain;
     this.#regionalDams = regionalDams;
     this.#tvgwfmBottoms = tvgwfmBottoms;
+    this.#espamGrid = espamGrid;
+    this.#espamHeads = espamHeads;
     this.#energyScreening = energyScreening;
     this.#callbacks = callbacks;
     this.#renderer = new THREE.WebGLRenderer({
@@ -284,6 +300,17 @@ export class ThreeCockpitRenderer implements RendererAdapter {
         state.scene === "water" ||
         state.scene === "nexus" ||
         state.scene === "risk";
+    if (this.#espamGridLines)
+      this.#espamGridLines.visible =
+        state.scene === "water" ||
+        state.scene === "nexus" ||
+        state.scene === "record";
+    if (this.#espamHeadSurface) {
+      this.#espamHeadSurface.visible =
+        state.scene === "water" || state.scene === "nexus";
+      this.#espamHeadSurface.material.opacity =
+        state.scene === "water" ? 0.58 : 0.32;
+    }
     if (this.#screeningBranchLines) {
       this.#screeningBranchLines.visible = state.scene === "energy";
       if (this.#activeEnergyScenario !== state.energyScenario) {
@@ -301,6 +328,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
       }
     }
     this.#updateHeadSurfaces(state.year);
+    this.#updateEspamHeadSurface(state.year);
     this.#terrainMaterial.wireframe = state.scene === "record";
     const future = Math.max(0, (state.year - 2026) / 74);
     this.#scene.background = new THREE.Color().setRGB(
@@ -408,6 +436,8 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#scene.add(terrain);
 
     this.#addRegionalTerrainSurface();
+    this.#addEspamGrid();
+    this.#addEspamHeadSurface();
 
     this.#addTvgwfmSurface();
     this.#addAquiferBottomSurfaces();
@@ -485,8 +515,160 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     geometry.setIndex(indices);
     geometry.computeVertexNormals();
     const surface = new THREE.Mesh(geometry, this.#terrainMaterial);
-    surface.name = "usgs-3dep-regional-terrain-observed";
+    surface.name = "usgs-3dep-snake-plain-terrain-observed";
     this.#scene.add(surface);
+  }
+
+  #addEspamGrid(): void {
+    if (!this.#espamGrid) return;
+    const values = this.#espamGrid.lines;
+    const positions: number[] = [];
+    for (let index = 0; index < values.length; index += 4) {
+      const start = this.#projectPosition([values[index]!, values[index + 1]!]);
+      const end = this.#projectPosition([
+        values[index + 2]!,
+        values[index + 3]!,
+      ]);
+      positions.push(
+        start.x,
+        start.y + 0.24,
+        start.z,
+        end.x,
+        end.y + 0.24,
+        end.z,
+      );
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(positions, 3),
+    );
+    this.#espamGridLines = new THREE.LineSegments(
+      geometry,
+      new THREE.LineBasicMaterial({
+        color: 0x35d7c8,
+        transparent: true,
+        opacity: 0.2,
+        depthWrite: false,
+      }),
+    );
+    this.#espamGridLines.name = "idwr-espam22-active-grid-11236";
+    this.#scene.add(this.#espamGridLines);
+  }
+
+  #addEspamHeadSurface(): void {
+    if (!this.#espamGrid || !this.#espamHeads || !this.#regionalTerrain) return;
+    const edges = this.#espamGrid.lines;
+    const vertices: number[] = [];
+    const colors: number[] = [];
+    const indices: number[] = [];
+    const low = new THREE.Color(0x126b9a);
+    const high = new THREE.Color(0x6ff7ff);
+    const firstSlice = this.#espamHeads.manifest.slices[0]!;
+    for (
+      let cell = 0;
+      cell < this.#espamGrid.manifest.layout.active_cells;
+      cell += 1
+    ) {
+      const edge = cell * 16;
+      const corners: readonly (readonly [number, number])[] = [
+        [edges[edge]!, edges[edge + 1]!],
+        [edges[edge + 2]!, edges[edge + 3]!],
+        [edges[edge + 6]!, edges[edge + 7]!],
+        [edges[edge + 10]!, edges[edge + 11]!],
+      ];
+      const packed = this.#espamHeads.values[firstSlice.value_offset + cell]!;
+      const headFeet = espamHeadFeet(this.#espamHeads, packed);
+      const normalized = THREE.MathUtils.clamp(
+        (headFeet - this.#espamHeads.manifest.statistics.minimum_feet) /
+          (this.#espamHeads.manifest.statistics.maximum_feet -
+            this.#espamHeads.manifest.statistics.minimum_feet),
+        0,
+        1,
+      );
+      const color = low.clone().lerp(high, normalized);
+      for (const corner of corners) {
+        const point = projectPosition(corner, this.#gridBounds);
+        vertices.push(
+          point.x,
+          terrainWorldHeight(this.#regionalTerrain, headFeet * 0.3048) + 0.36,
+          point.z,
+        );
+        colors.push(color.r, color.g, color.b);
+      }
+      const base = cell * 4;
+      indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(vertices, 3),
+    );
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+    this.#espamHeadSurface = new THREE.Mesh(
+      geometry,
+      new THREE.MeshPhysicalMaterial({
+        vertexColors: true,
+        emissive: 0x06344d,
+        emissiveIntensity: 0.38,
+        roughness: 0.24,
+        metalness: 0.04,
+        transparent: true,
+        opacity: 0.58,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      }),
+    );
+    this.#espamHeadSurface.name =
+      "idwr-espam22-archived-head-surface-1980-2018";
+    this.#scene.add(this.#espamHeadSurface);
+  }
+
+  #updateEspamHeadSurface(year: number): void {
+    if (!this.#espamHeadSurface || !this.#espamHeads || !this.#regionalTerrain)
+      return;
+    const sliceIndex = nearestEspamHeadSlice(this.#espamHeads.manifest, year);
+    if (sliceIndex === this.#espamHeadSliceIndex) return;
+    this.#espamHeadSliceIndex = sliceIndex;
+    const slice = this.#espamHeads.manifest.slices[sliceIndex]!;
+    const positions = this.#espamHeadSurface.geometry.getAttribute(
+      "position",
+    ) as THREE.BufferAttribute;
+    const colors = this.#espamHeadSurface.geometry.getAttribute(
+      "color",
+    ) as THREE.BufferAttribute;
+    const low = new THREE.Color(0x126b9a);
+    const high = new THREE.Color(0x6ff7ff);
+    for (
+      let cell = 0;
+      cell < this.#espamHeads.manifest.active_cell_count;
+      cell += 1
+    ) {
+      const headFeet = espamHeadFeet(
+        this.#espamHeads,
+        this.#espamHeads.values[slice.value_offset + cell]!,
+      );
+      const y =
+        terrainWorldHeight(this.#regionalTerrain, headFeet * 0.3048) + 0.36;
+      const normalized = THREE.MathUtils.clamp(
+        (headFeet - this.#espamHeads.manifest.statistics.minimum_feet) /
+          (this.#espamHeads.manifest.statistics.maximum_feet -
+            this.#espamHeads.manifest.statistics.minimum_feet),
+        0,
+        1,
+      );
+      const color = low.clone().lerp(high, normalized);
+      for (let corner = 0; corner < 4; corner += 1) {
+        const vertex = cell * 4 + corner;
+        positions.setY(vertex, y);
+        colors.setXYZ(vertex, color.r, color.g, color.b);
+      }
+    }
+    positions.needsUpdate = true;
+    colors.needsUpdate = true;
+    this.#espamHeadSurface.geometry.computeVertexNormals();
   }
 
   #addMeasuredGroundwaterSites(): void {

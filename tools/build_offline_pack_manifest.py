@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "app/public/data/offline-pack-manifest-v7.json"
+OUTPUT = ROOT / "app/public/data/offline-pack-manifest-v10.json"
 ARTIFACTS = (
     ("tvgwfm-grid", "app/public/data/tvgwfm-grid.json", "application/json", "ingested"),
     (
@@ -55,14 +55,14 @@ ARTIFACTS = (
         "observed",
     ),
     (
-        "usgs-3dep-regional-terrain-manifest",
-        "app/public/data/usgs-3dep-regional-terrain-manifest.json",
+        "usgs-3dep-snake-plain-terrain-manifest-v4",
+        "app/public/data/usgs-3dep-snake-plain-terrain-manifest-v4.json",
         "application/json",
         "observed",
     ),
     (
-        "usgs-3dep-regional-terrain-f32",
-        "app/public/data/usgs-3dep-regional-terrain-f32.bin",
+        "usgs-3dep-snake-plain-terrain-f32-v4",
+        "app/public/data/usgs-3dep-snake-plain-terrain-f32-v4.bin",
         "application/octet-stream",
         "observed",
     ),
@@ -102,6 +102,36 @@ ARTIFACTS = (
         "application/json",
         "modeled-screening",
     ),
+    (
+        "idwr-espam22-grid-manifest-v1",
+        "app/public/data/idwr-espam22-grid-manifest-v1.json",
+        "application/json",
+        "ingested",
+    ),
+    (
+        "idwr-espam22-grid-lines-f32-v1",
+        "app/public/data/idwr-espam22-grid-lines-f32-v1.bin",
+        "application/octet-stream",
+        "ingested",
+    ),
+    (
+        "idwr-espam22-grid-cells-f32-v1",
+        "app/public/data/idwr-espam22-grid-cells-f32-v1.bin",
+        "application/octet-stream",
+        "ingested",
+    ),
+    (
+        "idwr-espam22-heads-manifest-v1",
+        "app/public/data/idwr-espam22-heads-manifest-v1.json",
+        "application/json",
+        "ingested",
+    ),
+    (
+        "idwr-espam22-heads-q10-v1",
+        "app/public/data/idwr-espam22-heads-q10-v1.bin",
+        "application/octet-stream",
+        "ingested",
+    ),
 )
 
 
@@ -131,8 +161,8 @@ def main() -> int:
         )
     payload = {
         "schema_version": 1,
-        "id": "treasure-valley-offline-earth-pack-v7",
-        "created_at": "2026-09-14T22:20:00Z",
+        "id": "treasure-valley-offline-earth-pack-v10",
+        "created_at": "2026-09-14T21:15:00Z",
         "source_doi": "10.5066/P9U6OOPH",
         "network_required": False,
         "artifact_count": len(artifacts),

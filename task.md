@@ -38,6 +38,11 @@ Updated: 2026-09-14
 - [x] Render mapped observed wells only in the explicit Water → Compare state.
 - [x] Acquire and independently hash six USGS 3DEP 1-arc-second GeoTIFF tiles totaling 316,921,023 bytes on the T drive.
 - [x] Build a 15,251-vertex observed terrain mesh across 118°W–115°W and 43°N–45°N and retain reconstructed terrain only outside that boundary.
+- [x] Preserve 32 USGS 3DEP tiles and promote an 80,601-vertex full Snake Plain overview mesh across 119°W–111°W and 42°N–46°N.
+- [x] Acquire the official ESPAM 2.2 final-calibration and aquifer-property archives with byte, SHA-256, ZIP, and CRC receipts.
+- [x] Cross-check and render all 11,236 official ESPAM active cells without stretching or merging the TVGWFM domain.
+- [x] Map 39 archived annual ESPAM head slices from 1980–2018 onto the exact 11,236-cell official active grid and render the time-varying surface.
+- [ ] Map archived ESPAM budgets and independently reproduce the published baseline before enabling new ESPAM scenarios.
 - [x] Acquire and normalize 193 current USACE NID regional dam records, retaining one missing NIDID and three shared-NIDID records under distinct Corps OBJECTIDs.
 - [x] Render all 193 regional dams in water/nexus/risk and distinguish 11 hydroelectric-purpose dams in Energy without claiming watershed or grid connectivity.
 - [x] Define the normalized historical tables, charts, and relationship matrices needed for an API-independent runtime.

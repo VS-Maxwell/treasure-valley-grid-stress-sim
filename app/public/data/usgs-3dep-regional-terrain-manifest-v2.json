@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "id": "usgs-3dep-regional-terrain-v2",
+  "truth_state": "observed",
+  "provider": "U.S. Geological Survey 3D Elevation Program",
+  "product": "1 arc-second seamless DEM",
+  "source_receipt": "receipts/usgs-3dep-boise-upstream-20260914.json",
+  "source_receipt_sha256": "59e7e2eb2b4cc473df98a1c87c1a50979de7fb98f12005814bc56fc13fab1df9",
+  "horizontal_datum": "NAD83",
+  "vertical_datum": "NAVD88",
+  "elevation_unit": "meters",
+  "mesh": {
+    "rows": 101,
+    "columns": 176,
+    "vertex_count": 17776,
+    "geographic_interpolation": "regular longitude-latitude grid",
+    "sampling": "bilinear GeoTIFF pixel-center interpolation",
+    "bounds_wgs84": {
+      "west": -118.0,
+      "east": -114.5,
+      "south": 43.0,
+      "north": 45.0
+    }
+  },
+  "statistics": {
+    "minimum_meters": 519.753,
+    "maximum_meters": 3476.083,
+    "mean_meters": 1472.631
+  },
+  "binary": {
+    "file": "usgs-3dep-regional-terrain-f32-v2.bin",
+    "bytes": 71104,
+    "sha256": "91750e0d629bd07117480f45d680290ab324068268837a6f1bea7196cc0dcb7b",
+    "encoding": "little-endian-float32",
+    "order": "row-major-northwest-to-southeast-elevation-meters"
+  },
+  "render_transform": {
+    "vertical_exaggeration": 2.2,
+    "world_height_span": 18.0,
+    "note": "The renderer preserves source values in meters and applies a documented visual scaling only to world-space height."
+  },
+  "limitations": [
+    "This compact mesh covers 8 receipted 3DEP tiles and is not the full Snake River Plain.",
+    "It is a downsampled visualization surface and is not a substitute for the original 1 arc-second rasters.",
+    "The 8 original GeoTIFFs remain outside the browser bundle under their acquisition receipt."
+  ]
+}

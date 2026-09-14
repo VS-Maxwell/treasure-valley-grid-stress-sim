@@ -11,7 +11,7 @@ Two interfaces are preserved while the modular application is built:
 - `/` — a bounded Canvas stability view with 244 transmission corridors and 94 mapped substations.
 - `/dist/` after `npm run build` — the Phase 1 Three.js cockpit with shared simulation state, seven system scenes, time controls, comparison and stress actions, evidence labels, runtime diagnostics, responsive layouts, and deterministic Canvas fallback.
 
-The current Three.js regional terrain is a receipt-backed USGS 3DEP surface, and its six aquifer-bottom surfaces are exact visualization transforms of the published TVGWFM discretization arrays. The dim terrain outside the verified six-tile region remains reconstructed context. Model bottoms are not borehole observations, and animated heads are reproduced model output rather than a new validated forecast. The geographic grid pack is an exact extraction from the preserved legacy application and carries a SHA-256 receipt.
+The current Three.js terrain is a receipt-backed USGS 3DEP surface spanning the full Snake Plain overview envelope (119°W–111°W, 42°N–46°N). The western six TVGWFM aquifer-bottom surfaces remain exact visualization transforms of that published model's discretization arrays. The separate official ESPAM 2.2 wireframe maps 11,236 active eastern cells from IDWR's one-layer 104×209 grid. Terrain coverage is not presented as groundwater-model coverage: TVGWFM, ESPAM, and framework-only areas remain distinct. Model bottoms are not borehole observations, and animated TVGWFM heads are reproduced model output rather than a new validated forecast.
 
 ## Build and validate
 
