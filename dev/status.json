@@ -1,9 +1,9 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-14T20:20:07Z",
+  "updated_at": "2026-09-14T20:20:32Z",
   "phase": "Phase 3 - Terrain and 3D assets",
-  "task": "Checkpoint aquifer-bottom pack v6; continue watershed and energy topology",
-  "state": "passed",
+  "task": "Build directed watershed and energy topology evidence",
+  "state": "active",
   "progress_percent": 55,
   "preview_url": "http://127.0.0.1:8001/dist/",
   "machines": [
@@ -375,6 +375,12 @@
       "state": "passed",
       "summary": "Visible aquifer-bottom playtest passed",
       "detail": "Water scene shows six bottom surfaces; Evidence states all six 64 by 65 TVGWFM model-bottom arrays are active and distinct from core or borehole observations. Browser console has no errors or warnings."
+    },
+    {
+      "at": "2026-09-14T20:20:32Z",
+      "state": "active",
+      "summary": "Phase 3 continues after aquifer checkpoint",
+      "detail": "Commit 465ca3a preserves regional terrain, 193 dam records and six TVGWFM bottom surfaces. Overall simulator remains active; next evidence gates are directed watershed connectivity, EIA hydropower matching and the 94-bus interactive promotion."
     }
   ]
 }
