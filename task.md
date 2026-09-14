@@ -32,6 +32,8 @@ Updated: 2026-09-14
 - [x] Acquire and byte-verify 19,696 official USGS discrete groundwater-depth measurements from 3,168 locations inside the model footprint for 1986–2015.
 - [ ] Define and validate the datum-aware spatial match from measured well depth to model cell/head before showing measured-versus-modeled comparisons.
 - [x] Expose annual observed depth distributions only behind the explicit Compare action, with 77 null source values and the no-datum-match boundary visible.
+- [x] Acquire and byte-verify elevation and vertical-datum metadata for all 3,168 measured wells: 2,920 NAVD88 and 248 NGVD29.
+- [ ] Convert NAVD88 depth readings to water-level altitude and map only eligible wells to model cells; retain NGVD29 and unknown screen-layer exclusions.
 
 ## Later phases
 

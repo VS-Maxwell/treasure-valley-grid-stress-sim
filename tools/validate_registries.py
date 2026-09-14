@@ -43,6 +43,7 @@ def main() -> int:
         "app/public/data/offline-pack-manifest.json",
         "app/public/data/offline-pack-manifest-v2.json",
         "receipts/usgs-groundwater-field-measurements-20260914.json",
+        "receipts/usgs-monitoring-locations-20260914.json",
     ]
     for name in required_files:
         require((ROOT / name).is_file(), f"{name} exists")
@@ -170,6 +171,48 @@ def main() -> int:
         field_bytes == field_receipt["total_bytes"]
         and field_features == field_receipt["measurement_count"],
         "USGS field-measurement page totals balance",
+    )
+
+    location_receipt = json.loads(
+        (ROOT / "receipts/usgs-monitoring-locations-20260914.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    require(
+        location_receipt["status"] == "original-api-pages-verified"
+        and location_receipt["requested_location_count"]
+        == location_receipt["returned_location_count"]
+        == field_receipt["monitoring_location_count"]
+        and location_receipt["missing_location_count"] == 0,
+        "USGS metadata covers every measured groundwater location",
+    )
+    require(
+        location_receipt["altitude_count"]
+        == location_receipt["returned_location_count"]
+        and location_receipt["vertical_datum_counts"]
+        == {"NAVD88": 2920, "NGVD29": 248},
+        "USGS well elevations and vertical-datum counts are explicit",
+    )
+    location_root = Path(location_receipt["local_root"])
+    location_bytes = 0
+    location_rows = 0
+    for page in location_receipt["pages"]:
+        path = location_root / page["file"]
+        if (
+            not path.is_file()
+            or path.stat().st_size != page["bytes"]
+            or sha256(path) != page["sha256"]
+        ):
+            raise AssertionError(
+                f"monitoring-location page receipt mismatch: {page['page']}"
+            )
+        location_bytes += path.stat().st_size
+        location_rows += page["returned_count"]
+    require(
+        location_bytes == location_receipt["total_bytes"]
+        and location_rows == location_receipt["returned_location_count"]
+        and len(location_receipt["pages"]) == location_receipt["page_count"] == 32,
+        "USGS monitoring-location page hashes and totals balance",
     )
 
     policy = (ROOT / "RESTRICTED_DATA_POLICY.md").read_text(encoding="utf-8")
