@@ -11,6 +11,7 @@
     "compare",
     "drawer",
     "climateScenario",
+    "energyScenario",
     "truthState"
   ],
   "properties": {
@@ -23,6 +24,9 @@
     "drawer": { "enum": ["closed", "evidence", "ask"] },
     "climateScenario": {
       "enum": ["historical", "baseline", "heat-drought-2050"]
+    },
+    "energyScenario": {
+      "enum": ["base", "dc25", "dc50", "all25", "all50", "drought", "n1"]
     },
     "truthState": { "$ref": "truth-state.schema.json" }
   }

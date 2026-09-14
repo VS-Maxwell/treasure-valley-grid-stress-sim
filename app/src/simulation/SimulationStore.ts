@@ -5,6 +5,7 @@ import {
   truthStateForYear,
   truthStateForView,
   type SceneId,
+  type EnergyScenario,
   type SimulationState,
 } from "../contracts";
 
@@ -47,6 +48,14 @@ export class SimulationStore {
     this.#commit({
       year: boundedYear,
       truthState: truthStateForView(this.#state.scene, boundedYear),
+    });
+  }
+
+  setEnergyScenario(energyScenario: EnergyScenario): void {
+    this.#commit({
+      energyScenario,
+      scene: "energy",
+      truthState: "modeled-screening",
     });
   }
 

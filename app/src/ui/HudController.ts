@@ -1,4 +1,6 @@
 import { SCENE_CONTENT } from "../simulation/sceneContent";
+import { ENERGY_SCENARIOS } from "../data/energyScreening";
+import type { EnergyScreeningModel } from "../data/energyScreening";
 import type { GridCore } from "../data/gridTypes";
 import { nearestHeadSlice } from "../data/loadTvgwfmHeads";
 import { nearestBudgetRow } from "../data/loadTvgwfmTimeseries";
@@ -11,7 +13,7 @@ import type { TvgwfmBottoms } from "../data/tvgwfmBottoms";
 import type { TvgwfmHeads } from "../data/tvgwfmHeads";
 import type { TvgwfmTimeseries } from "../data/tvgwfmTimeseries";
 import type { RendererMetrics } from "../render/RendererAdapter";
-import type { SceneId, SimulationState } from "../contracts";
+import type { EnergyScenario, SceneId, SimulationState } from "../contracts";
 import type { SimulationStore } from "../simulation/SimulationStore";
 
 export interface HudActions {
@@ -53,6 +55,7 @@ export class HudController {
   readonly #damLoadError: string | null;
   readonly #tvgwfmBottoms: TvgwfmBottoms | null;
   readonly #bottomLoadError: string | null;
+  readonly #energyScreening: EnergyScreeningModel;
   readonly #actions: HudActions;
   readonly #app = required<HTMLElement>("#app");
   readonly #loading = required<HTMLElement>("#loading");
@@ -90,6 +93,7 @@ export class HudController {
     damLoadError: string | null,
     tvgwfmBottoms: TvgwfmBottoms | null,
     bottomLoadError: string | null,
+    energyScreening: EnergyScreeningModel,
     actions: HudActions,
   ) {
     this.#store = store;
@@ -104,6 +108,7 @@ export class HudController {
     this.#damLoadError = damLoadError;
     this.#tvgwfmBottoms = tvgwfmBottoms;
     this.#bottomLoadError = bottomLoadError;
+    this.#energyScreening = energyScreening;
     this.#actions = actions;
   }
 
@@ -156,7 +161,12 @@ export class HudController {
       state.playing ? "Pause timeline" : "Play timeline",
     );
     this.#comparison.hidden = !state.compare;
-    this.#renderContext(state.scene, state.year, state.compare);
+    this.#renderContext(
+      state.scene,
+      state.year,
+      state.compare,
+      state.energyScenario,
+    );
     this.#renderDrawer(state);
   }
 
@@ -185,7 +195,12 @@ export class HudController {
     this.#loading.classList.add("ready");
   }
 
-  #renderContext(scene: SceneId, year: number, compare: boolean): void {
+  #renderContext(
+    scene: SceneId,
+    year: number,
+    compare: boolean,
+    energyScenario: EnergyScenario,
+  ): void {
     const content = SCENE_CONTENT[scene];
     const selectedHeadSlice =
       scene === "water"
@@ -248,12 +263,79 @@ export class HudController {
         compare,
         year,
       );
+    } else if (scene === "energy") {
+      this.#renderEnergyControl(energyScenario);
     } else if (scene === "record") {
       this.#renderOfflinePack();
     } else {
       this.#contextChart.hidden = true;
       this.#contextChart.replaceChildren();
     }
+  }
+
+  #renderEnergyControl(scenario: EnergyScenario): void {
+    const labels: Record<EnergyScenario, string> = {
+      base: "Baseline",
+      dc25: "Data centers +25%",
+      dc50: "Data centers +50%",
+      all25: "All demand +25%",
+      all50: "All demand +50%",
+      drought: "Drought derating",
+      n1: "N-1 contingency envelope",
+    };
+    const label = document.createElement("label");
+    label.className = "energy-scenario-label";
+    label.htmlFor = "energy-scenario";
+    label.textContent = "Grid screening scenario";
+    const select = document.createElement("select");
+    select.id = "energy-scenario";
+    select.setAttribute("aria-label", "Grid screening scenario");
+    select.replaceChildren(
+      ...ENERGY_SCENARIOS.map((value) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = labels[value];
+        option.selected = value === scenario;
+        return option;
+      }),
+    );
+    select.addEventListener("change", () =>
+      this.#store.setEnergyScenario(select.value as EnergyScenario),
+    );
+    const summary = this.#energyScreening.scenario_summaries[scenario];
+    const caption = document.createElement("p");
+    caption.className = "context-chart-caption";
+    caption.textContent = `${labels[scenario]} · ${summary.branches_at_or_above_80_pct} branches ≥80% · ${summary.branches_at_or_above_100_pct} branches ≥100% · ${summary.maximum_loading_pct.toFixed(1)}% maximum`;
+    const legend = document.createElement("div");
+    legend.className = "energy-legend";
+    const bands = [
+      ["<50", "#54b9ff"],
+      ["50–79", "#63e5c5"],
+      ["80–99", "#ffc247"],
+      ["100–149", "#ff654b"],
+      ["150%+", "#ff274f"],
+    ] as const;
+    legend.replaceChildren(
+      ...bands.map(([text, color]) => {
+        const item = document.createElement("span");
+        const swatch = document.createElement("i");
+        swatch.style.backgroundColor = color;
+        item.append(swatch, document.createTextNode(text));
+        return item;
+      }),
+    );
+    const boundary = document.createElement("p");
+    boundary.className = "context-chart-boundary";
+    boundary.textContent =
+      "Calibrated DC screening · assumed ratings · not operational data";
+    this.#contextChart.replaceChildren(
+      label,
+      select,
+      caption,
+      legend,
+      boundary,
+    );
+    this.#contextChart.hidden = false;
   }
 
   #renderOfflinePack(): void {
@@ -398,7 +480,7 @@ export class HudController {
       this.#code(this.#grid.source_sha256),
       this.#heading("Representation boundary"),
       this.#paragraph(
-        "244 corridors and 94 substations are visible geographic features. The scientific screening graph separately contains 94 buses and 156 usable branches; the interactive solver has 12 selected buses.",
+        `244 corridors and 94 substations are visible geographic features. All ${this.#energyScreening.counts.branches} preserved DC-screening branches now respond to seven scenarios. Exactly ${this.#energyScreening.counts.branches_with_unique_endpoint_labels} branch endpoints resolve through unique labels; ${this.#energyScreening.counts.branches_with_ambiguous_endpoint_labels} retain ambiguous legacy labels rather than receiving invented bus identities.`,
       ),
       this.#heading("Terrain truth state"),
       this.#paragraph(

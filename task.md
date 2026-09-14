@@ -43,7 +43,7 @@ Updated: 2026-09-14
 - [x] Define the normalized historical tables, charts, and relationship matrices needed for an API-independent runtime.
 - [ ] Build and validate the directed upstream watershed graph that selects every dam feeding the target regional water system.
 - [ ] Match hydroelectric dams to EIA generators and expand all active/planned/retired regional energy projects by technology and status.
-- [ ] Promote the 94-bus/156-branch screening graph into the interactive solver and improve voltage/selection rendering without fabricating missing topology.
+- [ ] Promote the 94-bus/156-branch screening graph into the interactive solver and improve voltage/selection rendering without fabricating missing topology. All 156 preserved scenario results are now interactive and color-banded; a fresh typed pandapower solve and individually resolved identities for the 27 legacy TAP buses remain pending.
 - [x] Extract and render all six published TVGWFM bottom arrays as source-native model geometry with a 24,960-cell IDOMAIN pack.
 - [ ] Add borehole/core constraints under separate evidence labels; do not reinterpret model bottoms as observations.
 

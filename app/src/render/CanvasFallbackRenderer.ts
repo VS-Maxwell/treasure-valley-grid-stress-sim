@@ -1,4 +1,9 @@
 import type { SimulationState } from "../contracts";
+import {
+  energyLoadingColor,
+  type EnergyBranch,
+  type EnergyScreeningModel,
+} from "../data/energyScreening";
 import { measureGridBounds, projectPosition } from "../data/geo";
 import { lineParts, type GridCore } from "../data/gridTypes";
 import type { RendererAdapter, RendererCallbacks } from "./RendererAdapter";
@@ -8,6 +13,7 @@ export class CanvasFallbackRenderer implements RendererAdapter {
   readonly #canvas: HTMLCanvasElement;
   readonly #context: CanvasRenderingContext2D;
   readonly #grid: GridCore;
+  readonly #branches: ReadonlyMap<string, EnergyBranch>;
   readonly #callbacks: RendererCallbacks;
   #state: SimulationState | null = null;
   #resizeObserver: ResizeObserver | null = null;
@@ -15,6 +21,7 @@ export class CanvasFallbackRenderer implements RendererAdapter {
   constructor(
     canvas: HTMLCanvasElement,
     grid: GridCore,
+    energyScreening: EnergyScreeningModel,
     callbacks: RendererCallbacks,
   ) {
     this.#canvas = canvas;
@@ -22,6 +29,9 @@ export class CanvasFallbackRenderer implements RendererAdapter {
     if (!context) throw new Error("Canvas fallback is unavailable");
     this.#context = context;
     this.#grid = grid;
+    this.#branches = new Map(
+      energyScreening.branches.map((branch) => [branch.branch_id, branch]),
+    );
     this.#callbacks = callbacks;
   }
 
@@ -104,10 +114,22 @@ export class CanvasFallbackRenderer implements RendererAdapter {
         : this.#state?.scene === "risk"
           ? "#ff6675"
           : "#77dcff";
-    context.strokeStyle = color;
-    context.globalAlpha = 0.8;
-    context.lineWidth = 1.25;
     for (const feature of this.#grid.trans.features) {
+      const branch = this.#branches.get(feature.properties.line_id);
+      if (this.#state?.scene === "energy" && branch) {
+        context.strokeStyle = `#${energyLoadingColor(
+          branch.loading_pct[this.#state.energyScenario],
+        )
+          .toString(16)
+          .padStart(6, "0")}`;
+        context.globalAlpha = 0.95;
+        context.lineWidth = 2;
+      } else {
+        context.strokeStyle = color;
+        context.globalAlpha =
+          this.#state?.scene === "energy" && !branch ? 0.16 : 0.8;
+        context.lineWidth = 1.25;
+      }
       for (const line of lineParts(feature.geometry)) {
         context.beginPath();
         line.forEach(([longitude, latitude], index) => {

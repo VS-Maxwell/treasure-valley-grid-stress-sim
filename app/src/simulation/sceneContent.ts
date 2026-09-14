@@ -31,13 +31,13 @@ export const SCENE_CONTENT: Record<SceneId, SceneContent> = {
     ],
   },
   energy: {
-    eyebrow: "ENERGY · PRESENT SYSTEM",
-    title: "Follow electricity across the valley",
-    copy: "Exact extracted corridor geometry and regional USACE dam records are draped over observed USGS 3DEP terrain. Hydroelectric purpose is visible now; generator capacity and grid linkage remain pending EIA matching.",
+    eyebrow: "ENERGY · 94-BUS SCREENING SYSTEM",
+    title: "Stress every modeled branch across the valley",
+    copy: "All 94 screening buses and 156 DC-model branches are now visible against 244 mapped corridors. Change the scenario to recolor every branch; this remains a calibrated research screening model, not an operational utility model.",
     metrics: [
-      { value: "244", label: "visible corridors" },
-      { value: "94 / 156", label: "screening buses / lines" },
-      { value: "12", label: "interactive buses" },
+      { value: "244", label: "mapped corridors" },
+      { value: "94", label: "rendered buses" },
+      { value: "156", label: "interactive branches" },
     ],
   },
   nexus: {

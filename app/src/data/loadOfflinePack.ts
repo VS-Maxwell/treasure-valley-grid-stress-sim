@@ -1,7 +1,7 @@
 import type { OfflinePackManifest } from "./offlinePack";
 
 const OFFLINE_PACK_URL = new URL(
-  "../../public/data/offline-pack-manifest-v6.json",
+  "../../public/data/offline-pack-manifest-v7.json",
   import.meta.url,
 ).href;
 
@@ -22,7 +22,7 @@ export function validateOfflinePack(candidate: unknown): OfflinePackManifest {
   const manifest = candidate as Partial<OfflinePackManifest>;
   if (
     manifest.schema_version !== 1 ||
-    manifest.id !== "treasure-valley-offline-earth-pack-v6" ||
+    manifest.id !== "treasure-valley-offline-earth-pack-v7" ||
     manifest.source_doi !== "10.5066/P9U6OOPH" ||
     manifest.network_required !== false
   )
@@ -30,9 +30,9 @@ export function validateOfflinePack(candidate: unknown): OfflinePackManifest {
   if (
     !manifest.artifacts ||
     manifest.artifacts.length !== manifest.artifact_count ||
-    manifest.artifacts.length !== 15
+    manifest.artifacts.length !== 16
   )
-    throw new Error("Offline pack must contain fifteen manifested artifacts");
+    throw new Error("Offline pack must contain sixteen manifested artifacts");
   const total = manifest.artifacts.reduce(
     (sum, artifact) => sum + artifact.bytes,
     0,

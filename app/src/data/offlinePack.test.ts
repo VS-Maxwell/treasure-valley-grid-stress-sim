@@ -12,38 +12,38 @@ const artifact = (id: string) => ({
 });
 
 describe("validateOfflinePack", () => {
-  it("accepts a complete fifteen-artifact offline pack", () => {
-    const artifacts = Array.from({ length: 15 }, (_, index) =>
+  it("accepts a complete sixteen-artifact offline pack", () => {
+    const artifacts = Array.from({ length: 16 }, (_, index) =>
       artifact(String(index + 1)),
     );
     expect(
       validateOfflinePack({
         schema_version: 1,
-        id: "treasure-valley-offline-earth-pack-v6",
+        id: "treasure-valley-offline-earth-pack-v7",
         created_at: "2026-09-14T19:25:00Z",
         source_doi: "10.5066/P9U6OOPH",
         network_required: false,
-        artifact_count: 15,
-        total_bytes: 150,
+        artifact_count: 16,
+        total_bytes: 160,
         artifacts,
         validation_boundary: "Build-time hashes.",
       }).total_bytes,
-    ).toBe(150);
+    ).toBe(160);
   });
 
   it("rejects a manifest whose byte receipt does not balance", () => {
-    const artifacts = Array.from({ length: 15 }, (_, index) =>
+    const artifacts = Array.from({ length: 16 }, (_, index) =>
       artifact(String(index + 1)),
     );
     expect(() =>
       validateOfflinePack({
         schema_version: 1,
-        id: "treasure-valley-offline-earth-pack-v6",
+        id: "treasure-valley-offline-earth-pack-v7",
         created_at: "2026-09-14T19:25:00Z",
         source_doi: "10.5066/P9U6OOPH",
         network_required: false,
-        artifact_count: 15,
-        total_bytes: 149,
+        artifact_count: 16,
+        total_bytes: 159,
         artifacts,
         validation_boundary: "Build-time hashes.",
       }),

@@ -1,6 +1,7 @@
 import "./styles.css";
 
 import { RuntimeDiagnostics } from "./diagnostics/RuntimeDiagnostics";
+import { loadEnergyScreening } from "./data/loadEnergyScreening";
 import { loadGridCore } from "./data/loadGridCore";
 import { loadMeasuredGroundwater } from "./data/loadMeasuredGroundwater";
 import { loadMeasuredGroundwaterSites } from "./data/loadMeasuredGroundwaterSites";
@@ -46,6 +47,7 @@ async function boot(): Promise<void> {
     terrainLoad,
     damLoad,
     bottomLoad,
+    energyScreening,
   ] = await Promise.all([
     loadGridCore(),
     loadTvgwfmGrid(),
@@ -77,6 +79,7 @@ async function boot(): Promise<void> {
             ? error.message
             : "Unknown aquifer-bottom load error",
       })),
+    loadEnergyScreening(),
   ]);
   if (terrainLoad.error)
     console.error("USGS regional terrain unavailable", terrainLoad.error);
@@ -126,6 +129,7 @@ async function boot(): Promise<void> {
     damLoad.error,
     bottomLoad.bottoms,
     bottomLoad.error,
+    energyScreening,
     actions,
   );
   hud.connect();
@@ -141,6 +145,7 @@ async function boot(): Promise<void> {
     const fallback = new CanvasFallbackRenderer(
       required("#fallback-canvas"),
       grid,
+      energyScreening,
       {
         onContextLost: () => undefined,
         onMetrics: recordMetrics,
@@ -191,6 +196,7 @@ async function boot(): Promise<void> {
         terrainLoad.terrain,
         damLoad.dams,
         bottomLoad.bottoms,
+        energyScreening,
         {
           onContextLost: () =>
             activateFallback(

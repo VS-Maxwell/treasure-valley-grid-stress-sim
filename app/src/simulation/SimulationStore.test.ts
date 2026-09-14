@@ -44,6 +44,17 @@ describe("SimulationStore", () => {
     });
   });
 
+  it("promotes all branches through selectable screening scenarios", () => {
+    const store = new SimulationStore();
+    store.selectScene("water");
+    store.setEnergyScenario("all50");
+    expect(store.state).toMatchObject({
+      scene: "energy",
+      energyScenario: "all50",
+      truthState: "modeled-screening",
+    });
+  });
+
   it("notifies subscribers only when state changes", () => {
     const store = new SimulationStore();
     const subscriber = vi.fn();

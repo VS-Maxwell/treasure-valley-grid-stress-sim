@@ -14,7 +14,7 @@ The project advances through ten gated phases. A phase is complete only when its
 | 1. Modular walking skeleton | 1–2 weeks | Vite/TypeScript 3D cockpit, external state, HUD, diagnostics, degraded mode | deterministic build, unit tests, browser playtest |
 | 2. Historical data plane | 5–12 weeks overlapping | STAC, Parquet/GeoParquet, DuckDB, COG/PMTiles, immutable packs | offline reproduction and provenance receipts |
 | 3. Terrain, assets, and time | 3–8 weeks overlapping | public terrain, optional provider layers, time controller, cinematic pipeline | attribution, fallback, performance budget |
-| 4. Energy and grid | 4–10 weeks | typed 94-bus and 12-bus models, pandapower runs, stress scenarios | model/visible-line classification and regression |
+| 4. Energy and grid | 4–10 weeks | typed 94-bus model, preserved 12-bus regression baseline, pandapower runs, stress scenarios | model/visible-line classification and regression |
 | 5. Water, agriculture, aquifer | 6–14 weeks | reproduced USGS baseline, six-layer aquifer, irrigation-energy coupling | conservation and published-baseline checks |
 | 6. Climate and compound futures | 5–10 weeks | observed and ensemble forcing packs, heat/drought/wildfire paths | visible ensemble choices and uncertainty |
 | 7. RAVEN uncertainty and risk | 6–10 weeks | pinned RAVEN workflow, reproducible ensembles and sensitivity | version/input/seed/output receipts |

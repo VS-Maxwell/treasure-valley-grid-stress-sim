@@ -1,10 +1,10 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-14T20:20:32Z",
-  "phase": "Phase 3 - Terrain and 3D assets",
-  "task": "Build directed watershed and energy topology evidence",
+  "updated_at": "2026-09-14T20:32:25Z",
+  "phase": "Phase 4 - Energy and grid",
+  "task": "Rebuild typed pandapower inputs and directed watershed evidence",
   "state": "active",
-  "progress_percent": 55,
+  "progress_percent": 58,
   "preview_url": "http://127.0.0.1:8001/dist/",
   "machines": [
     {
@@ -29,8 +29,8 @@
   "credentials": [
     {
       "provider": "Google Drive key register",
-      "state": "located-not-read",
-      "detail": "Secret values are excluded from this view"
+      "state": "located-incomplete",
+      "detail": "ArcGIS item and client IDs confirmed; all accessible stack copies omit the full secret"
     },
     {
       "provider": "Simulator APIs",
@@ -42,7 +42,8 @@
     "Fresh Firefox reload and sustained Firefox-specific stability gate remain pending",
     "Browser screenshot capture times out despite successful DOM and control-state inspection",
     "Controlled WebGL view reports 10 FPS under current heavy host CPU load; clean-load performance is unaccepted",
-    "Historical water is active, but measured-data overlays, scenario inputs, climate, RAVEN, and coupled 4D modules remain open",
+    "Historical water and the legacy energy screening scenarios are active, but fresh grid solves, climate, RAVEN, and coupled 4D modules remain open",
+    "ArcGIS portal requires University SSO and the Drive API-key stack contains only a truncated key",
     "Palimpsest NVIDIA driver/library mismatch",
     "Queen availability must be refreshed before preservation transfer",
     "Lemonade installer does not support this CachyOS host"
@@ -381,6 +382,18 @@
       "state": "active",
       "summary": "Phase 3 continues after aquifer checkpoint",
       "detail": "Commit 465ca3a preserves regional terrain, 193 dam records and six TVGWFM bottom surfaces. Overall simulator remains active; next evidence gates are directed watershed connectivity, EIA hydropower matching and the 94-bus interactive promotion."
+    },
+    {
+      "at": "2026-09-14T20:32:25Z",
+      "state": "passed",
+      "summary": "All 156 legacy screening branches are interactive",
+      "detail": "The Energy scene now loads a 223708-byte offline table with 94 buses, 156 exact line-id branches and seven scenario loading sets. Live All demand +50% selection reports 24 branches at or above 80 percent, 19 at or above 100 percent and 821.5 percent maximum; the view explicitly rejects operational use and retains 81 ambiguous endpoint-label cases."
+    },
+    {
+      "at": "2026-09-14T20:32:25Z",
+      "state": "active",
+      "summary": "Phase 4 continues after energy visualization checkpoint",
+      "detail": "Automated tests, registry hashes, production build, dist scan and live browser console pass. Fresh pandapower input reconstruction, individually resolved TAP identities, EIA project matching and directed watershed connectivity remain open."
     }
   ]
 }

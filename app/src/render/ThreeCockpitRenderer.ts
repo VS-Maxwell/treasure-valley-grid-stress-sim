@@ -3,6 +3,11 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 import type { SimulationState } from "../contracts";
 import {
+  energyLoadingColor,
+  type EnergyBranch,
+  type EnergyScreeningModel,
+} from "../data/energyScreening";
+import {
   measureGridBounds,
   previewElevation,
   projectPosition,
@@ -52,6 +57,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   readonly #regionalTerrain: RegionalTerrain | null;
   readonly #regionalDams: RegionalDams | null;
   readonly #tvgwfmBottoms: TvgwfmBottoms | null;
+  readonly #energyScreening: EnergyScreeningModel;
   readonly #callbacks: RendererCallbacks;
   readonly #scene = new THREE.Scene();
   readonly #camera = new THREE.PerspectiveCamera(47, 1, 0.1, 1200);
@@ -59,6 +65,9 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   readonly #controls: OrbitControls;
   readonly #timer = new THREE.Timer();
   readonly #gridMaterials = new Map<VoltageClass, THREE.LineBasicMaterial>();
+  readonly #screeningVertexBranches: EnergyBranch[] = [];
+  #screeningBranchLines: THREE.LineSegments | null = null;
+  #activeEnergyScenario = "base";
   readonly #terrainMaterial: THREE.MeshStandardMaterial;
   readonly #contextTerrainMaterial: THREE.MeshStandardMaterial;
   readonly #waterMaterial: THREE.MeshPhysicalMaterial;
@@ -93,6 +102,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     regionalTerrain: RegionalTerrain | null,
     regionalDams: RegionalDams | null,
     tvgwfmBottoms: TvgwfmBottoms | null,
+    energyScreening: EnergyScreeningModel,
     callbacks: RendererCallbacks,
   ) {
     this.#container = container;
@@ -104,6 +114,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#regionalTerrain = regionalTerrain;
     this.#regionalDams = regionalDams;
     this.#tvgwfmBottoms = tvgwfmBottoms;
+    this.#energyScreening = energyScreening;
     this.#callbacks = callbacks;
     this.#renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -182,7 +193,13 @@ export class ThreeCockpitRenderer implements RendererAdapter {
 
   applyState(state: SimulationState): void {
     const gridOpacity =
-      state.scene === "water" ? 0.28 : state.scene === "time" ? 0.52 : 0.94;
+      state.scene === "water"
+        ? 0.28
+        : state.scene === "time"
+          ? 0.52
+          : state.scene === "energy"
+            ? 0.18
+            : 0.94;
     this.#gridMaterials.forEach((material, key) => {
       material.opacity =
         key === "bulk" ? Math.min(1, gridOpacity + 0.08) : gridOpacity;
@@ -226,6 +243,22 @@ export class ThreeCockpitRenderer implements RendererAdapter {
         state.scene === "water" ||
         state.scene === "nexus" ||
         state.scene === "risk";
+    if (this.#screeningBranchLines) {
+      this.#screeningBranchLines.visible = state.scene === "energy";
+      if (this.#activeEnergyScenario !== state.energyScenario) {
+        this.#activeEnergyScenario = state.energyScenario;
+        const colors = this.#screeningBranchLines.geometry.getAttribute(
+          "color",
+        ) as THREE.BufferAttribute;
+        this.#screeningVertexBranches.forEach((branch, index) => {
+          const color = new THREE.Color(
+            energyLoadingColor(branch.loading_pct[state.energyScenario]),
+          );
+          colors.setXYZ(index, color.r, color.g, color.b);
+        });
+        colors.needsUpdate = true;
+      }
+    }
     this.#updateHeadSurfaces(state.year);
     this.#terrainMaterial.wireframe = state.scene === "record";
     const future = Math.max(0, (state.year - 2026) / 74);
@@ -339,6 +372,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#addRegionalDams();
 
     this.#addGridLines();
+    this.#addScreeningBranches();
     this.#addSubstations();
     this.#addPlants();
     this.#addAtmosphereMarkers();
@@ -810,6 +844,52 @@ export class ThreeCockpitRenderer implements RendererAdapter {
       lines.name = `transmission-${key}`;
       this.#scene.add(lines);
     });
+  }
+
+  #addScreeningBranches(): void {
+    const vertices: number[] = [];
+    const colors: number[] = [];
+    for (const branch of this.#energyScreening.branches) {
+      const feature = this.#grid.trans.features[branch.corridor_feature_index];
+      if (feature?.properties.line_id !== branch.corridor_line_id)
+        throw new Error(
+          `Energy branch corridor join failed: ${branch.branch_id}`,
+        );
+      const color = new THREE.Color(
+        energyLoadingColor(branch.loading_pct.base),
+      );
+      for (const line of lineParts(feature.geometry)) {
+        for (let index = 1; index < line.length; index += 1) {
+          const start = this.#projectPosition(line[index - 1]!);
+          const end = this.#projectPosition(line[index]!);
+          vertices.push(
+            start.x,
+            start.y + 0.34,
+            start.z,
+            end.x,
+            end.y + 0.34,
+            end.z,
+          );
+          colors.push(color.r, color.g, color.b, color.r, color.g, color.b);
+          this.#screeningVertexBranches.push(branch, branch);
+        }
+      }
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(vertices, 3),
+    );
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    const material = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 1,
+    });
+    const lines = new THREE.LineSegments(geometry, material);
+    lines.name = "screening-branches-156-interactive";
+    this.#screeningBranchLines = lines;
+    this.#scene.add(lines);
   }
 
   #addSubstations(): void {

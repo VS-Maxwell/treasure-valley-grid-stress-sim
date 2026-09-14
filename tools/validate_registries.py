@@ -46,6 +46,8 @@ def main() -> int:
         "app/public/data/offline-pack-manifest-v4.json",
         "app/public/data/offline-pack-manifest-v5.json",
         "app/public/data/offline-pack-manifest-v6.json",
+        "app/public/data/offline-pack-manifest-v7.json",
+        "app/public/data/grid-screening-model.json",
         "receipts/usgs-groundwater-field-measurements-20260914.json",
         "receipts/usgs-monitoring-locations-20260914.json",
         "receipts/usgs-3dep-terrain-20260914.json",
@@ -124,7 +126,7 @@ def main() -> int:
     )
 
     offline_pack = json.loads(
-        (ROOT / "app/public/data/offline-pack-manifest-v6.json").read_text(
+        (ROOT / "app/public/data/offline-pack-manifest-v7.json").read_text(
             encoding="utf-8"
         )
     )
@@ -133,8 +135,8 @@ def main() -> int:
         "historical water pack has no runtime network dependency",
     )
     require(
-        offline_pack["artifact_count"] == len(offline_pack["artifacts"]) == 15,
-        "offline earth pack has fifteen manifested artifacts",
+        offline_pack["artifact_count"] == len(offline_pack["artifacts"]) == 16,
+        "offline earth pack has sixteen manifested artifacts",
     )
     verified_bytes = 0
     for artifact in offline_pack["artifacts"]:
@@ -146,6 +148,37 @@ def main() -> int:
     require(
         verified_bytes == offline_pack["total_bytes"],
         "historical water pack byte total balances",
+    )
+
+    energy = json.loads(
+        (ROOT / "data/tables/grid-screening-model.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    require(
+        energy["counts"]["buses"] == len(energy["buses"]) == 94,
+        "energy screening pack has 94 buses",
+    )
+    require(
+        energy["counts"]["branches"] == len(energy["branches"]) == 156,
+        "energy screening pack has 156 branches",
+    )
+    require(
+        energy["operational_use"] is False
+        and energy["truth_state"] == "modeled-screening",
+        "energy screening pack rejects operational use",
+    )
+    require(
+        all(
+            branch["branch_id"] == branch["corridor_line_id"]
+            for branch in energy["branches"]
+        ),
+        "all energy branches retain exact corridor line IDs",
+    )
+    require(
+        energy["counts"]["branches_with_unique_endpoint_labels"] == 75
+        and energy["counts"]["branches_with_ambiguous_endpoint_labels"] == 81,
+        "energy endpoint ambiguity remains explicit",
     )
 
     field_receipt = json.loads(

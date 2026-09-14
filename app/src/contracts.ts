@@ -20,6 +20,8 @@ export type TruthState =
   | "blocked-missing";
 
 export type ClimateScenario = "historical" | "baseline" | "heat-drought-2050";
+export type EnergyScenario =
+  "base" | "dc25" | "dc50" | "all25" | "all50" | "drought" | "n1";
 
 export interface SimulationState {
   readonly scene: SceneId;
@@ -28,6 +30,7 @@ export interface SimulationState {
   readonly compare: boolean;
   readonly drawer: "closed" | "evidence" | "ask";
   readonly climateScenario: ClimateScenario;
+  readonly energyScenario: EnergyScenario;
   readonly truthState: TruthState;
 }
 
@@ -69,6 +72,7 @@ export const INITIAL_STATE: SimulationState = {
   compare: false,
   drawer: "closed",
   climateScenario: "baseline",
+  energyScenario: "base",
   truthState: "ingested",
 };
 
