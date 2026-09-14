@@ -312,6 +312,53 @@ button {
   letter-spacing: 0.08em;
 }
 
+.context-chart {
+  margin-top: 12px;
+  padding: 9px;
+  border: 1px solid rgba(121, 187, 216, 0.16);
+  border-radius: 8px;
+  background: rgba(4, 15, 24, 0.72);
+}
+.context-chart svg {
+  display: block;
+  width: 100%;
+  height: 72px;
+  overflow: visible;
+}
+.context-chart polyline {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.35;
+  vector-effect: non-scaling-stroke;
+}
+.budget-inflow {
+  stroke: #5eead4;
+}
+.budget-outflow {
+  stroke: #f59e0b;
+}
+.budget-marker {
+  stroke: rgba(255, 255, 255, 0.74);
+  stroke-dasharray: 2 3;
+  vector-effect: non-scaling-stroke;
+}
+.context-chart-caption,
+.context-chart-boundary {
+  margin: 5px 0 0;
+  line-height: 1.3;
+}
+.context-chart-caption {
+  color: #d9f5ff;
+  font-size: 10px;
+}
+.context-chart-boundary {
+  color: var(--muted);
+  font-size: 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .action-bar {
   left: 50%;
   bottom: 20px;

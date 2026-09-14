@@ -1,10 +1,10 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-14T19:10:46Z",
+  "updated_at": "2026-09-14T19:16:56Z",
   "phase": "Phase 2 - Historical water data plane",
-  "task": "Extract compact water-budget and observation chart tables",
+  "task": "Add measured-data overlay contracts without conflating modeled outputs",
   "state": "passed",
-  "progress_percent": 28,
+  "progress_percent": 31,
   "preview_url": "http://127.0.0.1:8001/dist/",
   "machines": [
     {
@@ -42,7 +42,7 @@
     "Fresh Firefox reload and sustained Firefox-specific stability gate remain pending",
     "Browser screenshot capture times out despite successful DOM and control-state inspection",
     "Controlled WebGL view reports 10 FPS under current heavy host CPU load; clean-load performance is unaccepted",
-    "Terrain, historical timeline, water, climate, RAVEN, and coupled 4D modules are not yet built into the stable shell",
+    "Historical water is active, but measured-data overlays, scenario inputs, climate, RAVEN, and coupled 4D modules remain open",
     "Palimpsest NVIDIA driver/library mismatch",
     "Queen availability must be refreshed before preservation transfer",
     "Lemonade installer does not support this CachyOS host"
@@ -87,7 +87,15 @@
     "tools/pack_tvgwfm_heads.py",
     "app/src/data/loadTvgwfmHeads.ts",
     "app/src/data/tvgwfmHeads.ts",
-    "app/src/data/tvgwfmHeads.test.ts"
+    "app/src/data/tvgwfmHeads.test.ts",
+    "tools/pack_tvgwfm_timeseries.py",
+    "app/src/ui/HudController.ts",
+    "app/public/data/tvgwfm-timeseries.json",
+    "app/src/data/loadTvgwfmTimeseries.ts",
+    "app/src/data/tvgwfmTimeseries.ts",
+    "app/src/data/tvgwfmTimeseries.test.ts",
+    "app/src/styles.css",
+    "DATA_SOURCES.csv"
   ],
   "events": [
     {
@@ -209,6 +217,18 @@
       "state": "passed",
       "summary": "Historical groundwater time slices are live",
       "detail": "The game shell now loads a precomputed 798720-byte table with 399360 values across six layers and 16 snapshots representing 1986-2015. Timeline year 2000 selected and displayed the 2000 head slice with MODELED-SCREENING truth state; browser console has no warnings or errors."
+    },
+    {
+      "at": "2026-09-14T19:16:08Z",
+      "state": "failed",
+      "summary": "Monthly-table integration exposed two bounded defects",
+      "detail": "The listing parser initially rejected stress period 329 because it did not accept a trailing decimal, and the first UI validation caught an unused type import; both were corrected and retained in the event history."
+    },
+    {
+      "at": "2026-09-14T19:16:56Z",
+      "state": "passed",
+      "summary": "Monthly groundwater table and visible budget chart validated",
+      "detail": "361 monthly budget rows and 33 simulated-equivalent series are receipt-backed; Water at year 2000 displayed the selected month and head slice; 19 tests, registry validation, strict typing, production build, and live browser error/warning checks pass."
     }
   ]
 }

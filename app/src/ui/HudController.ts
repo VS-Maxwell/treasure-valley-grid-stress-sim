@@ -1,7 +1,9 @@
 import { SCENE_CONTENT } from "../simulation/sceneContent";
 import type { GridCore } from "../data/gridTypes";
 import { nearestHeadSlice } from "../data/loadTvgwfmHeads";
+import { nearestBudgetRow } from "../data/loadTvgwfmTimeseries";
 import type { TvgwfmHeads } from "../data/tvgwfmHeads";
+import type { TvgwfmTimeseries } from "../data/tvgwfmTimeseries";
 import type { RendererMetrics } from "../render/RendererAdapter";
 import type { SceneId, SimulationState } from "../contracts";
 import type { SimulationStore } from "../simulation/SimulationStore";
@@ -36,6 +38,7 @@ export class HudController {
   readonly #store: SimulationStore;
   readonly #grid: GridCore;
   readonly #tvgwfmHeads: TvgwfmHeads;
+  readonly #tvgwfmTimeseries: TvgwfmTimeseries;
   readonly #actions: HudActions;
   readonly #app = required<HTMLElement>("#app");
   readonly #loading = required<HTMLElement>("#loading");
@@ -52,6 +55,7 @@ export class HudController {
   readonly #contextTitle = required<HTMLElement>("#context-title");
   readonly #contextCopy = required<HTMLElement>("#context-copy");
   readonly #contextMetrics = required<HTMLElement>("#context-metrics");
+  readonly #contextChart = required<HTMLElement>("#context-chart");
   readonly #drawer = required<HTMLElement>("#drawer");
   readonly #drawerEyebrow = required<HTMLElement>("#drawer-eyebrow");
   readonly #drawerTitle = required<HTMLElement>("#drawer-title");
@@ -63,11 +67,13 @@ export class HudController {
     store: SimulationStore,
     grid: GridCore,
     tvgwfmHeads: TvgwfmHeads,
+    tvgwfmTimeseries: TvgwfmTimeseries,
     actions: HudActions,
   ) {
     this.#store = store;
     this.#grid = grid;
     this.#tvgwfmHeads = tvgwfmHeads;
+    this.#tvgwfmTimeseries = tvgwfmTimeseries;
     this.#actions = actions;
   }
 
@@ -180,6 +186,86 @@ export class HudController {
         return card;
       }),
     );
+    if (scene === "water") {
+      this.#renderWaterChart(
+        nearestBudgetRow(this.#tvgwfmTimeseries.budget.rows, year),
+      );
+    } else {
+      this.#contextChart.hidden = true;
+      this.#contextChart.replaceChildren();
+    }
+  }
+
+  #renderWaterChart(selectedIndex: number): void {
+    const rows = this.#tvgwfmTimeseries.budget.rows;
+    const selected = rows[selectedIndex];
+    if (!selected) return;
+    const width = 300;
+    const height = 72;
+    const inset = 4;
+    const values = rows.flatMap((row) => [
+      row.rate_in_ft3_per_day,
+      row.rate_out_ft3_per_day,
+    ]);
+    const minimum = Math.min(...values);
+    const maximum = Math.max(...values);
+    const range = Math.max(maximum - minimum, 1);
+    const points = (key: "rate_in_ft3_per_day" | "rate_out_ft3_per_day") =>
+      rows
+        .map((row, index) => {
+          const x = inset + (index / (rows.length - 1)) * (width - inset * 2);
+          const y =
+            height -
+            inset -
+            ((row[key] - minimum) / range) * (height - inset * 2);
+          return `${x.toFixed(2)},${y.toFixed(2)}`;
+        })
+        .join(" ");
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    svg.setAttribute("role", "img");
+    svg.setAttribute(
+      "aria-label",
+      `Monthly modeled water budget. Selected ${selected.period_end_date}: inflow ${this.#formatFlow(selected.rate_in_ft3_per_day)} million, outflow ${this.#formatFlow(selected.rate_out_ft3_per_day)} million cubic feet per day.`,
+    );
+    const inflow = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "polyline",
+    );
+    inflow.setAttribute("class", "budget-inflow");
+    inflow.setAttribute("points", points("rate_in_ft3_per_day"));
+    const outflow = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "polyline",
+    );
+    outflow.setAttribute("class", "budget-outflow");
+    outflow.setAttribute("points", points("rate_out_ft3_per_day"));
+    const marker = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line",
+    );
+    const markerX =
+      inset + (selectedIndex / (rows.length - 1)) * (width - inset * 2);
+    marker.setAttribute("class", "budget-marker");
+    marker.setAttribute("x1", String(markerX));
+    marker.setAttribute("x2", String(markerX));
+    marker.setAttribute("y1", "0");
+    marker.setAttribute("y2", String(height));
+    svg.append(inflow, outflow, marker);
+
+    const caption = document.createElement("p");
+    caption.className = "context-chart-caption";
+    caption.textContent = `${selected.period_end_date} · ${this.#formatFlow(selected.rate_in_ft3_per_day)}M in · ${this.#formatFlow(selected.rate_out_ft3_per_day)}M out ft³/day`;
+    const boundary = document.createElement("p");
+    boundary.className = "context-chart-boundary";
+    boundary.textContent =
+      "Reproduced MODFLOW output · not direct field observations";
+    this.#contextChart.replaceChildren(svg, caption, boundary);
+    this.#contextChart.hidden = false;
+  }
+
+  #formatFlow(value: number): string {
+    return (value / 1_000_000).toFixed(1);
   }
 
   #renderDrawer(state: SimulationState): void {

@@ -26,7 +26,8 @@ Updated: 2026-09-14
 - [x] Reproduce all 361 USGS MODFLOW stress periods and compare heads, observation outputs, and water-budget closure against the archived baseline.
 - [x] Produce 16 browser-safe six-layer head snapshots from 1986–2015 without shipping the 72 MB binary output.
 - [x] Animate the six model-head surfaces from the shared year state and disclose the nearest displayed source year.
-- [ ] Extract compact water-budget and observation time-series tables for chart panels.
+- [x] Extract 361 monthly water-budget rows and 33 simulated-observation series into a compact, receipt-backed chart table.
+- [x] Render the Water panel's monthly modeled inflow/outflow chart with timeline selection and explicit non-observation boundary.
 
 ## Later phases
 
