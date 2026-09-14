@@ -1,9 +1,9 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-14T18:11:43Z",
+  "updated_at": "2026-09-14T18:20:18Z",
   "phase": "Phase 0 — Baseline, visibility and custody",
-  "task": "Crash-safe visible grid",
-  "state": "passed",
+  "task": "Continue full simulator as gated modules",
+  "state": "active",
   "progress_percent": 11,
   "preview_url": "http://127.0.0.1:8001/",
   "machines": [
@@ -39,16 +39,18 @@
     }
   ],
   "blockers": [
-    "Transmission baseline verifier fails",
-    "Release validator rejects unreceipted RAVEN attribution",
-    "No controllable browser is available for screenshot QA",
+    "Fresh Firefox reload and sustained Firefox-specific stability gate remain pending",
+    "Browser screenshot capture times out despite successful DOM and control-state inspection",
+    "Terrain, historical timeline, water, climate, RAVEN, and coupled 4D modules are not yet built into the stable shell",
     "Palimpsest NVIDIA driver/library mismatch",
+    "Queen availability must be refreshed before preservation transfer",
     "Lemonade installer does not support this CachyOS host"
   ],
   "changed_files": [
     "AGENTS.md",
     "docs/MASTER_BUILD_PLAN.md",
     "docs/BUILD_STATUS.md",
+    "docs/CRASH_INVESTIGATION.md",
     "dev/index.html",
     "dev/status.json",
     "tools/dev_status.py",
@@ -110,6 +112,18 @@
       "state": "passed",
       "summary": "Stale crash process removed and 5060 cross-check passed",
       "detail": "Terminated only the obsolete 27 GB Firefox content process; live Canvas tab remained verified at 244/244; Palimpsest independently passed 20 structural and receipt checks with matching SHA-256"
+    },
+    {
+      "at": "2026-09-14T18:15:10Z",
+      "state": "active",
+      "summary": "Firefox crash recurrence under investigation",
+      "detail": "Confirmed SIGSEGV in Firefox libxul after earlier runaway renderer memory; current Canvas build requires sustained clean-tab validation and the full simulator remains incomplete"
+    },
+    {
+      "at": "2026-09-14T18:20:18Z",
+      "state": "active",
+      "summary": "Intro layer removed; direct grid stability slice verified",
+      "detail": "Root now loads one Canvas document with no iframe or auto-opening watchdog menu; 75-second monitored run completed rebuild and refresh at 244/244 with about 1.7 MB Firefox-process growth and no new coredump. Full 4D simulator remains incomplete; Firefox-specific fresh reload and screenshot capture remain open."
     }
   ]
 }

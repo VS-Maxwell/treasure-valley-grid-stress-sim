@@ -3,23 +3,67 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Explore Treasure Valley grid, water, land, load, and risk evidence in an interactive Earth-state screening model.">
-  <title>Treasure Valley Earth-State Watchdog — Grid, Water, Land &amp; Risk</title>
-  <link rel="stylesheet" href="watchdog.css">
+  <meta name="description" content="Live construction view of the Treasure Valley transmission grid.">
+  <title>Treasure Valley Live Grid</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="grid-live.css">
   <style>
-    html,body{height:100%;margin:0;background:#07101a;overflow:hidden}
-    #simulator{width:100%;height:100%;border:0;display:block;background:#07101a}
-    .shell-loading{position:fixed;inset:0;display:grid;place-items:center;color:#86dfff;font:600 14px system-ui;background:#07101a;z-index:2}
-    .shell-loading.done{display:none}
+    :root { color-scheme: dark; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #061019; }
+    body { font-family: "Segoe UI", system-ui, sans-serif; }
+    #grid-canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+    #grid-canvas:active { cursor: grabbing; }
+    .boot {
+      position: absolute; inset: 0; z-index: 40; display: grid; place-items: center;
+      color: #8ce7ff; background: radial-gradient(circle at 50% 42%, #10283a, #061019 66%);
+      font-size: 13px; letter-spacing: .7px; transition: opacity .25s ease;
+    }
+    .boot.done { opacity: 0; pointer-events: none; }
+    .identity {
+      position: absolute; z-index: 25; top: 14px; left: 16px; display: flex; align-items: center;
+      gap: 11px; padding: 9px 13px; color: #eaf8ff; border: 1px solid rgba(95,208,255,.35);
+      border-radius: 11px; background: rgba(7,18,29,.91); box-shadow: 0 10px 35px rgba(0,0,0,.42);
+    }
+    .identity strong { display: block; font-size: 13px; letter-spacing: .35px; }
+    .identity span { display: block; margin-top: 2px; color: #83a4bb; font-size: 9px; letter-spacing: .65px; text-transform: uppercase; }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #58e59a; box-shadow: 0 0 15px #58e59a; }
+    .mode-chip {
+      position: absolute; z-index: 25; top: 14px; right: 16px; padding: 8px 11px; color: #b9d7e8;
+      border: 1px solid rgba(130,166,190,.3); border-radius: 9px; background: rgba(7,18,29,.88);
+      font-size: 9px; letter-spacing: .65px; text-transform: uppercase;
+    }
+    #tv-grid-live { top: 77px; left: 16px; width: min(370px, calc(100vw - 32px)); }
+    .legend {
+      position: absolute; z-index: 25; right: 12px; bottom: 12px; padding: 8px 11px; color: #9fb5c5;
+      border: 1px solid rgba(130,166,190,.25); border-radius: 9px; background: rgba(7,18,29,.88);
+      font-size: 9px; line-height: 1.5;
+    }
+    .legend b { color: #e7f7ff; }
+    .swatch { display: inline-block; width: 19px; height: 3px; margin: 0 4px 2px 9px; vertical-align: middle; }
+    .swatch:first-child { margin-left: 0; }
+    .navigation-hint { position:absolute; z-index:20; right:14px; top:55px; color:#7895aa; font-size:9px; letter-spacing:.45px; }
+    @media (max-width: 700px) {
+      .mode-chip, .navigation-hint { display: none; }
+      #tv-grid-live { top: 74px; right: 10px; bottom: auto; left: 10px; }
+      .identity { right: 10px; left: 10px; }
+    }
   </style>
 </head>
 <body>
-  <div class="shell-loading" id="shell-loading" role="status">Loading the Treasure Valley model…</div>
-  <iframe id="simulator" src="live-grid.html" title="Treasure Valley interactive Earth-state simulator" allow="fullscreen; webgl" loading="eager"></iframe>
-  <script>
-    const frame=document.getElementById('simulator');
-    frame.addEventListener('load',function(){document.getElementById('shell-loading').classList.add('done')});
-  </script>
-  <script src="watchdog.js"></script>
+  <canvas id="grid-canvas" aria-label="Treasure Valley transmission grid"></canvas>
+  <div class="boot" id="boot" role="status">Loading the local grid core…</div>
+  <div class="identity">
+    <i class="live-dot" aria-hidden="true"></i>
+    <div><strong>Treasure Valley Live Grid</strong><span>244 corridors · 94 substations · exact extracted geometry</span></div>
+  </div>
+  <div class="mode-chip">Stability build · full 4D simulator in progress</div>
+  <div class="navigation-hint">Drag to pan · wheel to zoom</div>
+  <div class="legend">
+    <b>Voltage</b><span class="swatch" style="background:#7fc8ff"></span>&lt;138 kV
+    <span class="swatch" style="background:#ffe27a"></span>138–229 kV
+    <span class="swatch" style="background:#ff8a3d"></span>230–499 kV
+    <span class="swatch" style="background:#ff3b3b"></span>500 kV
+  </div>
+  <script src="grid-canvas.js"></script>
 </body>
 </html>

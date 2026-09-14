@@ -36,20 +36,24 @@ def main() -> int:
     transmission = data["trans"]
     features = transmission["features"]
 
-    require('src="live-grid.html"' in index, "wrapper loads the crash-safe grid view")
-    require("srcdoc" not in index and "fetch('legacy.html')" not in index,
-            "wrapper avoids duplicate multi-megabyte srcdoc construction")
+    require('src="grid-canvas.js"' in index, "root loads the bounded Canvas renderer directly")
+    require("<iframe" not in index and "watchdog.js" not in index,
+            "root has no nested document or automatic intro/watchdog layer")
+    require("full 4D simulator in progress" in index,
+            "root clearly labels the current view as an incomplete stability build")
     require('href="grid-live.css"' in live_grid, "grid view loads live-grid styles")
     require('src="grid-canvas.js"' in live_grid, "grid view loads bounded Canvas controls")
     require("maplibre" not in live_grid.lower() and "https://" not in live_grid,
-            "first playable has no remote map or WebGL startup dependency")
+            "standalone grid view has no remote map or WebGL startup dependency")
+    require("maplibre" not in index.lower() and "https://" not in index,
+            "root has no remote map or WebGL startup dependency")
     require("#game-entry-screen" in css and "display: none !important" in css,
             "intro gate is hidden so the map is the first screen")
     require(len(features) == 244, "embedded map snapshot contains 244 drawable corridors")
     require(len(grid_core["trans"]["features"]) == 244,
-            "crash-safe grid core retains all 244 drawable corridors")
+            "lightweight grid core retains all 244 drawable corridors")
     require(len(grid_core["subs"]["features"]) == 94,
-            "crash-safe grid core retains all 94 mapped substations")
+            "lightweight grid core retains all 94 mapped substations")
     require(grid_core["source_sha256"] == __import__("hashlib").sha256((ROOT / "legacy.html").read_bytes()).hexdigest(),
             "grid core has a receipt matching the preserved legacy source")
     require("source.setData(" not in script,
