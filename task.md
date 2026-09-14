@@ -33,7 +33,9 @@ Updated: 2026-09-14
 - [ ] Define and validate the datum-aware spatial match from measured well depth to model cell/head before showing measured-versus-modeled comparisons.
 - [x] Expose annual observed depth distributions only behind the explicit Compare action, with 77 null source values and the no-datum-match boundary visible.
 - [x] Acquire and byte-verify elevation and vertical-datum metadata for all 3,168 measured wells: 2,920 NAVD88 and 248 NGVD29.
-- [ ] Convert NAVD88 depth readings to water-level altitude and map only eligible wells to model cells; retain NGVD29 and unknown screen-layer exclusions.
+- [ ] Acquire well-screen evidence before assigning observed wells to model layers or computing validation residuals.
+- [x] Convert eligible latest depths to NAVD88 water-level altitude, map 2,849 wells to active cells, and ship a 34,188-byte interleaved marker pack.
+- [x] Render mapped observed wells only in the explicit Water → Compare state.
 
 ## Later phases
 

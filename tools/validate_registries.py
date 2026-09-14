@@ -42,6 +42,7 @@ def main() -> int:
         "receipts/tvgwfm-baseline-reproduction-20260914.json",
         "app/public/data/offline-pack-manifest.json",
         "app/public/data/offline-pack-manifest-v2.json",
+        "app/public/data/offline-pack-manifest-v3.json",
         "receipts/usgs-groundwater-field-measurements-20260914.json",
         "receipts/usgs-monitoring-locations-20260914.json",
     ]
@@ -118,7 +119,7 @@ def main() -> int:
     )
 
     offline_pack = json.loads(
-        (ROOT / "app/public/data/offline-pack-manifest-v2.json").read_text(
+        (ROOT / "app/public/data/offline-pack-manifest-v3.json").read_text(
             encoding="utf-8"
         )
     )
@@ -127,8 +128,8 @@ def main() -> int:
         "historical water pack has no runtime network dependency",
     )
     require(
-        offline_pack["artifact_count"] == len(offline_pack["artifacts"]) == 6,
-        "historical water pack has six manifested artifacts",
+        offline_pack["artifact_count"] == len(offline_pack["artifacts"]) == 8,
+        "historical water pack has eight manifested artifacts",
     )
     verified_bytes = 0
     for artifact in offline_pack["artifacts"]:

@@ -1,10 +1,10 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-14T19:39:23Z",
+  "updated_at": "2026-09-14T19:43:59Z",
   "phase": "Phase 2 - Historical water data plane",
-  "task": "Encode mapped wells as compact binary and render Compare markers",
-  "state": "active",
-  "progress_percent": 45,
+  "task": "Acquire screen evidence or preserve layer-assignment block; begin terrain baseline",
+  "state": "passed",
+  "progress_percent": 48,
   "preview_url": "http://127.0.0.1:8001/dist/",
   "machines": [
     {
@@ -114,7 +114,12 @@
     "receipts/usgs-monitoring-locations-20260914.json",
     "tools/pack_usgs_groundwater_sites.py",
     "app/public/data/usgs-groundwater-sites.json",
-    "app/src/data/measuredGroundwaterSites.ts"
+    "app/src/data/measuredGroundwaterSites.ts",
+    "app/public/data/usgs-groundwater-sites-manifest.json",
+    "app/public/data/usgs-groundwater-sites-f32.bin",
+    "app/src/data/loadMeasuredGroundwaterSites.ts",
+    "app/public/data/offline-pack-manifest-v3.json",
+    "app/src/data/measuredGroundwaterSites.test.ts"
   ],
   "events": [
     {
@@ -326,6 +331,18 @@
       "state": "active",
       "summary": "Spatial join verified; compact binary packaging next",
       "detail": "The join mapped 2849 NAVD88 sites covering 19117 numeric readings; excluded 241 non-NAVD88 sites, 63 sites without numeric readings, 13 inactive cells, and 2 outside-grid sites. The first columnar JSON was 337912 bytes and was moved to trash rather than shipped; converting it to a smaller typed binary before runtime integration."
+    },
+    {
+      "at": "2026-09-14T19:39:46Z",
+      "state": "active",
+      "summary": "Encoding mapped groundwater wells for the 3D scene",
+      "detail": "Replacing the 337912-byte prototype JSON with an interleaved float32 point pack containing longitude, latitude, and latest NAVD88 water-level altitude; adding structural tests and a bounded Three.js Points layer visible only in Water Compare mode."
+    },
+    {
+      "at": "2026-09-14T19:43:59Z",
+      "state": "passed",
+      "summary": "Mapped observed groundwater markers are live",
+      "detail": "A fresh v3 browser tab loaded 2849 NAVD88 markers from a 34188-byte interleaved float32 pack. Water year 2000 Compare exposes the marker count and observed distribution; browser errors and warnings are empty. Twenty-four tests plus registry, build, dist, release, and direct-entry gates pass."
     }
   ]
 }

@@ -11,6 +11,7 @@ import { lineParts, type GridCore } from "../data/gridTypes";
 import type { TvgwfmGrid } from "../data/tvgwfmTypes";
 import { nearestHeadSlice } from "../data/loadTvgwfmHeads";
 import type { TvgwfmHeads } from "../data/tvgwfmHeads";
+import type { MeasuredGroundwaterSites } from "../data/measuredGroundwaterSites";
 import type { RendererAdapter, RendererCallbacks } from "./RendererAdapter";
 
 const TERRAIN_WIDTH = 230;
@@ -38,6 +39,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   readonly #grid: GridCore;
   readonly #tvgwfm: TvgwfmGrid;
   readonly #tvgwfmHeads: TvgwfmHeads;
+  readonly #measuredGroundwaterSites: MeasuredGroundwaterSites;
   readonly #callbacks: RendererCallbacks;
   readonly #scene = new THREE.Scene();
   readonly #camera = new THREE.PerspectiveCamera(47, 1, 0.1, 1200);
@@ -51,6 +53,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     THREE.BufferGeometry,
     THREE.MeshStandardMaterial
   >[] = [];
+  #measuredWellPoints: THREE.Points | null = null;
   readonly #sun = new THREE.DirectionalLight(0xfff0d1, 3.2);
   #frameHandle = 0;
   #frameCount = 0;
@@ -66,12 +69,14 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     grid: GridCore,
     tvgwfm: TvgwfmGrid,
     tvgwfmHeads: TvgwfmHeads,
+    measuredGroundwaterSites: MeasuredGroundwaterSites,
     callbacks: RendererCallbacks,
   ) {
     this.#container = container;
     this.#grid = grid;
     this.#tvgwfm = tvgwfm;
     this.#tvgwfmHeads = tvgwfmHeads;
+    this.#measuredGroundwaterSites = measuredGroundwaterSites;
     this.#callbacks = callbacks;
     this.#renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -160,6 +165,9 @@ export class ThreeCockpitRenderer implements RendererAdapter {
       mesh.material.opacity =
         state.scene === "water" ? 0.5 - index * 0.045 : 0.2;
     });
+    if (this.#measuredWellPoints)
+      this.#measuredWellPoints.visible =
+        state.scene === "water" && state.compare;
     this.#updateHeadSurfaces(state.year);
     this.#terrainMaterial.wireframe = state.scene === "record";
     const future = Math.max(0, (state.year - 2026) / 74);
@@ -258,11 +266,50 @@ export class ThreeCockpitRenderer implements RendererAdapter {
 
     this.#addTvgwfmSurface();
     this.#addTvgwfmHeadSurfaces();
+    this.#addMeasuredGroundwaterSites();
 
     this.#addGridLines();
     this.#addSubstations();
     this.#addPlants();
     this.#addAtmosphereMarkers();
+  }
+
+  #addMeasuredGroundwaterSites(): void {
+    const bounds = measureGridBounds(this.#grid);
+    const values = this.#measuredGroundwaterSites.values;
+    const positions: number[] = [];
+    const colors: number[] = [];
+    const low = new THREE.Color(0x3ee8ff);
+    const high = new THREE.Color(0xffd166);
+    for (let index = 0; index < values.length; index += 3) {
+      const point = projectPosition(
+        [values[index]!, values[index + 1]!],
+        bounds,
+      );
+      positions.push(point.x, point.y + 2.1, point.z);
+      const altitude = values[index + 2]!;
+      const mix = THREE.MathUtils.clamp((altitude - 2050) / 1300, 0, 1);
+      const color = low.clone().lerp(high, mix);
+      colors.push(color.r, color.g, color.b);
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(positions, 3),
+    );
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    const material = new THREE.PointsMaterial({
+      size: 1.15,
+      sizeAttenuation: true,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+    });
+    this.#measuredWellPoints = new THREE.Points(geometry, material);
+    this.#measuredWellPoints.name = "usgs-observed-groundwater-sites";
+    this.#measuredWellPoints.visible = false;
+    this.#scene.add(this.#measuredWellPoints);
   }
 
   #addTvgwfmSurface(): void {

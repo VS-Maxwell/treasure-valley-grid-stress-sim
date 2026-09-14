@@ -177,12 +177,17 @@ export class HudController {
     this.#contextCopy.textContent = selectedHeadSlice
       ? `${content.copy} Displayed head slice: ${selectedHeadSlice.year}.`
       : content.copy;
-    const metrics = selectedHeadSlice
+    let metrics = selectedHeadSlice
       ? [
           ...content.metrics,
           { value: String(selectedHeadSlice.year), label: "head slice" },
         ]
       : content.metrics;
+    if (scene === "water" && compare)
+      metrics = [
+        ...metrics,
+        { value: "2,849", label: "mapped observed wells" },
+      ];
     this.#contextMetrics.replaceChildren(
       ...metrics.map((metric) => {
         const card = document.createElement("div");

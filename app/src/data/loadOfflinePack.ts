@@ -1,7 +1,7 @@
 import type { OfflinePackManifest } from "./offlinePack";
 
 const OFFLINE_PACK_URL = new URL(
-  "../../public/data/offline-pack-manifest-v2.json",
+  "../../public/data/offline-pack-manifest-v3.json",
   import.meta.url,
 ).href;
 
@@ -22,7 +22,7 @@ export function validateOfflinePack(candidate: unknown): OfflinePackManifest {
   const manifest = candidate as Partial<OfflinePackManifest>;
   if (
     manifest.schema_version !== 1 ||
-    manifest.id !== "treasure-valley-historical-water-pack-v2" ||
+    manifest.id !== "treasure-valley-historical-water-pack-v3" ||
     manifest.source_doi !== "10.5066/P9U6OOPH" ||
     manifest.network_required !== false
   )
@@ -30,9 +30,9 @@ export function validateOfflinePack(candidate: unknown): OfflinePackManifest {
   if (
     !manifest.artifacts ||
     manifest.artifacts.length !== manifest.artifact_count ||
-    manifest.artifacts.length !== 6
+    manifest.artifacts.length !== 8
   )
-    throw new Error("Offline pack must contain six manifested artifacts");
+    throw new Error("Offline pack must contain eight manifested artifacts");
   const total = manifest.artifacts.reduce(
     (sum, artifact) => sum + artifact.bytes,
     0,

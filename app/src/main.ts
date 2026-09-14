@@ -3,6 +3,7 @@ import "./styles.css";
 import { RuntimeDiagnostics } from "./diagnostics/RuntimeDiagnostics";
 import { loadGridCore } from "./data/loadGridCore";
 import { loadMeasuredGroundwater } from "./data/loadMeasuredGroundwater";
+import { loadMeasuredGroundwaterSites } from "./data/loadMeasuredGroundwaterSites";
 import { loadOfflinePack } from "./data/loadOfflinePack";
 import { loadTvgwfmGrid } from "./data/loadTvgwfmGrid";
 import { loadTvgwfmHeads } from "./data/loadTvgwfmHeads";
@@ -37,6 +38,7 @@ async function boot(): Promise<void> {
     tvgwfmHeads,
     tvgwfmTimeseries,
     measuredGroundwater,
+    measuredGroundwaterSites,
     offlinePack,
   ] = await Promise.all([
     loadGridCore(),
@@ -44,6 +46,7 @@ async function boot(): Promise<void> {
     loadTvgwfmHeads(),
     loadTvgwfmTimeseries(),
     loadMeasuredGroundwater(),
+    loadMeasuredGroundwaterSites(),
     loadOfflinePack(),
   ]);
   diagnostics.setDataReceipt(
@@ -143,6 +146,7 @@ async function boot(): Promise<void> {
         grid,
         tvgwfm,
         tvgwfmHeads,
+        measuredGroundwaterSites,
         {
           onContextLost: () =>
             activateFallback(

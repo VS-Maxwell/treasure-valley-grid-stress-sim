@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import struct
 from collections import defaultdict
 from pathlib import Path
 
@@ -119,6 +120,17 @@ def main() -> int:
             }
         )
 
+    binary_path = args.output.with_name("usgs-groundwater-sites-f32.bin")
+    binary = b"".join(
+        struct.pack(
+            "<fff",
+            site["longitude"],
+            site["latitude"],
+            site["latest_water_level_altitude_navd88_ft"],
+        )
+        for site in sites
+    )
+    binary_path.write_bytes(binary)
     payload = {
         "schema_version": 1,
         "id": "usgs-groundwater-sites-tvgwfm-v1",
@@ -132,23 +144,13 @@ def main() -> int:
         "numeric_reading_count": sum(site["measurement_count"] for site in sites),
         "source_null_reading_count": null_readings,
         "exclusions": dict(sorted(exclusions.items())),
-        "columns": {
-            "id": [site["id"] for site in sites],
-            "longitude": [site["longitude"] for site in sites],
-            "latitude": [site["latitude"] for site in sites],
-            "altitude_navd88_ft": [site["altitude_navd88_ft"] for site in sites],
-            "row": [site["row"] for site in sites],
-            "column": [site["column"] for site in sites],
-            "measurement_count": [site["measurement_count"] for site in sites],
-            "first_date": [site["first_date"] for site in sites],
-            "latest_date": [site["latest_date"] for site in sites],
-            "latest_depth_below_land_ft": [
-                site["latest_depth_below_land_ft"] for site in sites
-            ],
-            "latest_water_level_altitude_navd88_ft": [
-                site["latest_water_level_altitude_navd88_ft"] for site in sites
-            ],
-            "well_depth_ft": [site["well_depth_ft"] for site in sites],
+        "binary": {
+            "file": binary_path.name,
+            "sha256": hashlib.sha256(binary).hexdigest(),
+            "bytes": len(binary),
+            "encoding": "little-endian-float32",
+            "order": "site-longitude-latitude-water-level-altitude-navd88-feet",
+            "stride": 3,
         },
         "limitations": [
             "Published corner coordinates are used for a browser-scale affine grid join.",
@@ -159,8 +161,8 @@ def main() -> int:
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, separators=(",", ":")) + "\n", encoding="utf-8")
     print(
-        f"Wrote {args.output}: {payload['site_count']} mapped sites, "
-        f"{payload['numeric_reading_count']} readings, exclusions={payload['exclusions']}"
+        f"Wrote {args.output} and {binary_path}: {payload['site_count']} mapped sites, "
+        f"{len(binary)} binary bytes, exclusions={payload['exclusions']}"
     )
     return 0
 
