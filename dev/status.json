@@ -1,10 +1,10 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-14T19:35:53Z",
+  "updated_at": "2026-09-14T19:39:23Z",
   "phase": "Phase 2 - Historical water data plane",
-  "task": "Map NAVD88 wells to model cells with screen-layer exclusions",
-  "state": "passed",
-  "progress_percent": 43,
+  "task": "Encode mapped wells as compact binary and render Compare markers",
+  "state": "active",
+  "progress_percent": 45,
   "preview_url": "http://127.0.0.1:8001/dist/",
   "machines": [
     {
@@ -111,7 +111,10 @@
     "app/public/data/offline-pack-manifest-v2.json",
     "app/src/data/measuredGroundwater.test.ts",
     "tools/acquire_usgs_monitoring_locations.py",
-    "receipts/usgs-monitoring-locations-20260914.json"
+    "receipts/usgs-monitoring-locations-20260914.json",
+    "tools/pack_usgs_groundwater_sites.py",
+    "app/public/data/usgs-groundwater-sites.json",
+    "app/src/data/measuredGroundwaterSites.ts"
   ],
   "events": [
     {
@@ -311,6 +314,18 @@
       "state": "passed",
       "summary": "All measured-well elevation and datum metadata verified",
       "detail": "USGS returned 3168 of 3168 requested locations in 32 original pages totaling 6905294 bytes. All page hashes and counts pass; every site has altitude; 2920 NAVD88 records are eligible for the next matching stage and 248 NGVD29 records remain explicitly excluded pending transformation."
+    },
+    {
+      "at": "2026-09-14T19:38:03Z",
+      "state": "active",
+      "summary": "Mapping measured wells into the TVGWFM grid",
+      "detail": "Building a compact point pack from verified USGS pages using the published model corners. NAVD88 altitude minus measured depth will be retained as observed water-level altitude; layer assignment and residual validation remain blocked without screen evidence."
+    },
+    {
+      "at": "2026-09-14T19:39:23Z",
+      "state": "active",
+      "summary": "Spatial join verified; compact binary packaging next",
+      "detail": "The join mapped 2849 NAVD88 sites covering 19117 numeric readings; excluded 241 non-NAVD88 sites, 63 sites without numeric readings, 13 inactive cells, and 2 outside-grid sites. The first columnar JSON was 337912 bytes and was moved to trash rather than shipped; converting it to a smaller typed binary before runtime integration."
     }
   ]
 }
