@@ -9,3 +9,4 @@ prettier,3.9.6,format tool,https://prettier.io/,node_modules/prettier,no,MIT,ver
 @eslint/js,10.0.1,lint configuration,https://eslint.org/,node_modules/@eslint/js,no,MIT,verified,Development dependency only
 @types/node,24.13.4,type declarations,https://github.com/DefinitelyTyped/DefinitelyTyped,node_modules/@types/node,no,MIT,verified,Development dependency only
 @types/three,0.186.0,type declarations,https://github.com/DefinitelyTyped/DefinitelyTyped,node_modules/@types/three,no,MIT,verified,Development dependency only
+esri-online-services,current-service,optional online map and geocoding service,https://developers.arcgis.com/terms/,tools/esri_gateway.py,no,provider-terms,local-active-release-gated,"Credential and service content are not licensed under the project license; live imagery requires attribution; terms quota and origin restrictions must pass before hosting"

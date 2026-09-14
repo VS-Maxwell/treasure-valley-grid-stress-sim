@@ -83,6 +83,8 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   #measuredWellPoints: THREE.Points | null = null;
   #damPoints: THREE.Points | null = null;
   #hydroDamPoints: THREE.Points | null = null;
+  #imageryTexture: THREE.Texture | null = null;
+  #imageryRequest = 0;
   readonly #sun = new THREE.DirectionalLight(0xfff0d1, 3.2);
   #frameHandle = 0;
   #frameCount = 0;
@@ -191,6 +193,45 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#frameHandle = 0;
   }
 
+  async loadImageryOverlay(url: string): Promise<boolean> {
+    if (!this.#regionalTerrain) return false;
+    const request = ++this.#imageryRequest;
+    const loader = new THREE.TextureLoader();
+    loader.setCrossOrigin("anonymous");
+    return new Promise((resolve) => {
+      const timeout = window.setTimeout(() => {
+        if (this.#imageryRequest === request) this.#imageryRequest += 1;
+        resolve(false);
+      }, 8_000);
+      loader.load(
+        url,
+        (texture) => {
+          window.clearTimeout(timeout);
+          if (this.#imageryRequest !== request) {
+            texture.dispose();
+            return;
+          }
+          texture.colorSpace = THREE.SRGBColorSpace;
+          texture.wrapS = THREE.ClampToEdgeWrapping;
+          texture.wrapT = THREE.ClampToEdgeWrapping;
+          this.#imageryTexture?.dispose();
+          this.#imageryTexture = texture;
+          this.#terrainMaterial.map = texture;
+          this.#terrainMaterial.vertexColors = false;
+          this.#terrainMaterial.needsUpdate = true;
+          this.#requestRender(4);
+          resolve(true);
+        },
+        undefined,
+        () => {
+          window.clearTimeout(timeout);
+          if (this.#imageryRequest === request) this.#imageryRequest += 1;
+          resolve(false);
+        },
+      );
+    });
+  }
+
   applyState(state: SimulationState): void {
     const gridOpacity =
       state.scene === "water"
@@ -289,6 +330,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
 
   dispose(): void {
     this.stop();
+    this.#imageryRequest += 1;
     this.#resizeObserver?.disconnect();
     this.#renderer.domElement.removeEventListener(
       "webglcontextlost",
@@ -297,6 +339,8 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#controls.removeEventListener("change", this.#onControlsChange);
     this.#controls.dispose();
     this.#timer.dispose();
+    this.#imageryTexture?.dispose();
+    this.#imageryTexture = null;
     this.#scene.traverse((object) => {
       if (
         object instanceof THREE.Mesh ||
@@ -392,6 +436,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     const { rows, columns, bounds_wgs84: bounds } = terrain.manifest.mesh;
     const vertices: number[] = [];
     const colors: number[] = [];
+    const uvs: number[] = [];
     const indices: number[] = [];
     const low = new THREE.Color(0x21483b);
     const mid = new THREE.Color(0x627254);
@@ -406,6 +451,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
         const elevation = terrain.elevations[row * columns + column]!;
         const worldY = terrainWorldHeight(terrain, elevation);
         vertices.push(point.x, worldY, point.z);
+        uvs.push(u, 1 - v);
         const normalized = THREE.MathUtils.clamp(
           (elevation - terrain.manifest.statistics.minimum_meters) /
             (terrain.manifest.statistics.maximum_meters -
@@ -435,6 +481,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
       new THREE.Float32BufferAttribute(vertices, 3),
     );
     geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
     geometry.setIndex(indices);
     geometry.computeVertexNormals();
     const surface = new THREE.Mesh(geometry, this.#terrainMaterial);

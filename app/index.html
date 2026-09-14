@@ -45,6 +45,13 @@
         <span id="renderer-state">Initializing 3D renderer</span>
         <span><b id="corridor-count">0</b> corridors</span>
         <span><b id="fps-value">—</b> FPS</span>
+        <span
+          class="provider-state"
+          id="provider-state"
+          data-state="checking"
+          title="Checking the optional localhost provider gateway"
+          >ESRI CHECKING</span
+        >
       </section>
 
       <nav class="scene-nav" aria-label="Earth system scenes" role="tablist">
@@ -133,6 +140,7 @@
       <p class="controls-hint">
         Drag to orbit · wheel to zoom · 1–7 change systems · Space plays time
       </p>
+      <p id="map-attribution" class="map-attribution" hidden></p>
       <div id="fatal" role="alert" hidden></div>
     </main>
     <script type="module" src="/src/main.ts"></script>

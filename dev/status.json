@@ -1,10 +1,10 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-14T20:39:00Z",
-  "phase": "Phase 4 - Energy and grid",
-  "task": "Rebuild typed pandapower inputs and directed watershed evidence",
-  "state": "active",
-  "progress_percent": 58,
+  "updated_at": "2026-09-14T20:48:37Z",
+  "phase": "Phase 3 - provider overlays",
+  "task": "Connect verified Esri basemap and geocoding capabilities without exposing credentials",
+  "state": "passed",
+  "progress_percent": 78,
   "preview_url": "http://127.0.0.1:8001/dist/",
   "machines": [
     {
@@ -123,7 +123,14 @@
     "app/public/data/offline-pack-manifest-v3.json",
     "app/src/data/measuredGroundwaterSites.test.ts",
     "tools/acquire_usgs_3dep_terrain.py",
-    "app/public/data/offline-pack-manifest-v6.json"
+    "app/public/data/offline-pack-manifest-v6.json",
+    "tools/esri_gateway.py",
+    "app/src/services/esriGateway.ts",
+    "tools/test_esri_gateway.py",
+    "app/src/services/esriGateway.test.ts",
+    "app/src/main.ts",
+    "docs/ESRI_GATEWAY.md",
+    "THIRD_PARTY_LICENSES.csv"
   ],
   "events": [
     {
@@ -401,6 +408,54 @@
       "state": "failed",
       "summary": "Offline lake completion handoff rejected as scientific evidence",
       "detail": "Sixty-three Parquet files and 1640 rows exist, but 51 tables omit required shared evidence fields. Direct code inspection found a synthetic 12 by 16 aquifer, invented 94-bus topology and power-flow results, random risk samples, and hard-coded validation claims. The handoff remains quarantined and does not replace verified simulator packs."
+    },
+    {
+      "at": "2026-09-14T20:39:34Z",
+      "state": "active",
+      "summary": "Secure Esri localhost gateway",
+      "detail": "Verified keyring credential against Esri basemap style and geocoding GET endpoints; implementing a loopback-only allow-listed gateway and visible optional-overlay health state."
+    },
+    {
+      "at": "2026-09-14T20:44:02Z",
+      "state": "passed",
+      "summary": "Gateway security and unit tests",
+      "detail": "TypeScript typecheck passed; 14 Vitest files with 34 tests passed; four Python gateway security tests passed. Credential remains outside URLs, browser bundles, repository files, and logs."
+    },
+    {
+      "at": "2026-09-14T20:44:11Z",
+      "state": "failed",
+      "summary": "Gateway live start",
+      "detail": "The first live launch could not bind loopback port 8765 because another local process already owns it. No process was stopped; listener identity and compatibility are being checked."
+    },
+    {
+      "at": "2026-09-14T20:44:25Z",
+      "state": "active",
+      "summary": "Relocate Esri gateway to free loopback port",
+      "detail": "Port 8765 belongs to the existing local Curator runtime and was preserved. Port 8767 is free; the fixed gateway and browser contract now target 127.0.0.1:8767."
+    },
+    {
+      "at": "2026-09-14T20:44:58Z",
+      "state": "passed",
+      "summary": "Live Esri gateway validation",
+      "detail": "Gateway is running on free loopback port 8767. Health returned ready; EDU basemap styles and geocoding are verified; bounded Lucky Peak geocoding returned two candidates; fixed Treasure Valley imagery returned a 328066-byte JPEG; unapproved web origins now receive HTTP 403."
+    },
+    {
+      "at": "2026-09-14T20:46:57Z",
+      "state": "passed",
+      "summary": "Esri imagery browser playtest",
+      "detail": "Visible 3D browser reported ESRI IMAGERY LIVE with required Esri attribution; all existing energy controls and counts remained present; browser error and warning logs were empty. Screenshot capture remains unavailable and is retained as an open evidence limitation."
+    },
+    {
+      "at": "2026-09-14T20:47:51Z",
+      "state": "active",
+      "summary": "Final Esri adapter regression gate",
+      "detail": "Added an eight-second fail-closed imagery timeout so the optional provider can never hold the simulator in a checking state. Re-running the full production and browser gates."
+    },
+    {
+      "at": "2026-09-14T20:48:37Z",
+      "state": "passed",
+      "summary": "Secure Esri overlay checkpoint",
+      "detail": "Full validation passed after the fail-closed timeout: formatting, lint, strict typing, 34 TypeScript tests, four Python security tests, registry and receipt checks, production build, and a 30-file 5677063-byte secret scan. Live browser badge and attribution passed; screenshot capture remains open."
     }
   ]
 }

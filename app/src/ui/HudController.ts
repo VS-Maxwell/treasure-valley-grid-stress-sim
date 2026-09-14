@@ -13,6 +13,7 @@ import type { TvgwfmBottoms } from "../data/tvgwfmBottoms";
 import type { TvgwfmHeads } from "../data/tvgwfmHeads";
 import type { TvgwfmTimeseries } from "../data/tvgwfmTimeseries";
 import type { RendererMetrics } from "../render/RendererAdapter";
+import type { EsriGatewayState } from "../services/esriGateway";
 import type { EnergyScenario, SceneId, SimulationState } from "../contracts";
 import type { SimulationStore } from "../simulation/SimulationStore";
 
@@ -64,6 +65,8 @@ export class HudController {
   readonly #corridorCount = required<HTMLElement>("#corridor-count");
   readonly #fps = required<HTMLElement>("#fps-value");
   readonly #truth = required<HTMLElement>("#truth-state");
+  readonly #providerState = required<HTMLElement>("#provider-state");
+  readonly #mapAttribution = required<HTMLElement>("#map-attribution");
   readonly #yearRange = required<HTMLInputElement>("#year-range");
   readonly #yearLabel = required<HTMLElement>("#year-label");
   readonly #timeKind = required<HTMLElement>("#time-kind");
@@ -79,6 +82,8 @@ export class HudController {
   readonly #drawerContent = required<HTMLElement>("#drawer-content");
   readonly #comparison = required<HTMLElement>("#comparison");
   readonly #fatal = required<HTMLElement>("#fatal");
+  #esriGateway: EsriGatewayState | null = null;
+  #esriImageryActive = false;
 
   constructor(
     store: SimulationStore,
@@ -186,6 +191,26 @@ export class HudController {
   setMetrics(metrics: RendererMetrics): void {
     this.#fps.textContent = metrics.fps > 0 ? String(metrics.fps) : "—";
     this.#rendererState.textContent = `${this.#app.dataset.renderer === "three-webgl" ? "3D cockpit" : "Canvas fallback"} · ${metrics.drawCalls} calls`;
+  }
+
+  setEsriGateway(state: EsriGatewayState, imageryActive: boolean): void {
+    this.#esriGateway = state;
+    this.#esriImageryActive = imageryActive;
+    this.#providerState.dataset.state = state.connected ? "ready" : "offline";
+    this.#providerState.textContent = imageryActive
+      ? "ESRI IMAGERY · LIVE"
+      : state.connected
+        ? "ESRI SERVICES · READY"
+        : "ESRI OPTIONAL · OFFLINE";
+    this.#providerState.title = state.connected
+      ? `${state.basemapStyles ? "Basemap style verified" : "Basemap style unavailable"}; ${state.geocoding ? "geocoding verified" : "geocoding unavailable"}; ${state.detail}`
+      : state.detail;
+    this.#mapAttribution.hidden = !imageryActive;
+    this.#mapAttribution.textContent = imageryActive
+      ? (state.attribution ?? "Powered by Esri")
+      : "";
+    if (this.#store.state.drawer !== "closed")
+      this.#renderDrawer(this.#store.state);
   }
 
   showFatal(message: string): void {
@@ -487,6 +512,12 @@ export class HudController {
         this.#regionalTerrain
           ? `Observed USGS 3DEP terrain is active across the six-tile regional baseline from 118°W to 115°W and 43°N to 45°N: ${this.#regionalTerrain.manifest.mesh.vertex_count.toLocaleString()} browser vertices, ${this.#regionalTerrain.manifest.statistics.minimum_meters.toLocaleString()}–${this.#regionalTerrain.manifest.statistics.maximum_meters.toLocaleString()} meters NAVD88. The dim outer surface is explicitly reconstructed context beyond that verified area.`
           : `The broad terrain remains a reconstructed visual preview. USGS 3DEP failed to load${this.#terrainLoadError ? `: ${this.#terrainLoadError}` : "."}`,
+      ),
+      this.#heading("Esri online overlay"),
+      this.#paragraph(
+        this.#esriGateway?.connected
+          ? `${this.#esriGateway.basemapStyles ? "The EDU-authorized basemap style" : "The basemap style"} and ${this.#esriGateway.geocoding ? "geocoding capability are verified" : "geocoding is unavailable"} through a loopback-only gateway. ${this.#esriImageryActive ? "Live public Esri World Imagery is draped on the observed USGS terrain." : "The live image did not load, so the observed USGS elevation-color surface remains visible."} The credential is never sent to browser code, and the historical simulator remains usable from local packs with the gateway off.`
+          : "The optional localhost Esri gateway is offline. The simulator is using its receipt-backed local terrain and data packs without an online-service dependency.",
       ),
       this.#heading("Aquifer topology"),
       this.#paragraph(

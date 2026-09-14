@@ -179,6 +179,31 @@ button {
   font-weight: 800;
   letter-spacing: 0.07em;
 }
+.provider-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+.provider-state::before {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6f8a9b;
+  content: "";
+}
+.provider-state[data-state="ready"] {
+  color: #b8fff3;
+}
+.provider-state[data-state="ready"]::before {
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(114, 229, 168, 0.9);
+}
+.provider-state[data-state="offline"]::before {
+  background: var(--amber);
+}
 
 .scene-nav {
   top: 82px;
@@ -516,6 +541,20 @@ kbd {
   margin: 0;
   color: #6f8a9b;
   font-size: 9px;
+}
+
+.map-attribution {
+  position: absolute;
+  z-index: 20;
+  right: 20px;
+  bottom: 48px;
+  margin: 0;
+  padding: 4px 7px;
+  border-radius: 5px;
+  color: rgba(233, 248, 255, 0.76);
+  background: rgba(5, 17, 28, 0.72);
+  font-size: 8px;
+  pointer-events: none;
 }
 
 #fatal {

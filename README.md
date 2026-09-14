@@ -25,6 +25,14 @@ npm run dev
 
 `npm run validate` runs formatting, linting, unit tests, strict TypeScript, the Vite production build, and the distribution safety check. Only `dist/` is eligible for future hosting; the repository root is not a release artifact.
 
+The receipt-backed terrain and historical tables run without network access. To add the optional live Esri layer on this workstation, start the credential-isolating loopback service in a second terminal:
+
+```bash
+npm run esri:gateway
+```
+
+The gateway binds only `127.0.0.1:8767`, reads the authorized credential from the operating-system Secret Service, and never sends it to browser JavaScript. The cockpit shows `ESRI IMAGERY · LIVE` only after both the gateway contract and the image load succeed. See `docs/ESRI_GATEWAY.md`.
+
 To exercise the degraded renderer deliberately, add `?renderer=canvas` to the built application URL.
 
 ## Current scientific boundary
@@ -41,6 +49,7 @@ The interface uses explicit truth states: observed, ingested, reconstructed, mod
 - renderer-independent serializable simulation state
 - Three.js 3D adapter with merged grid geometry and instanced assets
 - bounded Canvas degraded-mode adapter
+- loopback-only optional Esri adapter with fixed provider routes and offline fallback
 - DOM HUD and accessibility surfaces
 - JSON Schemas for state, scenarios, sources, truth labels, and run receipts
 - future CesiumJS, Rust, Python, DuckDB, STAC, RAVEN, Tauri, and offline-AI modules gated in `docs/MASTER_BUILD_PLAN.md`

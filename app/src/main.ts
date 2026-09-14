@@ -19,6 +19,7 @@ import type {
   RendererMetrics,
 } from "./render/RendererAdapter";
 import { SimulationStore } from "./simulation/SimulationStore";
+import { probeEsriGateway } from "./services/esriGateway";
 import { HudController } from "./ui/HudController";
 
 declare global {
@@ -35,6 +36,7 @@ function required<T extends HTMLElement>(selector: string): T {
 
 async function boot(): Promise<void> {
   const diagnostics = new RuntimeDiagnostics();
+  const esriProbe = probeEsriGateway();
   window.TV_SIM_DIAGNOSTICS = () => diagnostics.snapshot();
   const [
     grid,
@@ -221,6 +223,13 @@ async function boot(): Promise<void> {
         `3D renderer unavailable (${message}); using the bounded Canvas view.`,
       );
     }
+
+  const esriGateway = await esriProbe;
+  let esriImageryActive = false;
+  if (esriGateway.connected && esriGateway.imageryUrl)
+    esriImageryActive =
+      (await renderer?.loadImageryOverlay?.(esriGateway.imageryUrl)) ?? false;
+  hud.setEsriGateway(esriGateway, esriImageryActive);
 
   window.addEventListener("beforeunload", () => {
     if (timelineTimer !== null) window.clearInterval(timelineTimer);

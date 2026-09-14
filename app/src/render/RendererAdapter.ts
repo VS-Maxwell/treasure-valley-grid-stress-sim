@@ -12,6 +12,7 @@ export interface RendererAdapter {
   start(): void;
   stop(): void;
   applyState(state: SimulationState): void;
+  loadImageryOverlay?(url: string): Promise<boolean>;
   focusHome(): void;
   dispose(): void;
 }
