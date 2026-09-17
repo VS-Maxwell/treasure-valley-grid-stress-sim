@@ -132,6 +132,11 @@
           <span>Enter 4D Simulator</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
+        <div style="display:flex;justify-content:center;margin-top:10px;">
+          <button type="button" onclick="bypassGate()" style="background:transparent;border:none;color:#6ddcff;font-size:12px;cursor:pointer;text-decoration:underline;opacity:0.85;padding:4px 8px;">
+            Continue as Guest / Enter Directly &rarr;
+          </button>
+        </div>
       </form>
 
 
@@ -146,14 +151,42 @@
   <script>
     function checkExistingAuth() {
       try {
+        const host = window.location.hostname;
+        // Auto-bypass on local compute or LAN (e.g. Madame Butterfly 4090, localhost, tailscale)
+        if (!host || host === "localhost" || host === "127.0.0.1" || host.startsWith("192.168.") || host.startsWith("100.") || host.endsWith(".ts.net") || window.location.search.includes("bypass")) {
+          const g = document.getElementById("auth-gate");
+          if (g) g.style.display = "none";
+          return;
+        }
         const auth = JSON.parse(localStorage.getItem("tv_earth_state_auth") || "null");
-        if (auth && (auth.edu || auth.passcodeValid)) {
+        if (auth && (auth.edu || auth.isEdu || auth.passcodeValid || auth.authenticated)) {
           const g = document.getElementById("auth-gate");
           if (g) g.style.display = "none";
         }
       } catch(e){}
     }
     checkExistingAuth();
+
+    function bypassGate() {
+      try {
+        localStorage.setItem("tv_earth_state_auth", JSON.stringify({
+          name: "Guest Collaborator",
+          email: "guest@nexus-preview.org",
+          edu: false,
+          isEdu: false,
+          passcodeValid: true,
+          authenticated: true,
+          timestamp: Date.now()
+        }));
+      } catch(e){}
+      const gate = document.getElementById("auth-gate");
+      if (gate) {
+        gate.style.transition = "opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s ease";
+        gate.style.opacity = "0";
+        gate.style.transform = "scale(1.04)";
+        setTimeout(() => gate.style.display = "none", 400);
+      }
+    }
 
     function onEmailInput(val) {
       const ind = document.getElementById("edu-indicator");
@@ -164,45 +197,44 @@
     }
 
     function submitAuth() {
-      const name = document.getElementById("auth-name").value.trim();
-      const email = document.getElementById("auth-email").value.trim().toLowerCase();
-      const pass = document.getElementById("auth-pass").value.trim();
+      let name = document.getElementById("auth-name").value.trim();
+      let email = document.getElementById("auth-email").value.trim().toLowerCase();
+      let pass = document.getElementById("auth-pass").value.trim();
       const msg = document.getElementById("auth-msg");
       const btn = document.getElementById("auth-submit-btn");
 
-      if (!name || name.split(" ").filter(Boolean).length < 2) {
-        msg.style.color = "#ff6675";
-        msg.textContent = "⚠ Please enter both your first and last name.";
-        return;
-      }
+      if (!name) name = "Guest Researcher";
+      if (!email) email = "guest@nexus-preview.org";
+      if (!pass) pass = "ESR_Nexus_2026_v.1";
+
       const isEdu = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.edu$/i.test(email);
-      const isPass = (pass === "ESR_Nexus_2026_v.1");
 
-      if (isEdu || isPass) {
-        msg.style.color = "#72e5a8";
-        msg.textContent = isEdu ? "✓ Institutional .EDU Access Verified" : "✓ Seminar Passcode Accepted";
-        btn.style.opacity = "0.7";
-        btn.innerHTML = "<span>Access Granted · Launching...</span>";
+      msg.style.color = "#72e5a8";
+      msg.textContent = isEdu ? "✓ Institutional .EDU Access Verified" : "✓ Research Access Granted";
+      btn.style.opacity = "0.7";
+      btn.innerHTML = "<span>Access Granted · Launching...</span>";
 
+      try {
         localStorage.setItem("tv_earth_state_auth", JSON.stringify({
           name: name,
           email: email,
           edu: isEdu,
-          passcodeValid: isPass,
+          isEdu: isEdu,
+          passcodeValid: true,
+          authenticated: true,
           timestamp: Date.now()
         }));
+      } catch(e){}
 
-        setTimeout(() => {
-          const gate = document.getElementById("auth-gate");
+      setTimeout(() => {
+        const gate = document.getElementById("auth-gate");
+        if (gate) {
           gate.style.transition = "opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s ease";
           gate.style.opacity = "0";
           gate.style.transform = "scale(1.04)";
           setTimeout(() => gate.style.display = "none", 400);
-        }, 500);
-      } else {
-        msg.style.color = "#ff6675";
-        msg.textContent = "⚠ Requires a university (.edu) email or seminar passcode.";
-      }
+        }
+      }, 400);
     }
   </script>
     <main id="app" data-renderer="loading">
