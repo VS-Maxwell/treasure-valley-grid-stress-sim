@@ -20,10 +20,11 @@ and intake rules.
 
 ## What runs now
 
-Two interfaces are preserved while the modular application is built:
+The built application is the only public entry point:
 
-- `/` — a bounded Canvas stability view with 244 transmission corridors and 94 mapped substations.
 - `/dist/` after `npm run build` — the Phase 1 Three.js cockpit with shared simulation state, seven system scenes, time controls, comparison and stress actions, evidence labels, runtime diagnostics, responsive layouts, and deterministic Canvas fallback.
+
+The earlier single-file compiled `index.html` plus `watchdog.js`/`watchdog.css` overlay and the `legacy.html` iframe host have been retired. That combination was the confirmed source of the GitHub Pages entry screen freeze (see `docs/CRASH_INVESTIGATION.md`): the old build never ran through Vite and the multi-megabyte `legacy.html` was loaded into a hidden iframe via `srcdoc`, which previously produced a `SIGSEGV` in Firefox. GitHub Pages now deploys only the CI-built `dist/` bundle produced from `app/`.
 
 The current Three.js terrain is a receipt-backed USGS 3DEP surface spanning the full Snake Plain overview envelope (119°W–111°W, 42°N–46°N). The western six TVGWFM aquifer-bottom surfaces remain exact visualization transforms of that published model's discretization arrays. The separate official ESPAM 2.2 wireframe maps 11,236 active eastern cells from IDWR's one-layer 104×209 grid. Terrain coverage is not presented as groundwater-model coverage: TVGWFM, ESPAM, and framework-only areas remain distinct. Model bottoms are not borehole observations, and animated TVGWFM heads are reproduced model output rather than a new validated forecast.
 
@@ -81,7 +82,7 @@ The HTML client and any future Unreal/ArcGIS client are replaceable renderers, n
 - JSON Schemas for state, scenarios, sources, truth labels, and run receipts
 - future CesiumJS, Rust, Python, DuckDB, STAC, RAVEN, Tauri, and offline-AI modules gated in `docs/MASTER_BUILD_PLAN.md`
 
-The preserved `legacy.html` remains source evidence and a regression reference. It is not the default boot path.
+`legacy.html` and the retired watchdog overlay remain available in git history (see the `codex/visible-master-build` history before the entry-screen fix) as source evidence; they are no longer present in the working tree or in any published build.
 
 ## Status and plans
 

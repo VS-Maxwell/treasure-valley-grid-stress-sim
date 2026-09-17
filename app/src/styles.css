@@ -111,9 +111,55 @@ button {
 .context-panel,
 .drawer,
 .comparison,
-.controls-hint {
+.controls-hint,
+.demo-badge {
   position: absolute;
   z-index: 20;
+}
+
+.demo-badge {
+  top: 20px;
+  left: 50%;
+  z-index: 30;
+  margin: 0;
+  padding: 8px 22px;
+  transform: translateX(-50%);
+  color: #eefaff;
+  border: 1px solid rgba(255, 200, 106, 0.55);
+  border-radius: 999px;
+  background: linear-gradient(
+    155deg,
+    rgba(255, 200, 106, 0.22),
+    rgba(6, 21, 34, 0.62)
+  );
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 10px rgba(255, 200, 106, 0.45);
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (max-width: 850px) {
+  .demo-badge {
+    top: auto;
+    bottom: 74px;
+    padding: 6px 16px;
+    font-size: 11px;
+    letter-spacing: 0.24em;
+  }
+}
+
+@media (max-width: 620px) {
+  .demo-badge {
+    bottom: 116px;
+  }
 }
 
 .identity {
