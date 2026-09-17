@@ -452,9 +452,9 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     terrainGeometry.rotateX(-Math.PI / 2);
     const positions = terrainGeometry.getAttribute("position");
     const colors: number[] = [];
-    const low = new THREE.Color(0x17352f);
-    const mid = new THREE.Color(0x496044);
-    const high = new THREE.Color(0x8a806a);
+    const low = new THREE.Color(0x081524);
+    const mid = new THREE.Color(0x103657);
+    const high = new THREE.Color(0x1c598a);
     for (let index = 0; index < positions.count; index += 1) {
       const x = positions.getX(index);
       const z = positions.getZ(index);
@@ -521,9 +521,9 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     const colors: number[] = [];
     const uvs: number[] = [];
     const indices: number[] = [];
-    const low = new THREE.Color(0x21483b);
-    const mid = new THREE.Color(0x627254);
-    const high = new THREE.Color(0xb6aa8b);
+    const low = new THREE.Color(0x081524);
+    const mid = new THREE.Color(0x103657);
+    const high = new THREE.Color(0x1c598a);
     for (let row = 0; row < rows; row += 1) {
       const v = row / (rows - 1);
       const latitude = THREE.MathUtils.lerp(bounds.north, bounds.south, v);

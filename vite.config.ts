@@ -6,7 +6,8 @@ export default defineConfig({
   root: "app",
   base: "./",
   server: {
-    host: "127.0.0.1",
+    allowedHosts: true,
+    host: "0.0.0.0",
     port: 5173,
     strictPort: true,
   },
