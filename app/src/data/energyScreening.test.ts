@@ -8,7 +8,7 @@ import { validateEnergyScreening } from "./loadEnergyScreening";
 
 const sourcePath = resolve(
   import.meta.dirname,
-  "../../public/data/grid-screening-model.json",
+  "../../public/data/grid-screening-model-v2.json",
 );
 const model = validateEnergyScreening(
   JSON.parse(readFileSync(sourcePath, "utf8")) as unknown,
@@ -35,7 +35,7 @@ describe("94-bus energy screening pack", () => {
     );
   });
 
-  it("does not conceal the TAP endpoint ambiguity", () => {
+  it("resolves only endpoint identities supported by geometry", () => {
     expect(model.counts.branches_with_unique_endpoint_labels).toBe(75);
     expect(model.counts.branches_with_ambiguous_endpoint_labels).toBe(81);
     expect(
@@ -43,5 +43,12 @@ describe("94-bus energy screening pack", () => {
         (branch) => branch.endpoint_identity_state === "ambiguous-label",
       ),
     ).toHaveLength(81);
+    expect(model.counts.topology_resolved_branches).toBe(139);
+    expect(model.counts.topology_blocked_branches).toBe(17);
+    expect(model.counts.resolved_endpoint_identities).toBe(292);
+    expect(model.counts.unresolved_endpoint_identities).toBe(20);
+    expect(model.counts.geometry_resolved_tap_buses).toBe(27);
+    expect(model.counts.resolved_graph_components).toBe(1);
+    expect(model.fresh_solve_ready).toBe(false);
   });
 });

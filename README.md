@@ -4,6 +4,20 @@ An open, place-bound simulator for exploring how time, water, energy, climate, l
 
 The project is under active construction. It is not yet a research-grade coupled model.
 
+## CDA Dule Lensed project
+
+This repository also contains the source archive for the CDA Dule Lensed project,
+supporting Dianne's one-year grant. The first archive is the Lemhi collection.
+Lemhi materials are organized by the location they came from and then by year:
+
+```text
+projects/lemhi/sources/<source-location>/<year>/scripts/
+projects/lemhi/sources/<source-location>/<year>/full-sends/
+```
+
+See [the Lemhi archive guide](projects/lemhi/README.md) for naming, provenance,
+and intake rules.
+
 ## What runs now
 
 Two interfaces are preserved while the modular application is built:
@@ -32,6 +46,17 @@ npm run esri:gateway
 ```
 
 The gateway binds only `127.0.0.1:8767`, reads the authorized credential from the operating-system Secret Service, and never sends it to browser JavaScript. The cockpit shows `ESRI IMAGERY · LIVE` only after both the gateway contract and the image load succeed. See `docs/ESRI_GATEWAY.md`.
+
+The browser build also has an optional Gaussian-splat pilot hook. Keep the
+scene asset outside the repository and load it through the query string:
+
+```text
+http://127.0.0.1:5173/?splat=/data/treasure-valley-pilot.ksplat
+```
+
+The status strip reports whether the splat is optional, loading, live, or
+unavailable. The existing receipt-backed terrain and government-data tables
+remain the default when no splat asset is configured.
 
 To exercise the degraded renderer deliberately, add `?renderer=canvas` to the built application URL.
 

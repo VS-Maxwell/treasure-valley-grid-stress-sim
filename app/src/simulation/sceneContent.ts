@@ -33,11 +33,11 @@ export const SCENE_CONTENT: Record<SceneId, SceneContent> = {
   energy: {
     eyebrow: "ENERGY · 94-BUS SCREENING SYSTEM",
     title: "Stress every modeled branch across the valley",
-    copy: "All 94 screening buses and 156 DC-model branches are now visible against 244 mapped corridors. Change the scenario to recolor every branch; this remains a calibrated research screening model, not an operational utility model.",
+    copy: "All 94 screening buses and 156 preserved DC-model branches are visible against 244 mapped corridors. Geometry resolves 139 branch identities; 17 remain muted and blocked. Historical loadings are not a fresh operational solve.",
     metrics: [
       { value: "244", label: "mapped corridors" },
       { value: "94", label: "rendered buses" },
-      { value: "156", label: "interactive branches" },
+      { value: "139 / 156", label: "topology-ready" },
     ],
   },
   nexus: {

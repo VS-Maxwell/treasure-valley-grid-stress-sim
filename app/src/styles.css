@@ -187,6 +187,24 @@ button {
   font-weight: 800;
   letter-spacing: 0.05em;
 }
+
+#splat-state {
+  color: var(--muted);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+#splat-state[data-state="ready"] {
+  color: #b8fff3;
+}
+
+#splat-state[data-state="loading"] {
+  color: var(--cyan);
+}
+
+#splat-state[data-state="failed"] {
+  color: var(--amber);
+}
 .provider-state::before {
   width: 6px;
   height: 6px;

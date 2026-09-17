@@ -77,6 +77,7 @@ export class HudController {
   readonly #rendererState = required<HTMLElement>("#renderer-state");
   readonly #corridorCount = required<HTMLElement>("#corridor-count");
   readonly #fps = required<HTMLElement>("#fps-value");
+  readonly #splatState = required<HTMLElement>("#splat-state");
   readonly #truth = required<HTMLElement>("#truth-state");
   readonly #providerState = required<HTMLElement>("#provider-state");
   readonly #mapAttribution = required<HTMLElement>("#map-attribution");
@@ -240,6 +241,20 @@ export class HudController {
       : "";
     if (this.#store.state.drawer !== "closed")
       this.#renderDrawer(this.#store.state);
+  }
+
+  setGaussianSplatStatus(
+    status: "not-configured" | "loading" | "ready" | "failed",
+  ): void {
+    this.#splatState.dataset.state = status;
+    this.#splatState.textContent =
+      status === "ready"
+        ? "3DGS · LIVE"
+        : status === "loading"
+          ? "3DGS · LOADING"
+          : status === "failed"
+            ? "3DGS · UNAVAILABLE"
+            : "3DGS · OPTIONAL";
   }
 
   showFatal(message: string): void {
@@ -558,7 +573,7 @@ export class HudController {
       this.#code(this.#grid.source_sha256),
       this.#heading("Representation boundary"),
       this.#paragraph(
-        `244 corridors and 94 substations are visible geographic features. All ${this.#energyScreening.counts.branches} preserved DC-screening branches now respond to seven scenarios. Exactly ${this.#energyScreening.counts.branches_with_unique_endpoint_labels} branch endpoints resolve through unique labels; ${this.#energyScreening.counts.branches_with_ambiguous_endpoint_labels} retain ambiguous legacy labels rather than receiving invented bus identities.`,
+        `244 corridors and 94 substations are visible geographic features. All ${this.#energyScreening.counts.branches} preserved DC-screening branches retain seven historical scenarios. ${this.#energyScreening.counts.topology_resolved_branches} branches now have both endpoint identities supported by unique labels or exact corridor endpoints; the ${this.#energyScreening.counts.topology_blocked_branches} unresolved branches are muted and excluded from the topology-ready set. All ${this.#energyScreening.counts.geometry_resolved_tap_buses} legacy TAP buses are resolved somewhere in the connected screening graph, but ${this.#energyScreening.counts.unresolved_endpoint_identities} endpoint occurrences remain blocked. A fresh solve stays disabled because impedance, ratings, dispatch, load, and slack-bus evidence are missing.`,
       ),
       this.#heading("Terrain truth state"),
       this.#paragraph(

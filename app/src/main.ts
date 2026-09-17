@@ -280,6 +280,12 @@ async function boot(): Promise<void> {
       three.mount();
       three.applyState(store.state);
       three.start();
+      const splatUrl = new URLSearchParams(window.location.search).get("splat");
+      hud.setGaussianSplatStatus(splatUrl ? "loading" : "not-configured");
+      if (splatUrl) {
+        const loaded = await three.loadGaussianSplat(splatUrl);
+        hud.setGaussianSplatStatus(loaded ? "ready" : "failed");
+      }
       hud.setReady(three.kind);
     } catch (error) {
       const message =

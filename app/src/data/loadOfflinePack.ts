@@ -22,7 +22,8 @@ export function validateOfflinePack(candidate: unknown): OfflinePackManifest {
   const manifest = candidate as Partial<OfflinePackManifest>;
   if (
     manifest.schema_version !== 1 ||
-    manifest.id !== "treasure-valley-offline-earth-pack-v14" ||
+    (manifest.id !== "treasure-valley-offline-earth-pack-v14" &&
+      manifest.id !== "treasure-valley-offline-earth-pack-v15") ||
     manifest.source_doi !== "10.5066/P9U6OOPH" ||
     manifest.network_required !== false
   )
@@ -30,11 +31,10 @@ export function validateOfflinePack(candidate: unknown): OfflinePackManifest {
   if (
     !manifest.artifacts ||
     manifest.artifacts.length !== manifest.artifact_count ||
-    manifest.artifacts.length !== 25
+    manifest.artifacts.length !==
+      (manifest.id === "treasure-valley-offline-earth-pack-v14" ? 25 : 26)
   )
-    throw new Error(
-      "Offline pack must contain twenty-five manifested artifacts",
-    );
+    throw new Error("Offline pack artifact count is invalid");
   const total = manifest.artifacts.reduce(
     (sum, artifact) => sum + artifact.bytes,
     0,

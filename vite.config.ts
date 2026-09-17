@@ -14,7 +14,8 @@ export default defineConfig({
     outDir: "../dist",
     emptyOutDir: true,
     target: "es2022",
-    sourcemap: true,
+    // Keep hosted dist lean; Vite's dev server remains the source-map workflow.
+    sourcemap: false,
     assetsInlineLimit: 0,
     rollupOptions: {
       input: resolve(import.meta.dirname, "app/index.html"),

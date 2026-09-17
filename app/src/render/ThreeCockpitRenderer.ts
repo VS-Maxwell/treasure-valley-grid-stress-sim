@@ -3,6 +3,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 import type { SimulationState } from "../contracts";
 import {
+  BLOCKED_TOPOLOGY_COLOR,
   energyLoadingColor,
   type EnergyBranch,
   type EnergyScreeningModel,
@@ -31,6 +32,7 @@ import {
   type RegionalTerrain,
 } from "../data/regionalTerrain";
 import type { RendererAdapter, RendererCallbacks } from "./RendererAdapter";
+import { GaussianSplatLayer } from "./GaussianSplatLayer";
 
 const TERRAIN_WIDTH = 230;
 const TERRAIN_DEPTH = 150;
@@ -84,6 +86,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
   readonly #scene = new THREE.Scene();
   readonly #camera = new THREE.PerspectiveCamera(47, 1, 0.1, 1200);
   readonly #renderer: THREE.WebGLRenderer;
+  readonly #gaussianSplatLayer: GaussianSplatLayer;
   readonly #controls: OrbitControls;
   readonly #timer = new THREE.Timer();
   readonly #gridMaterials = new Map<VoltageClass, THREE.LineBasicMaterial>();
@@ -166,6 +169,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.#renderer.toneMappingExposure = 1.05;
     this.#renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    this.#gaussianSplatLayer = new GaussianSplatLayer(this.#scene);
     this.#renderer.domElement.setAttribute(
       "aria-label",
       "Three-dimensional Treasure Valley system view",
@@ -208,8 +212,14 @@ export class ThreeCockpitRenderer implements RendererAdapter {
       wireframe: true,
     });
     this.#buildScene();
+    // The DEM is real; this display scale keeps the mountains legible without turning them into cliffs.
+    this.#scene.scale.y = 0.66;
     this.focusHome();
   }
+  #regionalAquiferContext: THREE.Mesh<
+    THREE.BufferGeometry,
+    THREE.MeshBasicMaterial
+  > | null = null;
 
   mount(): void {
     this.#container.prepend(this.#renderer.domElement);
@@ -271,6 +281,16 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     });
   }
 
+  async loadGaussianSplat(url: string): Promise<boolean> {
+    const loaded = await this.#gaussianSplatLayer.load(url);
+    this.#requestRender(8);
+    return loaded;
+  }
+
+  get gaussianSplatStatus() {
+    return this.#gaussianSplatLayer.status;
+  }
+
   applyState(state: SimulationState): void {
     const gridOpacity =
       state.scene === "water"
@@ -282,65 +302,63 @@ export class ThreeCockpitRenderer implements RendererAdapter {
             : 0.94;
     this.#gridMaterials.forEach((material, key) => {
       material.opacity =
-        key === "bulk" ? Math.min(1, gridOpacity + 0.08) : gridOpacity;
+        key === "bulk"
+          ? Math.min(1, Math.max(0.72, gridOpacity + 0.08))
+          : Math.max(0.48, gridOpacity);
       material.color.setHex(
         state.scene === "risk" ? 0xff5366 : (VOLTAGE_COLORS[key] ?? 0x6fcaff),
       );
     });
     this.#waterMaterial.opacity =
-      state.scene === "water" ? 0.82 : state.scene === "nexus" ? 0.5 : 0.16;
-    const showHeads = state.scene === "water" || state.scene === "nexus";
+      state.scene === "water" ? 0.62 : state.scene === "nexus" ? 0.44 : 0.16;
+    const showHeads = true;
     this.#headMeshes.forEach((mesh, index) => {
       mesh.visible = showHeads;
       mesh.material.opacity =
-        state.scene === "water" ? 0.5 - index * 0.045 : 0.2;
+        state.scene === "water"
+          ? 0.34 - index * 0.03
+          : state.scene === "nexus"
+            ? 0.18 - index * 0.014
+            : 0.07 - index * 0.005;
     });
-    const showBottoms =
-      state.scene === "water" ||
-      state.scene === "nexus" ||
-      state.scene === "record";
+    const showBottoms = true;
     this.#aquiferBottomMeshes.forEach((mesh, index) => {
       mesh.visible = showBottoms;
       mesh.material.opacity =
         state.scene === "water"
-          ? 0.26 - index * 0.018
-          : state.scene === "record"
-            ? 0.2
-            : 0.12;
-      mesh.material.wireframe = state.scene === "record";
+          ? 0.16 - index * 0.012
+          : state.scene === "nexus"
+            ? 0.11 - index * 0.008
+            : state.scene === "record"
+              ? 0.13
+              : 0.07 - index * 0.004;
+      mesh.material.wireframe = true;
     });
     if (this.#measuredWellPoints)
       this.#measuredWellPoints.visible =
-        state.scene === "water" && state.compare;
-    if (this.#damPoints)
-      this.#damPoints.visible =
-        state.scene === "water" ||
-        state.scene === "nexus" ||
-        state.scene === "risk";
-    if (this.#hydroDamPoints)
-      this.#hydroDamPoints.visible =
-        state.scene === "energy" ||
-        state.scene === "water" ||
-        state.scene === "nexus" ||
-        state.scene === "risk";
+        state.scene === "water" || state.scene === "nexus" || state.compare;
+    if (this.#damPoints) this.#damPoints.visible = true;
+    if (this.#hydroDamPoints) this.#hydroDamPoints.visible = true;
     if (this.#eiaHydropowerPoints)
-      this.#eiaHydropowerPoints.visible =
-        state.scene === "energy" && !this.#eiaRegionalEnergyPoints;
+      this.#eiaHydropowerPoints.visible = !this.#eiaRegionalEnergyPoints;
     if (this.#eiaRegionalEnergyPoints)
-      this.#eiaRegionalEnergyPoints.visible = state.scene === "energy";
-    if (this.#espamGridLines)
-      this.#espamGridLines.visible =
-        state.scene === "water" ||
-        state.scene === "nexus" ||
-        state.scene === "record";
+      this.#eiaRegionalEnergyPoints.visible = true;
+    if (this.#espamGridLines) this.#espamGridLines.visible = true;
     if (this.#espamHeadSurface) {
-      this.#espamHeadSurface.visible =
-        state.scene === "water" || state.scene === "nexus";
+      this.#espamHeadSurface.visible = true;
       this.#espamHeadSurface.material.opacity =
-        state.scene === "water" ? 0.58 : 0.32;
+        state.scene === "water" ? 0.36 : state.scene === "nexus" ? 0.24 : 0.08;
+    }
+    if (this.#regionalAquiferContext) {
+      this.#regionalAquiferContext.visible = true;
+      this.#regionalAquiferContext.material.opacity =
+        state.scene === "water" || state.scene === "nexus" ? 0.06 : 0.032;
     }
     if (this.#screeningBranchLines) {
-      this.#screeningBranchLines.visible = state.scene === "energy";
+      this.#screeningBranchLines.visible = true;
+      const branchMaterial = this.#screeningBranchLines.material;
+      if (!Array.isArray(branchMaterial))
+        branchMaterial.opacity = state.scene === "energy" ? 1 : 0.34;
       if (this.#activeEnergyScenario !== state.energyScenario) {
         this.#activeEnergyScenario = state.energyScenario;
         const colors = this.#screeningBranchLines.geometry.getAttribute(
@@ -348,7 +366,9 @@ export class ThreeCockpitRenderer implements RendererAdapter {
         ) as THREE.BufferAttribute;
         this.#screeningVertexBranches.forEach((branch, index) => {
           const color = new THREE.Color(
-            energyLoadingColor(branch.loading_pct[state.energyScenario]),
+            branch.topology_state === "resolved"
+              ? energyLoadingColor(branch.loading_pct[state.energyScenario])
+              : BLOCKED_TOPOLOGY_COLOR,
           );
           colors.setXYZ(index, color.r, color.g, color.b);
         });
@@ -397,6 +417,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#timer.dispose();
     this.#imageryTexture?.dispose();
     this.#imageryTexture = null;
+    void this.#gaussianSplatLayer.dispose();
     this.#scene.traverse((object) => {
       if (
         object instanceof THREE.Mesh ||
@@ -464,6 +485,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#scene.add(terrain);
 
     this.#addRegionalTerrainSurface();
+    this.#addRegionalAquiferContext();
     this.#addEspamGrid();
     this.#addEspamHeadSurface();
 
@@ -474,6 +496,7 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#addRegionalDams();
     this.#addEiaHydropowerPlants();
     this.#addEiaRegionalEnergyGenerators();
+    this.#addCityMassings();
 
     this.#addGridLines();
     this.#addScreeningBranches();
@@ -548,6 +571,60 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     surface.name = "usgs-3dep-snake-plain-terrain-observed";
     this.#scene.add(surface);
   }
+  #addRegionalAquiferContext(): void {
+    const bounds = this.#gridBounds;
+    const rows = 25;
+    const columns = 41;
+    const vertices: number[] = [];
+    const indices: number[] = [];
+    for (let row = 0; row < rows; row += 1) {
+      const latitude = THREE.MathUtils.lerp(
+        bounds.north,
+        bounds.south,
+        row / (rows - 1),
+      );
+      for (let column = 0; column < columns; column += 1) {
+        const longitude = THREE.MathUtils.lerp(
+          bounds.west,
+          bounds.east,
+          column / (columns - 1),
+        );
+        const point = this.#projectPosition([longitude, latitude]);
+        const terrainY = this.#regionalTerrain
+          ? terrainWorldHeightAt(this.#regionalTerrain, [longitude, latitude])
+          : point.y;
+        vertices.push(point.x, (terrainY ?? point.y) + 0.84, point.z);
+      }
+    }
+    for (let row = 0; row < rows - 1; row += 1) {
+      for (let column = 0; column < columns - 1; column += 1) {
+        const a = row * columns + column;
+        const b = a + 1;
+        const c = a + columns;
+        const d = c + 1;
+        indices.push(a, c, b, b, c, d);
+      }
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(vertices, 3),
+    );
+    geometry.setIndex(indices);
+    this.#regionalAquiferContext = new THREE.Mesh(
+      geometry,
+      new THREE.MeshBasicMaterial({
+        color: 0x4caeba,
+        transparent: true,
+        opacity: 0.065,
+        depthWrite: false,
+        wireframe: true,
+      }),
+    );
+    this.#regionalAquiferContext.name =
+      "regional-aquifer-context-data-needed-envelope";
+    this.#scene.add(this.#regionalAquiferContext);
+  }
 
   #addEspamGrid(): void {
     if (!this.#espamGrid) return;
@@ -576,9 +653,9 @@ export class ThreeCockpitRenderer implements RendererAdapter {
     this.#espamGridLines = new THREE.LineSegments(
       geometry,
       new THREE.LineBasicMaterial({
-        color: 0x35d7c8,
+        color: 0x69d4e5,
         transparent: true,
-        opacity: 0.2,
+        opacity: 0.07,
         depthWrite: false,
       }),
     );
@@ -838,7 +915,6 @@ export class ThreeCockpitRenderer implements RendererAdapter {
         sizeAttenuation: true,
         transparent: true,
         opacity: 0.96,
-        depthWrite: false,
       }),
     );
     this.#eiaHydropowerPoints.name = "eia860-final-2025-hydropower-plants-77";
@@ -1217,7 +1293,9 @@ export class ThreeCockpitRenderer implements RendererAdapter {
           `Energy branch corridor join failed: ${branch.branch_id}`,
         );
       const color = new THREE.Color(
-        energyLoadingColor(branch.loading_pct.base),
+        branch.topology_state === "resolved"
+          ? energyLoadingColor(branch.loading_pct.base)
+          : BLOCKED_TOPOLOGY_COLOR,
       );
       for (const line of lineParts(feature.geometry)) {
         for (let index = 1; index < line.length; index += 1) {
@@ -1248,9 +1326,61 @@ export class ThreeCockpitRenderer implements RendererAdapter {
       opacity: 1,
     });
     const lines = new THREE.LineSegments(geometry, material);
-    lines.name = "screening-branches-156-interactive";
+    lines.name = "screening-branches-139-resolved-17-blocked";
     this.#screeningBranchLines = lines;
     this.#scene.add(lines);
+  }
+
+  #addCityMassings(): void {
+    const cities = [
+      { name: "Boise", position: [-116.2023, 43.615] as const, count: 56 },
+      { name: "Meridian", position: [-116.3915, 43.612] as const, count: 42 },
+      { name: "Nampa", position: [-116.5635, 43.5407] as const, count: 34 },
+      { name: "Caldwell", position: [-116.6874, 43.6629] as const, count: 25 },
+      { name: "Eagle", position: [-116.351, 43.695] as const, count: 22 },
+      { name: "Kuna", position: [-116.42, 43.491] as const, count: 18 },
+    ];
+    const group = new THREE.Group();
+    group.name = "derived-urban-massing-context";
+    const material = new THREE.MeshStandardMaterial({
+      color: 0x66838a,
+      emissive: 0x0d2b36,
+      emissiveIntensity: 0.7,
+      roughness: 0.72,
+      metalness: 0.05,
+      transparent: true,
+      opacity: 0.92,
+      depthTest: false,
+    });
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    for (const city of cities) {
+      const buildings = new THREE.InstancedMesh(geometry, material, city.count);
+      const transform = new THREE.Object3D();
+      for (let index = 0; index < city.count; index += 1) {
+        const column = (index % 8) - 3.5;
+        const row = Math.floor(index / 8) - 3;
+        const longitude = city.position[0] + column * 0.0045;
+        const latitude = city.position[1] + row * 0.0036;
+        const point = this.#projectPosition([longitude, latitude]);
+        const terrainY = this.#regionalTerrain
+          ? terrainWorldHeightAt(this.#regionalTerrain, [longitude, latitude])
+          : point.y;
+        const height = 1.45 + ((index * 17) % 9) * 0.28;
+        transform.position.set(
+          point.x,
+          (terrainY ?? point.y) + 0.9 + height / 2,
+          point.z,
+        );
+        transform.scale.set(0.95, height, 0.95);
+        transform.updateMatrix();
+        buildings.setMatrixAt(index, transform.matrix);
+      }
+      buildings.instanceMatrix.needsUpdate = true;
+      buildings.name = `derived-city-massing-${city.name.toLowerCase()}`;
+      buildings.renderOrder = 6;
+      group.add(buildings);
+    }
+    this.#scene.add(group);
   }
 
   #addSubstations(): void {

@@ -34,6 +34,11 @@ export interface EnergyBranch {
   readonly from_bus_candidates: readonly string[];
   readonly to_bus_candidates: readonly string[];
   readonly endpoint_identity_state: "unique-label" | "ambiguous-label";
+  readonly from_bus_id: string | null;
+  readonly to_bus_id: string | null;
+  readonly from_endpoint_receipt: EnergyEndpointReceipt;
+  readonly to_endpoint_receipt: EnergyEndpointReceipt;
+  readonly topology_state: "resolved" | "blocked-missing";
   readonly voltage_kv: number;
   readonly loading_pct: Readonly<Record<EnergyScenario, number>>;
   readonly n1: {
@@ -44,6 +49,16 @@ export interface EnergyBranch {
   readonly truth_state: "modeled-screening";
 }
 
+export interface EnergyEndpointReceipt {
+  readonly bus_id: string | null;
+  readonly method:
+    | "unique-preserved-label"
+    | "exact-corridor-endpoint"
+    | "blocked-insufficient-geometry-evidence";
+  readonly nearest_distance_km: number;
+  readonly runner_up_margin_km: number | null;
+}
+
 export interface EnergyScenarioSummary {
   readonly maximum_loading_pct: number;
   readonly median_loading_pct: number;
@@ -52,19 +67,28 @@ export interface EnergyScenarioSummary {
 }
 
 export interface EnergyScreeningModel {
-  readonly schema_version: 1;
+  readonly schema_version: 2;
   readonly id: string;
   readonly source: string;
   readonly source_legacy_sha256: string;
   readonly source_grid_core_sha256: string;
   readonly truth_state: "modeled-screening";
   readonly operational_use: false;
+  readonly fresh_solve_ready: false;
+  readonly missing_solver_inputs: readonly string[];
   readonly counts: {
     readonly buses: number;
     readonly branches: number;
     readonly map_corridors: number;
     readonly branches_with_unique_endpoint_labels: number;
     readonly branches_with_ambiguous_endpoint_labels: number;
+    readonly topology_resolved_branches: number;
+    readonly topology_blocked_branches: number;
+    readonly resolved_endpoint_identities: number;
+    readonly geometry_resolved_ambiguous_endpoints: number;
+    readonly unresolved_endpoint_identities: number;
+    readonly geometry_resolved_tap_buses: number;
+    readonly resolved_graph_components: number;
   };
   readonly scenarios: readonly EnergyScenario[];
   readonly scenario_summaries: Readonly<
@@ -82,3 +106,5 @@ export function energyLoadingColor(loadingPct: number): number {
   if (loadingPct >= 50) return 0x63e5c5;
   return 0x54b9ff;
 }
+
+export const BLOCKED_TOPOLOGY_COLOR = 0x596572;

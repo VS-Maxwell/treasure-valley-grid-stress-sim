@@ -37,8 +37,8 @@ if (names.some((name) => name.endsWith(".ts") && !name.endsWith(".d.ts")))
 
 let totalBytes = 0;
 for (const file of files) totalBytes += (await stat(file)).size;
-// Phase 3 retains browser source maps so the user can inspect the programming
-// while terrain and data layers are integrated. Raw provider data remain out.
+// Hosted dist stays lean; source maps remain available through the Vite dev
+// server while terrain and data layers are integrated. Raw provider data remain out.
 const fullPlainDevelopmentBudget = 8 * 1024 * 1024;
 if (totalBytes > fullPlainDevelopmentBudget)
   failures.push(
