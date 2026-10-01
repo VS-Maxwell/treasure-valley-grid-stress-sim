@@ -1,13 +1,9 @@
-# Build the Vite cockpit and deploy only the compiled dist/ output to Pages.
-#
-# The previous version of this workflow uploaded the entire repository as
-# static content, so GitHub Pages served the old single-file `index.html` +
-# `watchdog.js` + `legacy.html` iframe shell instead of the modular
-# application. That shell loaded a multi-megabyte legacy document into a
-# hidden iframe via `srcdoc`, which is the confirmed cause of the entry
-# screen freeze (see docs/CRASH_INVESTIGATION.md). Those files have been
-# removed; this workflow now builds app/ with Vite and publishes dist/ only.
-name: Deploy Treasure Valley cockpit to Pages
+# Build the reviewed public-data showcase and deploy only its five-file static output.
+# The full development cockpit includes data with unresolved redistribution
+# and authority gates. This entry uses only the registered USGS and EIA public
+# sources copied into public-demo/data and excludes the full app/public tree.
+# The validator checks the exact output list, binary hashes, and blocked text.
+name: Deploy Treasure Valley public-data showcase to Pages
 
 on:
   push:
@@ -36,16 +32,16 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
-      - name: Typecheck and build
-        run: npm run build
-      - name: Validate release-only distribution
-        run: npm run validate:dist
+      - name: Build public-only showcase
+        run: npx vite build --config vite.public-demo.config.ts
+      - name: Validate five-file approved distribution
+        run: node tools/validate_public_demo_dist.mjs
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      - name: Upload dist/ artifact
+      - name: Upload public-only artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "dist"
+          path: "public-demo-dist"
 
   deploy:
     needs: build
