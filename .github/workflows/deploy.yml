@@ -1,9 +1,5 @@
-# Build the reviewed public-data showcase and deploy only its five-file static output.
-# The full development cockpit includes data with unresolved redistribution
-# and authority gates. This entry uses only the registered USGS and EIA public
-# sources copied into public-demo/data and excludes the full app/public tree.
-# The validator checks the exact output list, binary hashes, and blocked text.
-name: Deploy Treasure Valley public-data showcase to Pages
+# Build the Vite cockpit and deploy only the compiled dist/ output to Pages.
+name: Deploy Treasure Valley cockpit to Pages
 
 on:
   push:
@@ -32,16 +28,16 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
-      - name: Build public-only showcase
-        run: npx vite build --config vite.public-demo.config.ts
-      - name: Validate five-file approved distribution
-        run: node tools/validate_public_demo_dist.mjs
+      - name: Typecheck and build
+        run: npm run build
+      - name: Validate release-only distribution
+        run: npm run validate:dist
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      - name: Upload public-only artifact
+      - name: Upload dist/ artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "public-demo-dist"
+          path: "dist"
 
   deploy:
     needs: build
