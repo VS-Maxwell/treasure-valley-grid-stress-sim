@@ -11,8 +11,8 @@ import energyUrl from "../data/eia-regional-energy-f32-v1.bin?url";
 const element = (id) => document.getElementById(id);
 const canvas = element("scene");
 const scene = new THREE.Scene();
-scene.background = new THREE.Color("#213f53");
-scene.fog = new THREE.Fog("#213f53", 10, 26);
+scene.background = new THREE.Color("#25312f");
+scene.fog = new THREE.Fog("#25312f", 10, 26);
 const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 100);
 camera.up.set(0, 0, 1);
 camera.position.set(0, -5.5, 5.5);
@@ -73,14 +73,19 @@ function drawTerrain(heights) {
   const geometry = new THREE.PlaneGeometry(8, 4, columns - 1, rows - 1);
   const positions = geometry.getAttribute("position");
   const colors = new Float32Array(heights.length * 3);
-  const low = new THREE.Color("#123d67");
-  const high = new THREE.Color("#3d82ba");
+  // Elevation tint is a visual aid over the observed USGS mesh, not land-cover imagery.
+  const low = new THREE.Color("#50664d");
+  const plain = new THREE.Color("#958964");
+  const upland = new THREE.Color("#826c50");
+  const summit = new THREE.Color("#b6ad9a");
   const color = new THREE.Color();
   for (let i = 0; i < heights.length; i++) {
     const value = heights[i];
     positions.setZ(i, (value - terrain.statistics.mean_meters) / 3000);
-    const t = Math.max(0, Math.min(1, (value - 200) / 3200));
-    color.copy(low).lerp(high, t);
+    const t = Math.max(0, Math.min(1, (value - 400) / 3100));
+    if (t < 0.35) color.copy(low).lerp(plain, t / 0.35);
+    else if (t < 0.72) color.copy(plain).lerp(upland, (t - 0.35) / 0.37);
+    else color.copy(upland).lerp(summit, (t - 0.72) / 0.28);
     colors.set([color.r, color.g, color.b], i * 3);
   }
   geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
@@ -97,7 +102,7 @@ function drawEnergy(values, heights) {
   const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
   energyMarkers = new THREE.InstancedMesh(geometry, material, energy.generator_count);
   const marker = new THREE.Object3D();
-  const blue = new THREE.Color("#54e6ff");
+  const sage = new THREE.Color("#c7db9a");
   const amber = new THREE.Color("#ffc363");
   for (let i = 0; i < energy.generator_count; i++) {
     const at = i * stride;
@@ -107,7 +112,7 @@ function drawEnergy(values, heights) {
     marker.scale.setScalar(Math.min(3.5, 0.7 + Math.sqrt(capacity) / 12));
     marker.updateMatrix();
     energyMarkers.setMatrixAt(i, marker.matrix);
-    energyMarkers.setColorAt(i, values[at + 4] === 0 ? blue : amber);
+    energyMarkers.setColorAt(i, values[at + 4] === 0 ? sage : amber);
   }
   energyMarkers.instanceMatrix.needsUpdate = true;
   scene.add(energyMarkers);
@@ -125,7 +130,7 @@ function readout() {
   if (activeLayer === "terrain") {
     truth.textContent = "OBSERVED";
     title.textContent = "USGS Snake Plain elevation";
-    copy.textContent = "Terrain samples from 32 USGS 3DEP tiles across 119°W–111°W and 42°N–46°N. Relief is exaggerated for visibility.";
+    copy.textContent = "Observed elevation from 32 USGS 3DEP tiles across 119°W–111°W and 42°N–46°N. Earth-tone colors encode height, not satellite imagery; relief is exaggerated for visibility.";
     metric.textContent = terrain.mesh.vertex_count.toLocaleString() + " source vertices";
     source.textContent = "Source: USGS 3D Elevation Program. Elevation is in meters NAVD88; no new forecast is computed.";
   } else if (activeLayer === "water") {
@@ -140,7 +145,7 @@ function readout() {
   } else {
     truth.textContent = "INGESTED";
     title.textContent = "EIA reported energy records";
-    copy.textContent = "The dots are final 2025 EIA-860 generator locations. Blue indicates operable; amber marks other reported lifecycle states. No grid connections are inferred.";
+    copy.textContent = "The dots are final 2025 EIA-860 generator locations. Sage indicates operable; amber marks other reported lifecycle states. No grid connections are inferred.";
     metric.textContent = energy.generator_count.toLocaleString() + " generators";
     source.textContent = "Source: U.S. Energy Information Administration Form EIA-860. Reported capacity and lifecycle are records, not simulated output.";
   }
