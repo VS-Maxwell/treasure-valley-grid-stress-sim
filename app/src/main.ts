@@ -16,6 +16,7 @@ import { loadTvgwfmBottoms } from "./data/loadTvgwfmBottoms";
 import { loadTvgwfmGrid } from "./data/loadTvgwfmGrid";
 import { loadTvgwfmHeads } from "./data/loadTvgwfmHeads";
 import { loadTvgwfmTimeseries } from "./data/loadTvgwfmTimeseries";
+import { loadStatewideMaster } from "./data/loadStatewideMaster";
 import { InputController } from "./input/InputController";
 import { CanvasFallbackRenderer } from "./render/CanvasFallbackRenderer";
 import type {
@@ -58,6 +59,7 @@ async function boot(): Promise<void> {
     hydropowerLoad,
     regionalEnergyLoad,
     energyScreening,
+    statewideLoad,
   ] = await Promise.all([
     loadGridCore(),
     loadTvgwfmGrid(),
@@ -126,6 +128,15 @@ async function boot(): Promise<void> {
             : "Unknown EIA regional energy load error",
       })),
     loadEnergyScreening(),
+    loadStatewideMaster()
+      .then((statewide) => ({ statewide, error: null }))
+      .catch((error: unknown) => ({
+        statewide: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown statewide master load error",
+      })),
   ]);
   if (terrainLoad.error)
     console.error("USGS regional terrain unavailable", terrainLoad.error);
@@ -171,6 +182,7 @@ async function boot(): Promise<void> {
     stress: (): void => store.stress(),
     inspect: (): void => store.openDrawer("evidence"),
     ask: (): void => store.openDrawer("ask"),
+    statewide: (): void => store.openDrawer("statewide"),
   };
 
   const hud = new HudController(
@@ -196,6 +208,8 @@ async function boot(): Promise<void> {
     espamHeadLoad.error,
     energyScreening,
     actions,
+    statewideLoad.statewide,
+    statewideLoad.error,
   );
   hud.connect();
 

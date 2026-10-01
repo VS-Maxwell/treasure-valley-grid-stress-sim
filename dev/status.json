@@ -1,9 +1,9 @@
 {
   "project": "Treasure Valley 4D Earth-State Simulator",
-  "updated_at": "2026-09-15T20:33:30Z",
+  "updated_at": "2026-10-01T19:35:17Z",
   "phase": "Phase 4 - full-plain energy lifecycle inventory",
-  "task": "Restore local cockpit startup using the latest verified offline pack",
-  "state": "passed",
+  "task": "Gate-free public-safe simulator preview",
+  "state": "active",
   "progress_percent": 91,
   "preview_url": "http://127.0.0.1:8001/dist/",
   "machines": [
@@ -648,6 +648,18 @@
       "state": "passed",
       "summary": "Visible cockpit startup restored",
       "detail": "Runtime now loads the verified v14 offline pack while accepting the pending v15 schema only when its manifest exists. Typecheck, lint, 41 TypeScript tests, five Python tests, and production build pass. Firefox reload visibly renders terrain, grid, dams, hydropower, and energy controls in full-screen view. The separate 8 MiB distribution budget failure remains open."
+    },
+    {
+      "at": "2026-10-01T19:34:00Z",
+      "state": "active",
+      "summary": "Remove simulator guest overlay for meeting demo",
+      "detail": "Preserve current 4090 work; compile a public preview without the unreviewed statewide master table, then verify direct scene entry and static build."
+    },
+    {
+      "at": "2026-10-01T19:35:17Z",
+      "state": "active",
+      "summary": "Quarantine unreviewed statewide master from public preview",
+      "detail": "The direct 4090 dev server served an unreviewed Nixie-derived statewide pack. Preserve private source, remove public copy, and keep its UI out of the public static build."
     }
   ]
 }

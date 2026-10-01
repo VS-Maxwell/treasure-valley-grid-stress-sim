@@ -28,7 +28,7 @@ export interface SimulationState {
   readonly year: number;
   readonly playing: boolean;
   readonly compare: boolean;
-  readonly drawer: "closed" | "evidence" | "ask";
+  readonly drawer: "closed" | "evidence" | "ask" | "statewide";
   readonly climateScenario: ClimateScenario;
   readonly energyScenario: EnergyScenario;
   readonly truthState: TruthState;

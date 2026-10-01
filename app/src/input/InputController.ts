@@ -8,6 +8,7 @@ export interface InputActions {
   readonly stress: () => void;
   readonly inspect: () => void;
   readonly ask: () => void;
+  readonly statewide: () => void;
   readonly playTime: () => void;
   readonly close: () => void;
 }
@@ -46,6 +47,7 @@ export class InputController {
     else if (action === "s") this.#actions.stress();
     else if (action === "i") this.#actions.inspect();
     else if (action === "a") this.#actions.ask();
+    else if (action === "m") this.#actions.statewide();
     else if (action === "escape") this.#actions.close();
     else if (event.code === "Space") {
       event.preventDefault();

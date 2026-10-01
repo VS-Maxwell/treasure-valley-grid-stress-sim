@@ -722,3 +722,143 @@ kbd {
     transition-duration: 1ms !important;
   }
 }
+
+/* Statewide Environmental Master Tables Cockpit */
+.drawer.drawer--wide {
+  width: min(880px, calc(100vw - 40px));
+  max-width: 900px;
+}
+
+.statewide-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.statewide-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+}
+
+.sw-stat {
+  background: rgba(9, 30, 48, 0.7);
+  border: 1px solid rgba(109, 220, 255, 0.22);
+  border-radius: 8px;
+  padding: 8px 10px;
+  text-align: center;
+}
+
+.sw-stat-val {
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+  color: #00f0ff;
+  font-family: var(--font-mono, monospace);
+}
+
+.sw-stat-lbl {
+  display: block;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #8fa9ba;
+  margin-top: 2px;
+}
+
+.statewide-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(109, 220, 255, 0.15);
+}
+
+.sw-tab-btn {
+  background: rgba(5, 18, 29, 0.6);
+  border: 1px solid rgba(109, 220, 255, 0.18);
+  border-radius: 6px;
+  color: #8fa9ba;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 6px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.sw-tab-btn:hover {
+  color: #eefaff;
+  border-color: rgba(109, 220, 255, 0.4);
+  background: rgba(13, 40, 60, 0.8);
+}
+
+.sw-tab-btn.active {
+  color: #030b14;
+  background: linear-gradient(135deg, #00f0ff 0%, #0072ff 100%);
+  border-color: #00f0ff;
+  box-shadow: 0 2px 10px rgba(0, 229, 255, 0.3);
+}
+
+.statewide-search {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(3, 10, 18, 0.8);
+  border: 1px solid rgba(109, 220, 255, 0.25);
+  border-radius: 7px;
+  color: #eefaff;
+  font-size: 11px;
+  padding: 8px 12px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.statewide-search:focus {
+  border-color: #00e5ff;
+  box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.2);
+}
+
+.statewide-table-wrap {
+  overflow-x: auto;
+  max-height: 440px;
+  border: 1px solid rgba(109, 220, 255, 0.15);
+  border-radius: 8px;
+  background: rgba(2, 8, 14, 0.6);
+}
+
+.sw-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  text-align: left;
+}
+
+.sw-data-table th {
+  position: sticky;
+  top: 0;
+  background: rgba(10, 28, 44, 0.95);
+  color: #00f0ff;
+  font-weight: 700;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(109, 220, 255, 0.3);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.sw-data-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid rgba(109, 220, 255, 0.08);
+  color: #c5dbe8;
+  white-space: nowrap;
+}
+
+.sw-data-table tr:hover td {
+  background: rgba(0, 229, 255, 0.06);
+  color: #ffffff;
+}

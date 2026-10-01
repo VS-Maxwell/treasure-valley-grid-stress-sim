@@ -22,6 +22,8 @@ import type { EsriGatewayState } from "../services/esriGateway";
 import type { EnergyScenario, SceneId, SimulationState } from "../contracts";
 import type { SimulationStore } from "../simulation/SimulationStore";
 
+import type { StatewideMasterData } from "../data/loadStatewideMaster";
+
 export interface HudActions {
   readonly explore: () => void;
   readonly follow: () => void;
@@ -29,6 +31,7 @@ export interface HudActions {
   readonly stress: () => void;
   readonly inspect: () => void;
   readonly ask: () => void;
+  readonly statewide: () => void;
 }
 
 function required<T extends HTMLElement>(selector: string): T {
@@ -71,6 +74,8 @@ export class HudController {
   readonly #espamHeadLoadError: string | null;
   readonly #energyScreening: EnergyScreeningModel;
   readonly #actions: HudActions;
+  readonly #statewideMaster: StatewideMasterData | null;
+  readonly #statewideError: string | null;
   readonly #app = required<HTMLElement>("#app");
   readonly #loading = required<HTMLElement>("#loading");
   readonly #loadingDetail = required<HTMLElement>("#loading-detail");
@@ -122,6 +127,8 @@ export class HudController {
     espamHeadLoadError: string | null,
     energyScreening: EnergyScreeningModel,
     actions: HudActions,
+    statewideMaster: StatewideMasterData | null = null,
+    statewideError: string | null = null,
   ) {
     this.#store = store;
     this.#grid = grid;
@@ -145,6 +152,8 @@ export class HudController {
     this.#espamHeadLoadError = espamHeadLoadError;
     this.#energyScreening = energyScreening;
     this.#actions = actions;
+    this.#statewideMaster = statewideMaster;
+    this.#statewideError = statewideError;
   }
 
   connect(): void {
@@ -548,7 +557,17 @@ export class HudController {
     const closed = state.drawer === "closed";
     this.#drawer.hidden = closed;
     this.#drawer.setAttribute("aria-hidden", String(closed));
-    if (closed) return;
+    if (closed) {
+      this.#drawer.classList.remove("drawer--wide");
+      return;
+    }
+    if (state.drawer !== "statewide") {
+      this.#drawer.classList.remove("drawer--wide");
+    }
+    if (state.drawer === "statewide") {
+      this.#renderStatewideDrawer();
+      return;
+    }
     if (state.drawer === "ask") {
       this.#drawerEyebrow.textContent = "ASK · OFFLINE BOUNDARY";
       this.#drawerTitle.textContent = "The local guide is not connected yet";
@@ -630,6 +649,19 @@ export class HudController {
       this.#heading("Release boundary"),
       this.#paragraph(
         "RAVEN values, climate futures, and protected archives remain blocked until their own input, authority, reproducibility, and acceptance receipts exist.",
+      ),
+    );
+  }
+
+  #renderStatewideDrawer(): void {
+    this.#drawer.classList.remove("drawer--wide");
+    this.#drawerEyebrow.textContent = "PUBLIC PREVIEW";
+    this.#drawerTitle.textContent = "Statewide tables unavailable";
+    this.#drawerContent.replaceChildren(
+      this.#paragraph(
+        this.#statewideMaster || this.#statewideError
+          ? "Statewide master tables are not cleared for this public preview."
+          : "Statewide master tables are not part of this public preview.",
       ),
     );
   }

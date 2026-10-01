@@ -11,232 +11,6 @@
     <title>Treasure Valley Earth-State Simulator</title>
   </head>
   <body>
-<!-- Institutional Verification Gate -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-
-  <style>
-    @keyframes authFadeIn {
-      from { opacity: 0; transform: scale(0.96) translateY(12px); }
-      to { opacity: 1; transform: scale(1) translateY(0); }
-    }
-    @keyframes pulseGlow {
-      0%, 100% { box-shadow: 0 0 25px rgba(0, 229, 255, 0.25), 0 20px 60px rgba(0, 0, 0, 0.85); }
-      50% { box-shadow: 0 0 45px rgba(0, 229, 255, 0.45), 0 20px 60px rgba(0, 0, 0, 0.95); }
-    }
-    @keyframes badgePulse {
-      0%, 100% { opacity: 0.8; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.05); }
-    }
-    .auth-input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      position: relative;
-    }
-    .auth-input {
-      width: 100%;
-      box-sizing: border-box;
-      background: rgba(10, 22, 38, 0.7);
-      border: 1px solid rgba(109, 220, 255, 0.22);
-      border-radius: 10px;
-      padding: 12px 14px;
-      color: #f0f6fc;
-      font-size: 14px;
-      font-family: inherit;
-      outline: none;
-      transition: all 0.2s ease;
-    }
-    .auth-input:focus {
-      border-color: #00e5ff;
-      background: rgba(14, 30, 50, 0.9);
-      box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.2);
-    }
-    .auth-btn {
-      margin-top: 8px;
-      background: linear-gradient(135deg, #00f0ff 0%, #0072ff 100%);
-      color: #030b14;
-      border: none;
-      border-radius: 10px;
-      padding: 14px;
-      font-weight: 800;
-      font-size: 14px;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 8px 24px rgba(0, 114, 255, 0.35);
-    }
-    .auth-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 32px rgba(0, 229, 255, 0.5);
-      filter: brightness(1.1);
-    }
-    .auth-btn:active {
-      transform: translateY(0);
-    }
-  </style>
-
-  <div id="auth-gate" style="position:fixed;inset:0;z-index:999999;background:radial-gradient(ellipse at 50% 30%, rgba(13, 33, 58, 0.92) 0%, rgba(4, 10, 18, 0.98) 100%);backdrop-filter:blur(32px);display:flex;align-items:center;justify-content:center;padding:24px;font-family:Outfit,-apple-system,sans-serif;">
-    <div style="animation:authFadeIn 0.4s cubic-bezier(0.16,1,0.3,1),pulseGlow 4s infinite ease-in-out;background:linear-gradient(165deg, rgba(16, 32, 54, 0.85) 0%, rgba(7, 16, 28, 0.92) 100%);border:1px solid rgba(109, 220, 255, 0.35);border-radius:20px;padding:36px;max-width:460px;width:100%;box-sizing:border-box;position:relative;overflow:hidden;">
-      
-      <!-- Top neon accent bar -->
-      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg, #00f0ff, #7928ca, #ff007a);"></div>
-
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg, #00e5ff, #0051ff);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#02070e;box-shadow:0 0 16px rgba(0,229,255,0.4);">TV</div>
-          <span style="font-size:11px;letter-spacing:1.8px;color:#6ddcff;font-weight:700;text-transform:uppercase;">Earth-State Simulator</span>
-        </div>
-        <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;color:#00f0ff;">
-          <span style="width:6px;height:6px;border-radius:50%;background:#00f0ff;animation:badgePulse 2s infinite;"></span>
-          RESEARCH ACCESS
-        </span>
-      </div>
-
-      <h1 style="margin:0 0 8px;font-size:24px;font-weight:800;color:#ffffff;letter-spacing:-0.02em;line-height:1.2;">Idaho Water &amp; Energy Nexus</h1>
-      <p style="margin:0 0 24px;font-size:13.5px;color:#94a8bc;line-height:1.5;">Active 4D Earth-State scientific model. Enter your university credentials or seminar passcode to enter.</p>
-
-      <form id="auth-form" onsubmit="event.preventDefault();submitAuth();" style="display:flex;flex-direction:column;gap:16px;">
-        <div class="auth-input-group">
-          <label style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:#cde0f0;">
-            <span>FULL NAME</span>
-            <span style="color:#6ddcff;font-size:11px;">REQUIRED</span>
-          </label>
-          <input type="text" id="auth-name" required placeholder="e.g. Dr. Jane Doe" class="auth-input">
-        </div>
-
-        <div class="auth-input-group">
-          <label style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:#cde0f0;">
-            <span>UNIVERSITY EMAIL</span>
-            <span id="edu-indicator" style="color:#72e5a8;font-size:11px;font-weight:700;display:none;">✓ .EDU VERIFIED</span>
-          </label>
-          <input type="email" id="auth-email" placeholder="name@university.edu" class="auth-input" oninput="onEmailInput(this.value)">
-        </div>
-
-        <div class="auth-input-group">
-          <label style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:#cde0f0;">
-            <span>SEMINAR PASSCODE</span>
-            <span style="color:#8ba2b8;font-size:11px;">FOR GUESTS</span>
-          </label>
-          <input type="text" id="auth-pass" placeholder="Enter passcode if non-.edu" class="auth-input">
-        </div>
-
-        <div id="auth-msg" style="font-size:12.5px;min-height:20px;font-weight:600;display:flex;align-items:center;gap:6px;"></div>
-
-        <button type="submit" class="auth-btn" id="auth-submit-btn">
-          <span>Enter 4D Simulator</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-        </button>
-        <div style="display:flex;justify-content:center;margin-top:10px;">
-          <button type="button" onclick="bypassGate()" style="background:transparent;border:none;color:#6ddcff;font-size:12px;cursor:pointer;text-decoration:underline;opacity:0.85;padding:4px 8px;">
-            Continue as Guest / Enter Directly &rarr;
-          </button>
-        </div>
-      </form>
-
-
-      <div style="margin-top:20px;padding-top:14px;border-top:1px solid rgba(109, 220, 255, 0.12);text-align:center;font-size:11px;color:#8299af;line-height:1.4;">
-        <div>Concepts by <strong style="color:#e9f8ff;">V.S. Maxwell</strong> &amp; <strong style="color:#e9f8ff;">Sai Kothapalli</strong> &bull; Research &amp; Review by <strong style="color:#e9f8ff;">Celena McPeak</strong></div>
-        <div style="margin-top:3px;color:#00e5ff;font-size:10.5px;font-weight:600;">University of Idaho &bull; I-CREWS Project</div>
-      </div>
-
-    </div>
-  </div>
-
-  <script>
-    function checkExistingAuth() {
-      try {
-        const host = window.location.hostname;
-        // Auto-bypass on local compute or LAN (e.g. Madame Butterfly 4090, localhost, tailscale)
-        if (!host || host === "localhost" || host === "127.0.0.1" || host.startsWith("192.168.") || host.startsWith("100.") || host.endsWith(".ts.net") || window.location.search.includes("bypass")) {
-          const g = document.getElementById("auth-gate");
-          if (g) g.style.display = "none";
-          return;
-        }
-        const auth = JSON.parse(localStorage.getItem("tv_earth_state_auth") || "null");
-        if (auth && (auth.edu || auth.isEdu || auth.passcodeValid || auth.authenticated)) {
-          const g = document.getElementById("auth-gate");
-          if (g) g.style.display = "none";
-        }
-      } catch(e){}
-    }
-    checkExistingAuth();
-
-    function bypassGate() {
-      try {
-        localStorage.setItem("tv_earth_state_auth", JSON.stringify({
-          name: "Guest Collaborator",
-          email: "guest@nexus-preview.org",
-          edu: false,
-          isEdu: false,
-          passcodeValid: true,
-          authenticated: true,
-          timestamp: Date.now()
-        }));
-      } catch(e){}
-      const gate = document.getElementById("auth-gate");
-      if (gate) {
-        gate.style.transition = "opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s ease";
-        gate.style.opacity = "0";
-        gate.style.transform = "scale(1.04)";
-        setTimeout(() => gate.style.display = "none", 400);
-      }
-    }
-
-    function onEmailInput(val) {
-      const ind = document.getElementById("edu-indicator");
-      const isEdu = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.edu$/i.test(val.trim());
-      if (ind) {
-        ind.style.display = isEdu ? "inline" : "none";
-      }
-    }
-
-    function submitAuth() {
-      let name = document.getElementById("auth-name").value.trim();
-      let email = document.getElementById("auth-email").value.trim().toLowerCase();
-      let pass = document.getElementById("auth-pass").value.trim();
-      const msg = document.getElementById("auth-msg");
-      const btn = document.getElementById("auth-submit-btn");
-
-      if (!name) name = "Guest Researcher";
-      if (!email) email = "guest@nexus-preview.org";
-      if (!pass) pass = "ESR_Nexus_2026_v.1";
-
-      const isEdu = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.edu$/i.test(email);
-
-      msg.style.color = "#72e5a8";
-      msg.textContent = isEdu ? "✓ Institutional .EDU Access Verified" : "✓ Research Access Granted";
-      btn.style.opacity = "0.7";
-      btn.innerHTML = "<span>Access Granted · Launching...</span>";
-
-      try {
-        localStorage.setItem("tv_earth_state_auth", JSON.stringify({
-          name: name,
-          email: email,
-          edu: isEdu,
-          isEdu: isEdu,
-          passcodeValid: true,
-          authenticated: true,
-          timestamp: Date.now()
-        }));
-      } catch(e){}
-
-      setTimeout(() => {
-        const gate = document.getElementById("auth-gate");
-        if (gate) {
-          gate.style.transition = "opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s ease";
-          gate.style.opacity = "0";
-          gate.style.transform = "scale(1.04)";
-          setTimeout(() => gate.style.display = "none", 400);
-        }
-      }, 400);
-    }
-  </script>
     <main id="app" data-renderer="loading">
       <section
         id="playfield"
@@ -377,12 +151,38 @@
       </p>
       <p id="map-attribution" class="map-attribution" hidden></p>
       <div id="fatal" role="alert" hidden></div>
-    
-  <!-- Authorship Corner Badge -->
-  <div id="authorship-corner" style="position:fixed;bottom:14px;right:16px;z-index:50;background:rgba(6,18,29,0.88);backdrop-filter:blur(14px);border:1px solid rgba(109,220,255,0.25);border-radius:8px;padding:6px 14px;font-size:11px;color:#8ba3b8;font-family:inherit;box-shadow:0 8px 24px rgba(0,0,0,0.6);pointer-events:auto;">
-    <span>Concepts by <strong style="color:#e9f8ff;">V.S. Maxwell</strong> &amp; <strong style="color:#e9f8ff;">Sai Kothapalli</strong> &bull; Research &amp; Review by <strong style="color:#e9f8ff;">Celena McPeak</strong> &bull; <span style="color:#00e5ff;font-weight:600;">University of Idaho &bull; I-CREWS</span></span>
-  </div>
 
+      <!-- Authorship Corner Badge -->
+      <div
+        id="authorship-corner"
+        style="
+          position: fixed;
+          bottom: 14px;
+          right: 16px;
+          z-index: 50;
+          background: rgba(6, 18, 29, 0.88);
+          backdrop-filter: blur(14px);
+          border: 1px solid rgba(109, 220, 255, 0.25);
+          border-radius: 8px;
+          padding: 6px 14px;
+          font-size: 11px;
+          color: #8ba3b8;
+          font-family: inherit;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+          pointer-events: auto;
+        "
+      >
+        <span
+          >Concepts by
+          <strong style="color: #e9f8ff">V.S. Maxwell</strong> &amp;
+          <strong style="color: #e9f8ff">Sai Kothapalli</strong> &bull; Research
+          &amp; Review by
+          <strong style="color: #e9f8ff">Celena McPeak</strong> &bull;
+          <span style="color: #00e5ff; font-weight: 600"
+            >University of Idaho &bull; I-CREWS</span
+          ></span
+        >
+      </div>
     </main>
     <script type="module" src="/src/main.ts"></script>
   </body>
