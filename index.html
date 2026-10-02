@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071827" />
+    <meta name="description" content="Treasure Valley public data preview of observed USGS terrain, modeled groundwater, and EIA energy records." />
+    <title>Treasure Valley · Public Data Preview</title>
+    <script type="module" crossorigin src="./assets/index-Dv_wY-IS.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CZlY6sQu.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand"><span class="mark">TV</span><div><strong>Treasure Valley</strong><small>Earth · water · energy</small></div></div>
+      <span class="badge">PUBLIC DATA DEMO</span>
+    </header>
+    <main class="layout">
+      <section class="scene" aria-label="Interactive three-dimensional USGS terrain">
+        <canvas id="scene" aria-label="Three-dimensional Snake Plain terrain"></canvas>
+        <div class="scene-caption"><strong>USGS 3DEP · Snake Plain</strong><span>Observed elevation · earth-tone height tint, not imagery · 201 × 401 samples · relief exaggerated</span></div>
+      </section>
+      <aside class="panel">
+        <p class="eyebrow">EARTH STATE · SOURCE-LABELED PREVIEW</p>
+        <h1>Explore the measured landscape and published model records</h1>
+        <p class="intro">Select a layer to inspect its source and limits. Drag to orbit the terrain; scroll to zoom.</p>
+        <nav class="layers" aria-label="Data layers">
+          <button type="button" data-layer="terrain" aria-pressed="true">Terrain</button>
+          <button type="button" data-layer="water" aria-pressed="false">Water</button>
+          <button type="button" data-layer="energy" aria-pressed="false">Energy</button>
+        </nav>
+        <section class="readout" aria-live="polite">
+          <span id="truth">OBSERVED</span>
+          <h2 id="readout-title">USGS Snake Plain elevation</h2>
+          <p id="readout-copy">Loading source data…</p>
+          <div class="metric" id="metric"></div>
+        </section>
+        <label class="year-control" for="year">Groundwater model year <strong id="year-label">1986</strong></label>
+        <input id="year" type="range" min="0" max="15" value="0" disabled />
+        <p class="source" id="source"></p>
+      </aside>
+    </main>
+    <footer>
+      <strong>Research preview.</strong> USGS terrain is observed; TVGWFM groundwater is a reproduced historical model; EIA points are reported generator records. These are separate layers, not a coupled or validated forecast.
+      <a href="https://doi.org/10.5066/P9U6OOPH" rel="noreferrer" target="_blank">USGS TVGWFM DOI</a>
+      <a href="./THREE_LICENSE.txt">Three.js MIT license</a>
+      <span class="credits">Concepts by V.S. Maxwell &amp; Sai Kothapalli · Research &amp; Review by Celena McPeak</span>
+    </footer>
+    <div id="error" role="alert" hidden></div>
+  </body>
+</html>

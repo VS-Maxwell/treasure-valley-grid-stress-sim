@@ -1,9 +1,8 @@
-# Build the Vite cockpit and deploy only the compiled dist/ output to Pages.
-name: Deploy Treasure Valley cockpit to Pages
+name: Publish reviewed six-file Pages preview
 
 on:
   push:
-    branches: ["main"]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -12,40 +11,67 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: pages
   cancel-in-progress: false
 
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - name: Verify exact tip and stage public payload
+        run: |
+          python3 - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          import shutil
+          import subprocess
+
+          expected = {
+              "THREE_LICENSE.txt": "8b378ebe60e2fe500158cb0ac71cb5e8b7d92953c2abcc63a0eb90499653b5bc",
+              "index.html": "56137792fead1de515b051314bfa58cdd275967108912936aba48993f9c1a2f6",
+              "assets/eia-regional-energy-f32-v1-DgDmfgIw.bin": "6c3785d65876dc2e15a342dfd710fc64c0e49fd8af6646a2aeac369fcf7e876b",
+              "assets/index-CZlY6sQu.css": "fde221d7aac8aee4fdddafa10d217780b8afcf4f5fa2ec44edcdd77a75c50d8c",
+              "assets/index-Dv_wY-IS.js": "1a72ce525b7de366e07e58befa2e90d5cd7ba7576fdc7405263adf8e8b6c0154",
+              "assets/usgs-3dep-snake-plain-terrain-f32-v4-BHZabRaH.bin": "dfae5691cde8ef59e499aa6c0b6fa454b9663ed934a641b2247ce1caa990635c",
+          }
+          tracked = set(filter(None, subprocess.check_output(
+              ["git", "ls-files", "-z"]).decode().split("\0")))
+          allowed = set(expected) | {".github/workflows/deploy.yml"}
+          if tracked != allowed:
+              raise SystemExit(f"unexpected tracked paths: {sorted(tracked ^ allowed)}")
+          for name, digest in expected.items():
+              path = Path(name)
+              if path.is_symlink() or not path.is_file():
+                  raise SystemExit(f"missing or linked public file: {name}")
+              if sha256(path.read_bytes()).hexdigest() != digest:
+                  raise SystemExit(f"public file hash mismatch: {name}")
+          output = Path("_site")
+          for name in expected:
+              destination = output / name
+              destination.parent.mkdir(parents=True, exist_ok=True)
+              shutil.copyfile(name, destination)
+          staged = {path.relative_to(output).as_posix(): path
+                    for path in output.rglob("*") if path.is_file()}
+          if set(staged) != set(expected):
+              raise SystemExit("staged Pages file set changed")
+          for name, digest in expected.items():
+              if sha256(staged[name].read_bytes()).hexdigest() != digest:
+                  raise SystemExit(f"staged Pages hash mismatch: {name}")
+          print("Verified exactly six public Pages files")
+          PY
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
         with:
-          node-version: "22.12"
-          cache: "npm"
-      - name: Install dependencies
-        run: npm ci
-      - name: Typecheck and build
-        run: npm run build
-      - name: Validate release-only distribution
-        run: npm run validate:dist
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload dist/ artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: "dist"
+          path: _site/
 
   deploy:
-    needs: build
+    if: github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
